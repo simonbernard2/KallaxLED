@@ -6,9 +6,7 @@ if __name__ == "__main__":
     try:
         # strip.transition(0, (0, 0, 0))
         while True:
-            strip.transition(0, (255, 0, 0), 10)
-            strip.transition(0, (0, 0, 100), 20)
-            strip.transition(0, (0, 100, 0), 30)
+            strip.transition([1, 2, 3, 4, 5], (255, 0, 0), 200)
 
     finally:
         strip.turn_off()
