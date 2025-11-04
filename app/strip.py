@@ -3,8 +3,11 @@ import neopixel
 import math
 import time
 from typing import Any
+import numpy as np
+from numpy.typing import NDArray
 
 RGB = tuple[int, int, int]
+Pixels = NDArray[np.int64]
 
 
 class Strip:
@@ -36,6 +39,57 @@ class Strip:
         self, led_index: int, color: RGB, speed_ms: int = 1000
     ) -> None:
         self.transition([led_index], color, speed_ms)
+
+    def bullet(
+        self,
+        indexes_range: range,
+        color: RGB,
+        *,
+        speed_ms: int = 1000,
+        width: int = 2,
+        auto_clear=True,
+    ) -> None:
+        original_state = np.array([self.pixels])
+        roll_direction = -width if indexes_range.start > indexes_range.stop else width
+
+        next_state = np.array([self.pixels])
+        if roll_direction > 0:
+            next_state[
+                :, indexes_range.start : indexes_range.start + roll_direction, :
+            ] = color
+        else:
+            next_state[
+                :, roll_direction + indexes_range.start : indexes_range.start, :
+            ] = color
+
+        states = np.concatenate([np.array([self.pixels]), next_state], axis=0)
+        for _ in indexes_range:
+            next_state = np.roll(next_state, roll_direction, axis=1)
+            states = np.concatenate((states, next_state), axis=0)
+
+        self._apply_states(list(states), speed_ms)
+        if auto_clear:
+            self._apply_states(list(original_state), speed_ms)
+
+    def swipe(self, indexes_range: range, color: RGB, speed_ms: int = 1) -> None:
+        next_state = np.array(self.pixels)
+        next_state[0] = color
+        states = [np.array(self.pixels), next_state]
+        for _ in indexes_range:
+            next_state = np.minimum(np.roll(next_state, 3) + next_state, 255)
+            states.append(next_state)
+
+        self._apply_states(states, speed_ms)
+
+    def _apply_state(self, state: Pixels) -> None:
+        for i in range(len(state)):
+            self.pixels[i] = state[i]
+
+    def _apply_states(self, states: list[Pixels], speed_ms: int) -> None:
+        for state in states:
+            self._apply_state(state)
+            self.pixels.show()
+            time.sleep(speed_ms / 1000 / len(states))
 
     def _apply_step_to_led(self, led_index: int, fade: tuple, color: RGB) -> None:
         fade_r, fade_g, fade_b = fade
