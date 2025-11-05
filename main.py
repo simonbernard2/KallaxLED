@@ -1,5 +1,4 @@
 from app.strip import Strip
-import time
 
 if __name__ == "__main__":
     strip = Strip.default()

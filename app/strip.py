@@ -1,8 +1,12 @@
-import board
-import neopixel
+from __future__ import annotations
+
 import math
 import time
+from collections.abc import Callable
 from typing import Any
+
+import board
+import neopixel
 import numpy as np
 from numpy.typing import NDArray
 
@@ -10,13 +14,37 @@ RGB = tuple[int, int, int]
 Pixels = NDArray[np.int64]
 
 
-class Strip:
-    def __init__(self, g_pid, number_of_leds: int, auto_write=False) -> None:
-        self.pixels = neopixel.NeoPixel(g_pid, number_of_leds, auto_write=auto_write)
+PixelFactory = Callable[..., Any]
 
-    @staticmethod
-    def default() -> "Strip":
-        return Strip(board.D18, 150)
+
+class Strip:
+    """Facade over a NeoPixel strip with helpers for common bookshelf animations."""
+
+    def __init__(
+        self,
+        g_pid,
+        number_of_leds: int,
+        auto_write: bool = False,
+        *,
+        pixel_factory: PixelFactory | None = None,
+    ) -> None:
+        factory = pixel_factory or neopixel.NeoPixel
+        self.pixels = factory(g_pid, number_of_leds, auto_write=auto_write)
+
+    @classmethod
+    def default(
+        cls,
+        *,
+        number_of_leds: int = 150,
+        auto_write: bool = False,
+        pixel_factory: PixelFactory | None = None,
+    ) -> "Strip":
+        return cls(
+            board.D18,
+            number_of_leds,
+            auto_write=auto_write,
+            pixel_factory=pixel_factory,
+        )
 
     def turn_off(self) -> None:
         self.pixels.fill((0, 0, 0))
@@ -125,4 +153,5 @@ class Strip:
             return (math.floor(step), max)
 
     def _transition_completed(self, led_indexes: list[int], color: RGB) -> bool:
-        return all((self.pixels[i] == list(color) for i in led_indexes))
+        target = tuple(color)
+        return all(tuple(self.pixels[i]) == target for i in led_indexes)
