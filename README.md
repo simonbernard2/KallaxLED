@@ -44,7 +44,7 @@ npm run build
 
 ## TODO
 
-- [ ] Create a color picker
+- [x] Create a color picker
 - [ ] Update boxes to support color changes and brightness per cell
 - [ ] Fetch live grid data from the Raspberry Pi Python API that controls the LED strip
 - [ ] Push changes from the UI back to the API, with optimistic updates and error handling
