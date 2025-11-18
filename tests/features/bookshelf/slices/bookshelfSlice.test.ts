@@ -6,7 +6,7 @@ describe("bookshelfSlice", () => {
     const state = bookshelfReducer(undefined, { type: "unknown" });
 
     expect(state.width).toBe(3);
-    expect(state.numberOfBoxes).toBe(9);
+    expect(state.height).toBe(3);
     expect(state.boxes).toHaveLength(9);
     expect(state.boxes[0]).toEqual({
       id: 0,

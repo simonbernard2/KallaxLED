@@ -11,5 +11,6 @@ export interface BoxType {
 
 export interface GridType {
   width: number
+  height: number
   boxes: BoxType[]
 }

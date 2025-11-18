@@ -1,8 +1,8 @@
-import { createSlice } from "@reduxjs/toolkit";
-import type { RGB } from "../types/bookshelfTypes";
+import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
+import type { RGB, GridType } from "../types/bookshelfTypes";
 
 const DefaultGridWidth = 3
-const DefaultBoxCount = 9
+const DefaultGridHeight = 3
 const DefaultRGBValue: RGB = {
   red: 120,
   green: 120,
@@ -13,16 +13,31 @@ const createBoxes = (number: number) =>
     id: idx,
     rgb: DefaultRGBValue
   }))
+
 const initialState = {
   width: DefaultGridWidth,
-  numberOfBoxes: DefaultBoxCount,
-  boxes: createBoxes(DefaultBoxCount)
+  height: DefaultGridHeight,
+  boxes: createBoxes(DefaultGridWidth * DefaultGridHeight)
 }
 
 export const bookshelfSlice = createSlice({
   name: "bookshelf",
   initialState,
-  reducers: {},
+  reducers: {
+    updateGridDimensions: (state: GridType, action: PayloadAction<{ width: number, height: number }>) => {
+      state.width = action.payload.width;
+      state.height = action.payload.height;
+      const boxCount = action.payload.width * action.payload.height
+      const resizedBoxes = state.boxes.slice(0, boxCount);
+      if (resizedBoxes.length < boxCount) {
+        for (let idx = resizedBoxes.length; idx < boxCount; idx++) {
+          resizedBoxes.push({ id: idx, rgb: { ...DefaultRGBValue } })
+        }
+      }
+      state.boxes = resizedBoxes;
+    }
+  },
 })
 
-export default bookshelfSlice.reducer
+export const { updateGridDimensions } = bookshelfSlice.actions;
+export default bookshelfSlice.reducer;
