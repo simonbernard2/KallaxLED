@@ -12,6 +12,7 @@ import "./app.css";
 
 import { store } from "./store";
 import { Provider } from 'react-redux'
+import NavBar from "./features/navbar/navbar";
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -37,6 +38,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </head>
       <body>
         <Provider store={store}>
+          <NavBar />
           {children}
         </Provider>
         <ScrollRestoration />
