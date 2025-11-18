@@ -1,9 +1,11 @@
 import { configureStore } from "@reduxjs/toolkit";
 import bookshelfReducer from './features/bookshelf/slices/bookshelfSlice'
+import colorPickerReducer from './features/colorPicker/slices/colorPickerSlice'
 
 export const store = configureStore({
   reducer: {
-    bookshelf: bookshelfReducer
+    bookshelf: bookshelfReducer,
+    colorpicker: colorPickerReducer,
   },
 })
 

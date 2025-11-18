@@ -1,5 +1,5 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
-import type { RGB, GridType } from "../types/bookshelfTypes";
+import type { RGB, GridType, BoxType } from "../types/bookshelfTypes";
 
 const DefaultGridWidth = 3
 const DefaultGridHeight = 3
@@ -35,9 +35,12 @@ export const bookshelfSlice = createSlice({
         }
       }
       state.boxes = resizedBoxes;
-    }
+    },
+    mutateBoxColor: (state: GridType, action: PayloadAction<BoxType>) => {
+      state.boxes[action.payload.id] = { id: action.payload.id, rgb: { ...action.payload.rgb } }
+    },
   },
 })
 
-export const { updateGridDimensions } = bookshelfSlice.actions;
+export const { updateGridDimensions, mutateBoxColor } = bookshelfSlice.actions;
 export default bookshelfSlice.reducer;

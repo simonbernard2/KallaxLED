@@ -1,18 +1,33 @@
-import { rgbToCSS } from "~/utils/utils";
+import { rgbToCSS, isTurnedOff } from "~/utils/utils";
 import type { BoxType } from "../types/bookshelfTypes";
+import { useDispatch, useSelector } from "react-redux";
+import type { RootState } from "~/store";
+import { useState } from "react";
+import { mutateBoxColor } from "../slices/bookshelfSlice";
 
 const Box = (props: BoxType) => {
-  let backgroundColor = rgbToCSS(props.rgb)
-  const { red, green, blue } = props.rgb
+  const dispatch = useDispatch();
+  const color = isTurnedOff(props.rgb) ? 'transparent' : rgbToCSS(props.rgb)
+  const [backgroundColor, setBackgroundColor] = useState(color)
+  const { selectedColor } = useSelector((state: RootState) => state.colorpicker)
+
   let className = "flex h-32 w-32 p-2 border-2"
-  const isOff = [red, green, blue].every(value => value === 0)
-  if (isOff) {
-    className += " border-dashed"
-    backgroundColor = 'transparent'
+  if (isTurnedOff(props.rgb)) className += " border-dashed "
+  if (selectedColor) className += " cursor-pointer "
+
+  const handleOnClick = () => {
+    if (!selectedColor) return
+
+    const box: BoxType = {
+      id: props.id,
+      rgb: selectedColor.rgb
+    }
+    setBackgroundColor(rgbToCSS(selectedColor.rgb))
+    dispatch(mutateBoxColor(box))
   }
   return (
-    <div className={className} style={{ backgroundColor: backgroundColor }}>
-      {isOff && <span>OFF</span>}
+    <div onClick={handleOnClick} className={className} style={{ backgroundColor: backgroundColor }}>
+      {isTurnedOff(props.rgb) && <span>OFF</span>}
     </div>
   )
 }
