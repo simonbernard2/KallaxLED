@@ -1,87 +1,55 @@
-# Welcome to React Router!
+# LEDControl
 
-A modern, production-ready template for building full-stack React applications using React Router.
+LEDControl is a React Router + Redux application for visualizing and configuring an LED bookshelf grid,
+backed by a Python API on a Raspberry Pi that drives the physical LED strip. It provides a simple dashboard where you can:
 
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/remix-run/react-router-templates/tree/main/default)
-
-## Features
-
-- 🚀 Server-side rendering
-- ⚡️ Hot Module Replacement (HMR)
-- 📦 Asset bundling and optimization
-- 🔄 Data loading and mutations
-- 🔒 TypeScript by default
-- 🎉 TailwindCSS for styling
-- 📖 [React Router docs](https://reactrouter.com/)
+- View the current LED grid with a clear OFF state for unlit boxes
+- Resize the grid (1–7 columns/rows) and persist the new dimensions
+- Navigate between the bookshelf view and the configuration page via a global navbar
+- Work with familiar tooling: Vite dev server, TypeScript, Tailwind, and Vitest + Testing Library
 
 ## Getting Started
 
-### Installation
-
-Install the dependencies:
+Install dependencies:
 
 ```bash
 npm install
 ```
 
-### Development
-
-Start the development server with HMR:
+Start the development server:
 
 ```bash
 npm run dev
 ```
 
-Your application will be available at `http://localhost:5173`.
+Run the test suite:
 
-## Building for Production
+```bash
+npm run test
+```
 
-Create a production build:
+Build for production:
 
 ```bash
 npm run build
 ```
 
-## Deployment
+## Project Structure
 
-### Docker Deployment
+- `app/routes/home.tsx` – landing page and shell
+- `app/routes/bookshelf.tsx` – renders the LED bookshelf grid
+- `app/routes/config.tsx` – form to configure grid dimensions with validation
+- `app/features/bookshelf` – Redux slice, grid/box components, and shared types
+- `tests/` – Vitest coverage for the grid, boxes, slice logic, and utilities
 
-To build and run using Docker:
+## TODO
 
-```bash
-docker build -t my-app .
-
-# Run the container
-docker run -p 3000:3000 my-app
-```
-
-The containerized application can be deployed to any platform that supports Docker, including:
-
-- AWS ECS
-- Google Cloud Run
-- Azure Container Apps
-- Digital Ocean App Platform
-- Fly.io
-- Railway
-
-### DIY Deployment
-
-If you're familiar with deploying Node applications, the built-in app server is production-ready.
-
-Make sure to deploy the output of `npm run build`
-
-```
-├── package.json
-├── package-lock.json (or pnpm-lock.yaml, or bun.lockb)
-├── build/
-│   ├── client/    # Static assets
-│   └── server/    # Server-side code
-```
-
-## Styling
-
-This template comes with [Tailwind CSS](https://tailwindcss.com/) already configured for a simple default starting experience. You can use whatever CSS framework you prefer.
-
----
-
-Built with ❤️ using React Router.
+- [ ] Create a color picker
+- [ ] Update boxes to support color changes and brightness per cell
+- [ ] Fetch live grid data from the Raspberry Pi Python API that controls the LED strip
+- [ ] Push changes from the UI back to the API, with optimistic updates and error handling
+- [ ] Add presets (patterns/scenes) and quick-apply buttons
+- [ ] Enable live preview over WebSockets so grids update without page refresh
+- [ ] Persist grid settings locally and add basic auth before sending updates to the Pi
+- [ ] Expand integration tests to cover API interactions and real-time updates
+- [ ] Give a bit of love to the UI/UX
