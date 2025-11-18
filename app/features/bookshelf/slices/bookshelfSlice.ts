@@ -4,9 +4,9 @@ import type { RGB, GridType } from "../types/bookshelfTypes";
 const DefaultGridWidth = 3
 const DefaultGridHeight = 3
 const DefaultRGBValue: RGB = {
-  red: 120,
-  green: 120,
-  blue: 120
+  red: 0,
+  green: 0,
+  blue: 0
 }
 const createBoxes = (number: number) =>
   Array.from({ length: number }, (_, idx) => ({
