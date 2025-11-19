@@ -9,6 +9,8 @@ import board
 import neopixel
 import numpy as np
 from numpy.typing import NDArray
+from app.grid import RGBType, BoxType
+
 
 RGB = tuple[int, int, int]
 Pixels = NDArray[np.int64]
@@ -49,6 +51,15 @@ class Strip:
     def turn_off(self) -> None:
         self.pixels.fill((0, 0, 0))
         self.pixels.show()
+
+    def leds(self) -> list[BoxType]:
+        boxes = []
+        for i in range(len(self.pixels)):
+            pixel = self.pixels[i]
+            rgb = RGBType(red=pixel[0], green=pixel[1], blue=pixel[2])
+            box = BoxType(id=i, rgb=rgb)
+            boxes.append(box)
+        return boxes
 
     def transition(
         self, led_indexes: list[int], color: RGB, speed_ms: int = 1000

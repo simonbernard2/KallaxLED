@@ -176,6 +176,7 @@ dependencies = [
     { name = "numpy", version = "2.0.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10'" },
     { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version == '3.10.*'" },
     { name = "numpy", version = "2.3.4", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
+    { name = "pydantic" },
     { name = "ruff" },
 ]
 
@@ -193,6 +194,7 @@ requires-dist = [
     { name = "adafruit-circuitpython-neopixel", specifier = ">=6.3.18" },
     { name = "fastapi", extras = ["standard"], specifier = ">=0.121.3" },
     { name = "numpy", specifier = ">=2.0.2" },
+    { name = "pydantic", specifier = ">=2.12.4" },
     { name = "pytest", marker = "extra == 'test'", specifier = ">=8.2.0" },
     { name = "rpi-gpio", marker = "extra == 'pi'", specifier = ">=0.7.1" },
     { name = "rpi-ws281x", marker = "extra == 'pi'", specifier = ">=5.0.0" },
