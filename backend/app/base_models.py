@@ -7,15 +7,19 @@ class RGBType(BaseModel):
     blue: int
 
 
-class BoxType(BaseModel):
+class LEDType(BaseModel):
     id: int
     rgb: RGBType
 
 
+class BoxType(BaseModel):
+    id: int
+    led_ids: list[int]
+    rgb: RGBType
+
+
 class GridType(BaseModel):
-    height: int
-    width: int
-    boxes: list[BoxType]
+    boxes: list[list[BoxType]]
 
 
 class ConfigType(BaseModel):
