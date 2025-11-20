@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.grid import GridType
+from app.grid import GridType, BoxType
 
 from app.strip import Strip
 
@@ -48,3 +48,15 @@ async def update_leds(data: GridType):
     global grid
     grid = data
     return data
+
+
+@app.put("/update_led/{box_id}", response_model=GridType)
+async def update_led(box_id: int, box: BoxType):
+    for item in grid.boxes:
+        if item.id == box_id:
+            rgb = box.rgb
+
+            item.rgb = box.rgb
+            strip.pixels[item.id] = (rgb.red, rgb.green, rgb.blue)
+            strip.pixels.show()
+    return grid
