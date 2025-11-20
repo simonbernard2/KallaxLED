@@ -18,11 +18,6 @@ class GridType(BaseModel):
     boxes: list[BoxType]
 
 
-class Grid:
-    def __init__(self, *, width: int, height: int, boxes: list[BoxType]) -> None:
-        self.width = width
-        self.height = height
-        self.boxes = boxes
-
-
-colors = RGBType(red=0, green=0, blue=0)
+class ConfigType(BaseModel):
+    height: int
+    width: int

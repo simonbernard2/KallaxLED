@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.grid import GridType, BoxType
+from app.grid import GridType, BoxType, ConfigType
 
 from app.strip import Strip
 
@@ -14,7 +14,8 @@ app.add_middleware(
     allow_headers=["*"],  # Allow all headers
 )
 strip = Strip.default(number_of_leds=5)
-grid = GridType(height=1, width=5, boxes=strip.leds())
+leds = strip.leds()
+grid = GridType(height=1, width=5, boxes=leds)
 
 
 @app.get("/")
@@ -24,8 +25,7 @@ async def root():
 
 @app.get("/status")
 async def status() -> GridType:
-    status = GridType(height=1, width=5, boxes=strip.leds())
-    return status
+    return grid
 
 
 @app.get("/turn_off")
@@ -47,7 +47,7 @@ async def update_leds(data: GridType):
 
     global grid
     grid = data
-    return data
+    return grid
 
 
 @app.put("/update_led/{box_id}", response_model=GridType)
@@ -59,4 +59,17 @@ async def update_led(box_id: int, box: BoxType):
             item.rgb = box.rgb
             strip.pixels[item.id] = (rgb.red, rgb.green, rgb.blue)
             strip.pixels.show()
+    return grid
+
+
+@app.post("/update_config", response_model=GridType)
+async def update_config(config: ConfigType):
+    global strip
+    strip = Strip.default(number_of_leds=(config.width * config.height))
+
+    global grid
+    grid.width = config.width
+    grid.height = config.height
+    grid.boxes = strip.leds()
+
     return grid
