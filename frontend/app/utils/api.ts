@@ -1,6 +1,8 @@
-export interface LED {
-  id: number
+export interface Color {
   rgb: [number, number, number]
+}
+export interface LED extends Color {
+  id: number
 }
 
 export interface Box {
