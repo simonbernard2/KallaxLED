@@ -1,14 +1,6 @@
 from pydantic import BaseModel
 from typing import Optional
-
-
-class Color(BaseModel):
-    rgb: tuple[int, int, int]
-
-
-class LED(BaseModel):
-    id: int
-    rgb: tuple[int, int, int]
+from app.strips.models import LED
 
 
 class Box(BaseModel):
