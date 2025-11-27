@@ -1,27 +1,22 @@
 from pydantic import BaseModel
+from typing import Optional
 
 
-class RGBType(BaseModel):
-    red: int
-    green: int
-    blue: int
+class Color(BaseModel):
+    rgb: tuple[int, int, int]
 
 
-class LEDType(BaseModel):
+class LED(BaseModel):
     id: int
-    rgb: RGBType
+    rgb: tuple[int, int, int]
 
 
-class BoxType(BaseModel):
-    id: int
-    led_ids: list[int]
-    rgb: RGBType
+class Box(BaseModel):
+    leds: list[LED]
 
 
-class GridType(BaseModel):
-    boxes: list[list[BoxType]]
+class Grid(BaseModel):
+    id: Optional[str] = None
+    name: str
+    boxes: list[list[Box]]
 
-
-class ConfigType(BaseModel):
-    height: int
-    width: int
