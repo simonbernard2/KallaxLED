@@ -3,6 +3,7 @@ import neopixel
 from app.base_models import LED, Color
 
 
+
 class Strip:
     """Facade over a NeoPixel strip with helpers for common bookshelf animations."""
 
