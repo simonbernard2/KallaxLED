@@ -1,6 +1,6 @@
 import board
 import neopixel
-from app.base_models import LED, Color
+from app.strips.models import LED, Color
 
 
 
