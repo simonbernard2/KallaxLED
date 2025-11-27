@@ -1,23 +1,18 @@
-import { Suspense } from "react"
-import { Await, useLoaderData } from "react-router"
+import useAxios from "axios-hooks"
 import BookshelfList from "~/features/config/BookshelfList"
+import CreateGrid from "~/grids/create"
 
-
-export async function loader() {
-  const res = await fetch("http://192.168.17.39:5000/grids")
-  const data = await res.json()
-  return data
-}
 
 const Config = () => {
-  const data = useLoaderData()
+  const [
+    { data: grids, loading, error }
+  ] = useAxios("/grids");
 
   return (
-    <Suspense>
-      <Await resolve={data}>
-        <BookshelfList list={data} />
-      </Await>
-    </Suspense>
+    <>
+      <CreateGrid />
+      {grids && <BookshelfList list={grids} />}
+    </>
   )
 }
 

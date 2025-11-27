@@ -5,6 +5,8 @@ const NavBar = () => {
     { "path": "/", "name": "Home" },
     { "path": "/bookshelf", "name": "Bookshelf" },
     { "path": "/config", "name": "Config" },
+    { "path": "/grids", "name": "Grids" },
+
   ]
 
   return (
@@ -15,7 +17,6 @@ const NavBar = () => {
       items-center 
       h-24 
       mx-auto 
-      px-4 
       text-white 
       gap-2 
       mb-10">
