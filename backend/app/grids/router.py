@@ -36,3 +36,12 @@ async def get_grid(grid_id: str, grid_repo: deps.GridsRepoDep) -> models.Grid:
         raise Exception("grid not found")
 
     return grid
+
+
+@router.delete("/grids/{grid_id}")
+async def delete_grid(grid_id: str, grid_repo: deps.GridsRepoDep) -> models.Grid:
+    grid = grid_repo.delete_grid(grid_id)
+    if grid is None:
+        raise Exception("grid not found")
+
+    return grid

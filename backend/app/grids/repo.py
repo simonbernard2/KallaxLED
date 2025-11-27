@@ -24,6 +24,15 @@ class GridFileRepo:
 
         return models.Grid.model_validate(self.grids[grid_id])
 
+    def delete_grid(self, grid_id: str) -> Optional[models.Grid]:
+        grid = self.get_grid_by_id(grid_id)
+        if grid is None:
+            return None
+
+        self.grids.pop(grid_id)
+        self.__update_db_file()
+        return grid
+
     def create_grid(self, grid: models.Grid) -> models.Grid:
         if grid.id is not None:
             raise Exception("can't create a grid with an existing id")
@@ -43,4 +52,7 @@ class GridFileRepo:
 
     def __save_to_db(self, grid) -> None:
         self.grids[grid.id] = grid.model_dump()
+        self.__update_db_file()
+
+    def __update_db_file(self) -> None:
         self.db_file.write_text(json.dumps(self.grids))
