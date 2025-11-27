@@ -1,7 +1,6 @@
-import type { RGB } from "~/features/bookshelf/types/bookshelfTypes";
 
 // to apply CSS from a RGB interface
-export const rgbToCSS = (rgb: RGB): string => `rgb(${rgb.red},${rgb.green},${rgb.blue})`
+export const rgbToCSS = (rgb: [number, number, number]): string => `rgb(${rgb[0]},${rgb[1]},${rgb[2]})`
 
-export const isTurnedOff = (rgb: RGB): boolean => [rgb.red, rgb.green, rgb.blue].every(value => value === 0)
+export const isTurnedOff = (rgb: [number, number, number]): boolean => (rgb.every((v) => v === 0))
 

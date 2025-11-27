@@ -1,9 +1,9 @@
-interface LED {
+export interface LED {
   id: number
   rgb: [number, number, number]
 }
 
-interface Box {
+export interface Box {
   leds: LED[]
 }
 

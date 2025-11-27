@@ -49,7 +49,7 @@ const CreateGrid = () => {
           className="bg-gray-800 p-1.5 text-base text-white placeholder:text-gray-500 focus:outline-none sm:text-sm/6"
         />
         <label htmlFor="gridWidth" className="font-medium text-white">
-          Number of rows
+          Number of boxes horizontally
         </label>
         <input
           id="gridWidth"
@@ -63,7 +63,7 @@ const CreateGrid = () => {
         />
 
         <label htmlFor="gridHeight" className="font-medium text-white">
-          Number of columns
+          Number of boxes vertically
         </label>
         <input
           id="gridHeight"

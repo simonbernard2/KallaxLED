@@ -1,6 +1,7 @@
 import useAxios from "axios-hooks";
 import { Navigate, useParams } from "react-router"
 import type { Grid } from "~/utils/api";
+import GridComponent from "~/grids/components/grid";
 
 const UpdateGrid = () => {
   const { gridId } = useParams();
@@ -32,10 +33,11 @@ const UpdateGrid = () => {
     return <Navigate to="/grids" />
   }
   return (
-    <>
+    <div className="flex flex-col items-center">
       <div>{data.name}</div>
+      <GridComponent grid={data} />
       <button onClick={handleDelete} className="bg-red-600 px-4 py-2 rounded cursor-pointer">delete grid</button>
-    </>
+    </div>
 
   )
 }

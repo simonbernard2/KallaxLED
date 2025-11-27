@@ -3,10 +3,7 @@ import { NavLink } from "react-router";
 const NavBar = () => {
   const menuItems = [
     { "path": "/", "name": "Home" },
-    { "path": "/bookshelf", "name": "Bookshelf" },
-    { "path": "/config", "name": "Config" },
     { "path": "/grids", "name": "Grids" },
-
   ]
 
   return (

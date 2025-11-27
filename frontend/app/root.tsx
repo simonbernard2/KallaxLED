@@ -10,13 +10,14 @@ import {
 import type { Route } from "./+types/root";
 import "./app.css";
 
-import { store } from "./store";
-import { Provider } from 'react-redux'
-import NavBar from "./features/navbar/navbar";
+import NavBar from "./utils/components/navbar/navbar";
 
 import axios from "axios";
-axios.defaults.baseURL = "http://192.168.17.39:5000/api"
-
+import { configure as axiosConfigure } from "axios-hooks";
+const axiosInstance = axios.create({
+  baseURL: "http://192.168.17.39:5000/api",
+})
+axiosConfigure({ axios: axiosInstance, cache: false })
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
   {
@@ -40,10 +41,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Links />
       </head>
       <body>
-        <Provider store={store}>
-          <NavBar />
-          {children}
-        </Provider>
+        <NavBar />
+        {children}
         <ScrollRestoration />
         <Scripts />
       </body>

@@ -10,10 +10,10 @@ const Home = () => {
   return (
     <>
       <Link to="create">
-        <button>Create Grid</button>
+        <button className="bg-green-800 py-2 px-4 rounded cursor-pointer">Create Grid</button>
       </Link>
       {grids!.map((grid) => (
-        <div>
+        <div key={grid.id}>
           <Link to={`${grid.id}/update`}>
             {grid.name}
           </Link>
