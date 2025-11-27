@@ -14,6 +14,9 @@ import { store } from "./store";
 import { Provider } from 'react-redux'
 import NavBar from "./features/navbar/navbar";
 
+import axios from "axios";
+axios.defaults.baseURL = "http://192.168.17.39:5000/api"
+
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
   {
