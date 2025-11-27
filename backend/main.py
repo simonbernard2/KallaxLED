@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.grid import GridType, BoxType, ConfigType
+from app.base_models import GridType, BoxType, ConfigType, LEDType
 
 from app.strip import Strip
 
@@ -13,9 +13,17 @@ app.add_middleware(
     allow_methods=["*"],  # Allow all methods (GET, POST, PUT, DELETE, etc)
     allow_headers=["*"],  # Allow all headers
 )
-strip = Strip.default(number_of_leds=5)
+
+
+strip = Strip.default(number_of_leds=10)
 leds = strip.leds()
-grid = GridType(height=1, width=5, boxes=leds)
+boxes = []
+for led in leds:
+    boxes.append(
+        BoxType(id=led.id, rgb=led.rgb, leds=[LEDType(id=led.id, rgb=led.rgb)])
+    )
+
+grid = GridType(boxes=[boxes])
 
 
 @app.get("/")
