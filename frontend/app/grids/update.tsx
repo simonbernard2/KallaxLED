@@ -1,5 +1,5 @@
 import useAxios from "axios-hooks";
-import { Navigate, useParams } from "react-router"
+import { Navigate, useNavigate, useParams } from "react-router"
 import type { Grid, LED, Color } from "~/utils/api";
 import GridComponent from "~/grids/components/grid";
 import { useState } from "react";
@@ -85,6 +85,7 @@ const UpdateGrid = () => {
   const { gridId } = useParams();
   const [{ data, loading, error }] = useAxios(`/grids/${gridId}`);
   const [assignLEDs, setAssignLEDs] = useState(false)
+  const navigate = useNavigate()
   const [{ data: deleteData, loading: deleteLoading, error: deleteError },
     deleteGrid
   ] = useAxios<Grid>(
@@ -103,17 +104,17 @@ const UpdateGrid = () => {
     })
   }
 
-  const handleSave = () => null
+  const handleSave = () => {
+    navigate(`/grids/${gridId}`)
+  }
 
   const handleAssignLEDs = () => {
     setAssignLEDs(assignLEDs => !assignLEDs)
   }
 
-  if (loading || error || deleteLoading || deleteError) {
-    return (
-      <div>Loading</div>
-    )
-  }
+  if (error || deleteError) return (<div>Error</div>)
+  if (loading || deleteLoading) return
+
   if (deleteData) {
     return <Navigate to="/grids" />
   }

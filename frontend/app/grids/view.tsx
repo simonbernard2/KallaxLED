@@ -1,5 +1,5 @@
 import useAxios from "axios-hooks";
-import { useParams } from "react-router"
+import { Link, useParams } from "react-router"
 import type { Grid } from "~/utils/api";
 import GridComponent from "~/grids/components/grid";
 import { useEffect, useState } from "react";
@@ -47,15 +47,17 @@ const ViewGrid = () => {
     setGrid(gridData)
   }, [gridData, handleColorSelect])
 
-  if (loading || error) {
-    return (
-      <div>Loading</div>
-    )
-  }
+  if (error) return (<div>Error Loading Grid</div>)
+
+  if (loading) return
 
   return (
     <div className="flex flex-col items-center gap-4">
-      <div>{gridData.name}</div>
+      <div className="flex gap-4 items-center">
+        <h1 className="text-lg">{gridData.name}</h1>
+        <Link to="update">
+          <button className="bg-gray-600 text-white px-2 py-1 rounded">Edit</button>
+        </Link></div>
       <>
         <GridComponent grid={gridData} onClick={handleUpdateGrid} />
         <ColorPicker onClick={handleColorSelect} />

@@ -14,7 +14,7 @@ const Home = () => {
       </Link>
       {grids!.map((grid) => (
         <div key={grid.id}>
-          <Link to={`${grid.id}/update`}>
+          <Link to={`${grid.id}`}>
             {grid.name}
           </Link>
         </div>
