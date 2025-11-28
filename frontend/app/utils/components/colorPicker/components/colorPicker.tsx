@@ -1,24 +1,27 @@
 import { useState } from "react"
 import { colors } from "../colorSwatches"
 import ColorSwatch from "./colorSwatch"
-import { useSelector, useDispatch } from "react-redux"
-import type { RootState } from "~/store";
-import { updateSelection } from "../slices/colorPickerSlice"
 import type { ColorSwatchType } from "../types/colorPickerTypes";
 
-const ColorPicker = () => {
-  const state = useSelector((state: RootState) => state.colorpicker)
-  const dispatch = useDispatch();
-  const [selected, setSelected] = useState<ColorSwatchType | undefined>(state.selectedColor)
+interface Props {
+  onClick: (selected: ColorSwatchType) => void
+}
+const ColorPicker = (props: Props) => {
+  const [selected, setSelected] = useState<ColorSwatchType>({
+    "id": 18,
+    "rgb": {
+      "red": 0,
+      "green": 0,
+      "blue": 0
+    },
+    "name": "off"
+  })
   const handleSelect = (swatch: ColorSwatchType) => {
-    if (swatch.id === selected?.id) {
-      dispatch(updateSelection({ selectedColor: undefined }))
-      setSelected(undefined)
-    } else {
-      dispatch(updateSelection({ selectedColor: swatch }))
-      setSelected(swatch)
-    }
+    if (!swatch) { return }
+    setSelected(swatch)
+    props.onClick(swatch)
   }
+
   const isSelected = (id: number) => (id === selected?.id)
   return (
     <div className="grid grid-cols-6 gap-2 bg-slate-500 p-6 rounded-lg">

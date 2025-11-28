@@ -24,3 +24,19 @@ export const createBoxes = (rows: number, cols: number): Box[][] => {
   return boxes
 }
 
+export const addLEDtoBox = (led: LED, box: Box): Box => {
+  if (box.leds.some((l) => l.id === led.id)) {
+    return box
+  }
+
+  const newBox = { ...box }
+  newBox.leds.push(led)
+  return newBox
+}
+
+export const setBoxLEDsRGB = (box: Box, color: Color): Box => {
+  box.leds.forEach((_, index) => {
+    box.leds[index].rgb = color.rgb
+  })
+  return box
+}

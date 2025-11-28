@@ -1,7 +1,7 @@
-import { useState, type FormEventHandler, type FormHTMLAttributes } from "react"
+import { useState, type FormEventHandler } from "react"
 import useAxios from "axios-hooks"
 import { Navigate } from "react-router"
-import { type Grid, createBoxes } from "~/utils/api"
+import { type Grid, createBoxes } from "../utils/api"
 
 const CreateGrid = () => {
   const [gridWidth, setGridWitdh] = useState(1)
@@ -11,7 +11,7 @@ const CreateGrid = () => {
 
 
   const [
-    { data: createGridData, loading, error },
+    { data: createGridData },
     createGrid
   ] = useAxios<Grid, Grid>(
     {
@@ -26,7 +26,7 @@ const CreateGrid = () => {
     createGrid({
       data: {
         name: gridName,
-        boxes: createBoxes(gridHeight, gridWidth)
+        boxes: createBoxes(gridWidth, gridHeight)
       }
     })
   }
