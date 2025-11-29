@@ -14,6 +14,7 @@ import NavBar from "./utils/components/navbar/navbar";
 
 import axios from "axios";
 import { configure as axiosConfigure } from "axios-hooks";
+import Page from "./utils/components/page/page";
 const axiosInstance = axios.create({
   baseURL: "http://192.168.17.39:5000/api",
 })
@@ -42,7 +43,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </head>
       <body>
         <NavBar />
-        {children}
+        <Page>
+          {children}
+        </Page>
         <ScrollRestoration />
         <Scripts />
       </body>

@@ -7,7 +7,7 @@
 
 html,
 body {
-  @apply bg-white dark:bg-gray-950;
+  @apply bg-gray-200 dark:bg-neutral-900 flex flex-col items-center;
 
   @media (prefers-color-scheme: dark) {
     color-scheme: dark;

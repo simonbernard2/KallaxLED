@@ -7,19 +7,47 @@ const Home = () => {
   if (loading || error) {
     return <div>Loading</div>
   }
+
   return (
-    <>
+    <div className="flex flex-col gap-4">
+      <div className="mt-10 relative overflow-x-auto bg-neutral-primary-soft shadow-xl rounded-xl border dark:border-neutral-500 border-neutral-300 w-2xl">
+        <table className="w-full text-sm text-left rtl:text-right text-body">
+          <thead className="dark:bg-neutral-700 border-b border-default text-lg">
+            <tr>
+              <th scope="col" className="px-6 py-3 font-medium">
+                Name
+              </th>
+              <th scope="col" className="px-6 py-3 font-medium">
+                Width
+              </th>
+              <th scope="col" className="px-6 py-3 font-medium">
+                Height
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {grids!.map((grid) => (
+              <tr key={grid.id} className="odd:bg-neutral-200 dark:odd:bg-neutral-500 even:bg-neutral-100 dark:even:bg-neutral-400 border-b last:border-none dark:hover:bg-neutral-300 dark:hover:text-gray-800 hover:bg-neutral-300 transition duration-200">
+                <Link to={`${grid.id}`}>
+                  <th scope="row" className="px-6 py-4 font-bold text-heading whitespace-nowrap underline">
+                    {grid.name}
+                  </th>
+                </Link>
+                <td className="px-6 py-4">
+                  {grid.boxes[0].length}
+                </td>
+                <td className="px-6 py-4">
+                  {grid.boxes.length}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
       <Link to="create">
-        <button className="bg-green-800 py-2 px-4 rounded cursor-pointer">Create Grid</button>
+        <button className="bg-green-800 py-1 px-3 rounded cursor-pointer">Create Grid</button>
       </Link>
-      {grids!.map((grid) => (
-        <div key={grid.id}>
-          <Link to={`${grid.id}`}>
-            {grid.name}
-          </Link>
-        </div>
-      ))}
-    </>
+    </div>
   )
 }
 
