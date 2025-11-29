@@ -3,7 +3,6 @@ import neopixel
 from app.strips.models import LED, Color
 
 
-
 class Strip:
     """Facade over a NeoPixel strip with helpers for common bookshelf animations."""
 
@@ -38,4 +37,9 @@ class Strip:
 
     def update_led(self, index: int, color: Color) -> None:
         self.pixels[index] = color.rgb
+        self.pixels.show()
+
+    def update_leds(self, leds: list[LED]):
+        for led in leds:
+            self.pixels[led.id] = led.rgb
         self.pixels.show()
