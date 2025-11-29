@@ -87,9 +87,21 @@ const EditGrid = () => {
   const [gridName, setGridName] = useState('')
   const [gridWidth, setGridWidth] = useState(1)
   const [gridHeight, setGridHeight] = useState(1)
+  const [dimensionChanged, setDimensionChanged] = useState(false)
   const [previewGrid, setPreviewGrid] = useState<Grid | null>(null)
   const [{ data, loading, error }] = useAxios(`/grids/${gridId}`);
   const navigate = useNavigate()
+
+  const [{ data: putData, loading: putLoading, error: putError },
+    putGrid
+  ] = useAxios<Grid>(
+    {
+      url: `/grids/${gridId}`,
+      method: "PUT"
+    },
+    { manual: true }
+  );
+
   const [{ data: deleteData, loading: deleteLoading, error: deleteError },
     deleteGrid
   ] = useAxios<Grid>(
@@ -108,6 +120,7 @@ const EditGrid = () => {
     })
   }
 
+  // TODO: wondering if having several useEffect hooks is a code smell
   useEffect(() => {
     if (!data) return
 
@@ -121,12 +134,26 @@ const EditGrid = () => {
   useEffect(() => {
     if (!previewGrid) return
 
-    const boxes = createBoxes(gridWidth, gridHeight)
-    setPreviewGrid({ ...previewGrid, boxes: boxes })
+    setPreviewGrid({ ...previewGrid, boxes: createBoxes(gridWidth, gridHeight) })
+    setDimensionChanged(true)
   }, [gridWidth, gridHeight])
 
+  useEffect(() => {
+    if (!previewGrid) return
 
-  const handleSave = () => {
+    setPreviewGrid({ ...previewGrid, name: gridName })
+  }, [gridName])
+
+
+  const handleSave = async () => {
+    if (dimensionChanged) {
+      setAssignLEDs(true)
+      setDimensionChanged(false)
+      return
+    }
+    await putGrid({
+      data: previewGrid
+    })
     navigate(`/grids/${gridId}`)
   }
 
@@ -141,24 +168,26 @@ const EditGrid = () => {
   if (deleteData) {
     return <Navigate to="/grids" />
   }
+
+  // TODO: create input and button components 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-col gap-4 items-start">
-        <div className="flex gap-4 items-center">
-          <label htmlFor="gridName">Name:</label>
-          <input className="bg-neutral-700 px-2 py-1 focus:bg-neutral-600" type="text" name="gridName" value={gridName} onChange={(e) => setGridName(e.target.value)} />
-        </div>
-        <div className="flex gap-4 items-center">
-          <label htmlFor="gridName">Width:</label>
-          <input className="bg-neutral-700 px-2 py-1 focus:bg-neutral-600" type="number" name="gridWidth" min={1} max={7} value={gridWidth} onChange={(e) => setGridWidth(parseInt(e.target.value))} />
-        </div>
-        <div className="flex gap-4 items-center">
-          <label htmlFor="gridName">Height:</label>
-          <input className="bg-neutral-700 px-2 py-1 focus:bg-neutral-600" type="number" name="gridHeight" min={1} max={7} value={gridHeight} onChange={(e) => setGridHeight(parseInt(e.target.value))} />
-        </div>
-      </div>
       {!assignLEDs &&
         <>
+          <div className="flex flex-col gap-4 items-start">
+            <div className="flex gap-4 items-center">
+              <label htmlFor="gridName">Name:</label>
+              <input className="bg-neutral-700 px-2 py-1 focus:bg-neutral-600" type="text" name="gridName" value={gridName} onChange={(e) => setGridName(e.target.value)} />
+            </div>
+            <div className="flex gap-4 items-center">
+              <label htmlFor="gridName">Width:</label>
+              <input className="bg-neutral-700 px-2 py-1 focus:bg-neutral-600" type="number" name="gridWidth" min={1} max={7} value={gridWidth} onChange={(e) => setGridWidth(parseInt(e.target.value))} />
+            </div>
+            <div className="flex gap-4 items-center">
+              <label htmlFor="gridName">Height:</label>
+              <input className="bg-neutral-700 px-2 py-1 focus:bg-neutral-600" type="number" name="gridHeight" min={1} max={7} value={gridHeight} onChange={(e) => setGridHeight(parseInt(e.target.value))} />
+            </div>
+          </div>
           <GridComponent grid={previewGrid} />
           <div className="flex gap-2">
             <button onClick={handleSave} className="bg-green-600 px-4 py-2 rounded cursor-pointer">save grid</button>
@@ -167,7 +196,7 @@ const EditGrid = () => {
           </div>
         </>
       }
-      {assignLEDs && <LEDAssign grid={data} onExit={() => setAssignLEDs(false)} />}
+      {assignLEDs && <LEDAssign grid={previewGrid} onExit={() => setAssignLEDs(false)} />}
     </div>
   )
 }
