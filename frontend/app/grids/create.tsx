@@ -32,7 +32,7 @@ const CreateGrid = () => {
   }
 
   if (createGridData) {
-    return <Navigate to={`/grids/${createGridData.id}/update`} />
+    return <Navigate to={`/grids/${createGridData.id}/edit`} />
   }
 
   return (

@@ -2,8 +2,8 @@ import useAxios from "axios-hooks";
 import { Navigate, useNavigate, useParams } from "react-router"
 import type { Grid, LED, Color } from "~/utils/api";
 import GridComponent from "~/grids/components/grid";
-import { useState } from "react";
-import { addLEDtoBox } from "~/utils/api";
+import { useEffect, useState } from "react";
+import { addLEDtoBox, createBoxes } from "~/utils/api";
 
 interface LEDAssignProps {
   grid: Grid
@@ -81,10 +81,14 @@ const LEDAssign = (props: LEDAssignProps) => {
   )
 }
 
-const UpdateGrid = () => {
+const EditGrid = () => {
   const { gridId } = useParams();
-  const [{ data, loading, error }] = useAxios(`/grids/${gridId}`);
   const [assignLEDs, setAssignLEDs] = useState(false)
+  const [gridName, setGridName] = useState('')
+  const [gridWidth, setGridWidth] = useState(1)
+  const [gridHeight, setGridHeight] = useState(1)
+  const [previewGrid, setPreviewGrid] = useState<Grid | null>(null)
+  const [{ data, loading, error }] = useAxios(`/grids/${gridId}`);
   const navigate = useNavigate()
   const [{ data: deleteData, loading: deleteLoading, error: deleteError },
     deleteGrid
@@ -104,6 +108,24 @@ const UpdateGrid = () => {
     })
   }
 
+  useEffect(() => {
+    if (!data) return
+
+    setGridName(data.name)
+    setGridWidth(data.boxes[0].length) // TODO: make the height and width more intuitive, or abstract a function for it
+    setGridHeight(data.boxes.length)
+    setPreviewGrid({ ...data })
+  }, [data])
+
+
+  useEffect(() => {
+    if (!previewGrid) return
+
+    const boxes = createBoxes(gridWidth, gridHeight)
+    setPreviewGrid({ ...previewGrid, boxes: boxes })
+  }, [gridWidth, gridHeight])
+
+
   const handleSave = () => {
     navigate(`/grids/${gridId}`)
   }
@@ -114,16 +136,30 @@ const UpdateGrid = () => {
 
   if (error || deleteError) return (<div>Error</div>)
   if (loading || deleteLoading) return
+  if (!previewGrid) return
 
   if (deleteData) {
     return <Navigate to="/grids" />
   }
   return (
-    <div className="flex flex-col items-center gap-4">
-      <div>{data.name}</div>
+    <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-4 items-start">
+        <div className="flex gap-4 items-center">
+          <label htmlFor="gridName">Name:</label>
+          <input className="bg-neutral-700 px-2 py-1 focus:bg-neutral-600" type="text" name="gridName" value={gridName} onChange={(e) => setGridName(e.target.value)} />
+        </div>
+        <div className="flex gap-4 items-center">
+          <label htmlFor="gridName">Width:</label>
+          <input className="bg-neutral-700 px-2 py-1 focus:bg-neutral-600" type="number" name="gridWidth" min={1} max={7} value={gridWidth} onChange={(e) => setGridWidth(parseInt(e.target.value))} />
+        </div>
+        <div className="flex gap-4 items-center">
+          <label htmlFor="gridName">Height:</label>
+          <input className="bg-neutral-700 px-2 py-1 focus:bg-neutral-600" type="number" name="gridHeight" min={1} max={7} value={gridHeight} onChange={(e) => setGridHeight(parseInt(e.target.value))} />
+        </div>
+      </div>
       {!assignLEDs &&
         <>
-          <GridComponent grid={data} />
+          <GridComponent grid={previewGrid} />
           <div className="flex gap-2">
             <button onClick={handleSave} className="bg-green-600 px-4 py-2 rounded cursor-pointer">save grid</button>
             <button onClick={handleAssignLEDs} className="bg-yellow-600 px-4 py-2 rounded cursor-pointer">assign LEDS</button>
@@ -136,4 +172,4 @@ const UpdateGrid = () => {
   )
 }
 
-export default UpdateGrid
+export default EditGrid

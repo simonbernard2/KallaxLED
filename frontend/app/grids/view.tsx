@@ -55,7 +55,7 @@ const ViewGrid = () => {
     <div className="flex flex-col items-center gap-4">
       <div className="flex gap-4 items-center">
         <h1 className="text-lg">{gridData.name}</h1>
-        <Link to="update">
+        <Link to="edit">
           <button className="bg-gray-600 text-white px-2 py-1 rounded">Edit</button>
         </Link></div>
       <>
