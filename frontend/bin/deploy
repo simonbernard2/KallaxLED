@@ -1,0 +1,5 @@
+#! /bin/bash
+
+npm run build
+
+# use scp with some params, similar to /bin/build

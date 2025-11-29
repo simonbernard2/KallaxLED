@@ -5,10 +5,10 @@
   "scripts": {
     "build": "react-router build",
     "dev": "react-router dev",
-    "start": "react-router-serve ./build/server/index.js",
+    "start": "react-router dev",
     "test": "vitest",
     "test:watch": "vitest --watch",
-    "typecheck": "react-router typegen && tsc"
+    "typecheck": "tsc"
   },
   "dependencies": {
     "@react-router/node": "^7.9.2",

@@ -1,0 +1,7 @@
+#! /bin/bash -e
+
+npm run build
+
+rm -rf ../backend/public/client
+mkdir -p ../backend/public
+cp -r build/client ../backend/public
