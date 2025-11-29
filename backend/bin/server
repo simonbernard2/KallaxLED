@@ -1,0 +1,13 @@
+#! /bin/bash
+
+source bin/utils
+
+function mac_server {
+  uv run fastapi run main.py --reload
+}
+
+function pi_server {
+  uv run fastapi run main.py --reload --host 0.0.0.0
+}
+
+os_exec mac_server pi_server

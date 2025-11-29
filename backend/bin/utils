@@ -1,0 +1,12 @@
+#! /bin/bash
+
+# params(mac_fn, pi_fn)
+function os_exec {
+  if [[ $(uname -a) =~ "Darwin" ]]; then  
+    echo "[macos] detected"
+    $1
+  else
+    echo "[raspberry pi detected]"
+    $2
+  fi
+}

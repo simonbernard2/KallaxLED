@@ -1,5 +1,9 @@
-import board
-import neopixel
+try:
+    import board  # type: ignore
+    import neopixel  # type: ignore
+except ImportError:
+    from app.strips.stub import board, neopixel
+
 from app.strips.models import LED, Color
 
 
@@ -12,9 +16,7 @@ class Strip:
         number_of_leds: int,
         auto_write: bool = False,
     ) -> None:
-        self.pixels: neopixel.NeoPixel = neopixel.NeoPixel(
-            g_pid, number_of_leds, auto_write=auto_write
-        )
+        self.pixels: neopixel.NeoPixel = neopixel.NeoPixel(g_pid, number_of_leds, auto_write=auto_write)
 
     @classmethod
     def default(cls, *, number_of_leds: int = 150, auto_write: bool = False) -> "Strip":
