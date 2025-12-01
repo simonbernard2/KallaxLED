@@ -11,4 +11,3 @@ class Grid(BaseModel):
     id: Optional[str] = None
     name: str
     boxes: list[list[Box]]
-

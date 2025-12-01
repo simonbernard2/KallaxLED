@@ -1,0 +1,7 @@
+#! /bin/bash
+
+uv run ruff format app
+uv run ruff format main.py
+
+uv run pyright app
+uv run pyright main.py

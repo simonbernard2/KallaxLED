@@ -5,19 +5,26 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.9"
 dependencies = [
-    "adafruit-circuitpython-neopixel>=6.3.18",
     "fastapi[standard]>=0.121.3",
     "neovim>=0.3.1",
     "numpy>=2.0.2",
     "pydantic>=2.12.4",
+    "pyright>=1.1.407",
     "ruff>=0.14.3",
 ]
 
 [project.optional-dependencies]
 pi = [
+    "adafruit-circuitpython-neopixel>=6.3.18",
     "rpi-gpio>=0.7.1",
     "rpi-ws281x>=5.0.0",
 ]
 test = [
     "pytest>=8.2.0",
 ]
+
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.lint]
+extend-select = ["I"]

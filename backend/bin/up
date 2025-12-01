@@ -1,0 +1,13 @@
+#! /bin/bash
+
+source bin/utils
+
+function mac_up {
+    uv sync
+}
+
+function pi_up {
+    uv sync --extra pi
+}
+
+os_exec mac_up pi_up

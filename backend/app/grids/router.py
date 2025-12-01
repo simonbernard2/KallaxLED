@@ -7,9 +7,7 @@ router = APIRouter()
 
 
 @router.post("/grids")
-async def create_grid(
-    grid_data: models.Grid, grid_repo: deps.GridsRepoDep
-) -> models.Grid:
+async def create_grid(grid_data: models.Grid, grid_repo: deps.GridsRepoDep) -> models.Grid:
     return grid_repo.create_grid(grid_data)
 
 
