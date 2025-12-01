@@ -8,3 +8,12 @@ class Color(BaseModel):
 class LED(BaseModel):
     id: int
     rgb: tuple[int, int, int]
+
+
+class StripAnimationStep(BaseModel):
+    leds: list[LED]
+    delay_ms: int
+
+
+class StripAnimation(BaseModel):
+    steps: list[StripAnimationStep]
