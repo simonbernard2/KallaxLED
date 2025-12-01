@@ -4,10 +4,6 @@ from app.strips.router import router as strips_router
 from app.grids.router import router as grids_router
 
 app = FastAPI()
-api_prefix = "/api"
-app.include_router(strips_router, prefix=api_prefix)
-app.include_router(grids_router, prefix=api_prefix)
-
 
 app.add_middleware(
     CORSMiddleware,
@@ -16,3 +12,7 @@ app.add_middleware(
     allow_methods=["*"],  # Allow all methods (GET, POST, PUT, DELETE, etc)
     allow_headers=["*"],  # Allow all headers
 )
+
+api_prefix = "/api"
+app.include_router(strips_router, prefix=api_prefix)
+app.include_router(grids_router, prefix=api_prefix)
