@@ -23,21 +23,26 @@ const Home = () => {
               <th scope="col" className="px-6 py-3 font-medium">
                 Height
               </th>
+              <th scope="col" className="px-6 py-3 font-medium"></th>
             </tr>
           </thead>
           <tbody>
             {grids!.map((grid) => (
               <tr key={grid.id} className="odd:bg-neutral-200 dark:odd:bg-neutral-500 even:bg-neutral-100 dark:even:bg-neutral-400 border-b last:border-none dark:hover:bg-neutral-300 dark:hover:text-gray-800 hover:bg-neutral-300 transition duration-200">
-                <Link to={`${grid.id}`}>
+                
                   <th scope="row" className="px-6 py-4 font-bold text-heading whitespace-nowrap underline">
+                    <Link to={`${grid.id}`}>
                     {grid.name}
+                    </Link>
                   </th>
-                </Link>
                 <td className="px-6 py-4">
                   {grid.boxes[0].length}
                 </td>
                 <td className="px-6 py-4">
                   {grid.boxes.length}
+                </td>
+                <td className="px-6 py-4">
+                  <Link to={`${grid.id}/edit`}>edit</Link>
                 </td>
               </tr>
             ))}
