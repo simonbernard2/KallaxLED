@@ -43,12 +43,7 @@ const ViewGrid = () => {
           <Button>Edit</Button>
         </Link></div>
       <>
-        <GridComponent grid={grid}>
-          {grid.boxes.map((row, i) =>
-            row.map((box, j) =>
-              <NormalBox key={`${i}-${j}`} box={box} onClick={() => handleBoxClick(i, j)} />))
-          }
-        </GridComponent>
+        <GridComponent grid={grid} BoxComponent={NormalBox} boxComponentProps={{ onClick: handleBoxClick }} />
         <ColorPicker onClick={handleColorSelect} />
       </>
     </div>

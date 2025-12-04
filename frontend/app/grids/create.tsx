@@ -54,14 +54,7 @@ const CreateGrid = () => {
         <Button color="green" type="submit">Save</Button>
       </form>
       <div className="mt-10">
-        <GridPreview grid={gridPreview}>
-          {gridPreview.boxes.map((row) =>
-            row.map(() =>
-              <PreviewBox />))
-          }
-
-        </GridPreview>
-
+        <GridPreview grid={gridPreview} boxComponentProps={{}} BoxComponent={PreviewBox} />
       </div>
     </>
   )
