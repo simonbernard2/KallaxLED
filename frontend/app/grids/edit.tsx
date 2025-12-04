@@ -1,8 +1,7 @@
 import useAxios from "axios-hooks";
-import { Navigate, useNavigate, useParams } from "react-router"
+import { Navigate, useNavigate } from "react-router"
 import type { Grid } from "~/utils/api";
-import GridComponent from "~/grids/components/grid";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { CurrentGridProvider, useCurrentGrid } from "./context/currentGridProvider";
 
 const EditGrid = () => {
@@ -55,7 +54,6 @@ const EditGrid = () => {
             <input className="bg-neutral-700 px-2 py-1 focus:bg-neutral-600" type="text" name="gridName" value={gridName} onChange={(e) => setGridName(e.target.value)} />
           </div>
         </div>
-        <GridComponent grid={grid} />
         <div className="flex gap-2">
           <button onClick={handleSave} className="bg-green-600 px-4 py-2 rounded cursor-pointer">
             {putLoading && "..."}

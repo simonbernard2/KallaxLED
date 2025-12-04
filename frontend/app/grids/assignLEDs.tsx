@@ -1,5 +1,5 @@
 import useAxios from "axios-hooks";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { addLEDtoBox, type Color, type Grid, type LED } from "~/utils/api";
 import GridComponent from "~/grids/components/grid";
 import { CurrentGridProvider, useCurrentGrid } from "./context/currentGridProvider";
@@ -12,9 +12,9 @@ const LEDAssign = () => {
   const [ledID, setLedID] = useState(0)
   const [grid, setGrid] = useState(currentGrid)
   const [{ loading: ledLoading, error: ledError }, putLED] = useAxios<LED, Color>(
-    { url: "/leds/0", method: "PUT", data: { rgb: [15, 0, 0]} }
+    { url: "/leds/0", method: "PUT", data: { rgb: [15, 0, 0] } }
   );
-  const [{}, saveGrid] = useAxios<Grid, Grid>(
+  const [{ }, saveGrid] = useAxios<Grid, Grid>(
     { url: `/grids/${grid.id}`, method: "PUT" }, { manual: true }
   )
 
@@ -22,22 +22,25 @@ const LEDAssign = () => {
     const nextId = ledID + offset
     if (nextId < 0 || nextId === 150) return;
 
-    await putLED({ url: `/leds/${nextId}`, data: {
-      rgb: [15, 0, 0]
-    }})
+    await putLED({
+      url: `/leds/${nextId}`, data: {
+        rgb: [15, 0, 0]
+      }
+    })
     setLedID(nextId);
   }
 
   const handleSave = async () => {
     await saveGrid({ data: grid })
-    
+
     navigate("/grids");
   }
 
   const handleBoxClick = (i: number, j: number) => {
-    setGrid((g) => {
+    setGrid((g: Grid) => {
       const updatedGrid = { ...g }
-      updatedGrid.boxes[i][j] = addLEDtoBox({ id: ledID, rgb: [0, 0, 0] }, updatedGrid.boxes[i][j])
+      const boxes = addLEDtoBox(updatedGrid, { id: ledID, rgb: [0, 0, 0] }, i, j)
+      updatedGrid.boxes = boxes
       return updatedGrid
     }
     )
@@ -45,7 +48,7 @@ const LEDAssign = () => {
 
   return (
     <div className="flex flex-col items-center gap-4">
-      <GridComponent grid={grid} onClick={handleBoxClick} disabled={ledLoading || Boolean(ledError)} />
+      <GridComponent grid={grid} onClick={handleBoxClick} disabled={ledLoading || Boolean(ledError)} assignLEDs />
       <div className="flex gap-4">
         <button onClick={() => handleLEDUpdate(-1)} className="bg-green-600 px-4 py-2 rounded cursor-pointer">Prev</button>
         {ledID}

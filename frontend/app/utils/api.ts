@@ -24,14 +24,14 @@ export const createBoxes = (rows: number, cols: number): Box[][] => {
   return boxes
 }
 
-export const addLEDtoBox = (led: LED, box: Box): Box => {
-  if (box.leds.some((l) => l.id === led.id)) {
-    return box
+export const addLEDtoBox = (grid: Grid, led: LED, i: number, j: number): Box[][] => {
+  const newGrid = structuredClone(grid)
+  if (newGrid.boxes[i][j].leds.some((l) => l.id === led.id)) {
+    newGrid.boxes[i][j].leds = newGrid.boxes[i][j].leds.filter((l: LED) => l.id !== led.id)
+    return newGrid.boxes
   }
-
-  const newBox = { ...box }
-  newBox.leds.push(led)
-  return newBox
+  newGrid.boxes[i][j].leds.push(led)
+  return newGrid.boxes
 }
 
 export const setBoxLEDsRGB = (box: Box, color: Color): Box => {

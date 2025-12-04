@@ -4,13 +4,15 @@ import Box from "./box"
 interface Props {
   grid: GridType
   onClick?: (i: number, j: number) => void
+  preview?: boolean
+  assignLEDs?: boolean
   disabled?: boolean;
 }
 
-const Grid = ({ grid, onClick, disabled }: Props) => {
+const Grid = ({ grid, onClick, disabled, preview, assignLEDs }: Props) => {
   const rows = grid.boxes[0].length
   const handleClick = (i: number, j: number) => {
-    if (!onClick || disabled) return;
+    if (!onClick || disabled || preview) return;
 
     return () => onClick(i, j)
   }
@@ -19,7 +21,7 @@ const Grid = ({ grid, onClick, disabled }: Props) => {
   return (
     <div className={`grid gap-2 ${disabledCSS}`} style={{ gridTemplateColumns: `repeat(${rows}, minmax(0, 1fr))` }}>
       {grid.boxes.map((row, i) =>
-        row.map((box, j) => <Box key={`${i}-${j}`} box={box} onClick={handleClick(i, j)} />))
+        row.map((box, j) => <Box key={`${i}-${j}`} box={box} preview={!!preview} showLEDs={!!assignLEDs} onClick={handleClick(i, j)} />))
       }
     </div>
   )
