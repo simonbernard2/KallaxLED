@@ -22,15 +22,16 @@ const LEDNumber = (props: LEDNumberProps) => {
 
 interface AssignLEDBoxProps extends BoxProps {
   currentLED: LED
-  onClick?: (i: number, j: number) => void
+  disabled?: boolean
+  onClick: (i: number, j: number) => void
 }
 export const AssignLEDBox = (props: AssignLEDBoxProps) => {
-  const { box, currentLED, onClick } = props
+  const { box, currentLED, disabled, i, j, onClick } = props
   let className = "grid grid-cols-4 w-32 h-32 p-1 items-start bg-neutral-500"
-  if (onClick) className += " cursor-pointer "
+  if (!disabled) className += " cursor-pointer "
   const isCurrent = (id: number) => currentLED.id === id
   return (
-    <div onClick={() => onClick?.(props.i, props.j)} className={className}>
+    <div onClick={() => onClick?.(i, j)} className={className}>
       {box.leds.map((led: LED) =>
         <LEDNumber key={led.id} ledID={led.id} active={isCurrent(led.id)} />)}
     </div>

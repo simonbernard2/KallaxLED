@@ -1,11 +1,11 @@
 import { useEffect, useState, type FormEventHandler } from "react"
 import useAxios from "axios-hooks"
 import { Navigate } from "react-router"
-import { type Grid, createBoxes } from "../utils/api"
-import GridPreview from "./components/grid"
+import { type Grid, createBoxes } from "../../utils/api"
+import GridPreview from "../components/grid"
 import Input from "~/utils/components/input/input"
 import Button from "~/utils/components/button/button"
-import { PreviewBox } from "./components/box"
+import { PreviewBox } from "../components/box"
 
 const CreateGrid = () => {
   const [gridWidth, setGridWitdh] = useState(1)

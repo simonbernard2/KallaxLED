@@ -2,10 +2,10 @@ import useAxios from "axios-hooks";
 import { useState } from "react";
 import { addLEDtoBox, type Color, type Grid, type LED } from "~/utils/api";
 import GridComponent from "~/grids/components/grid";
-import { CurrentGridProvider, useCurrentGrid } from "./context/currentGridProvider";
+import { CurrentGridProvider, useCurrentGrid } from "./../context/currentGridProvider";
 import { useNavigate } from "react-router";
 import Button from "~/utils/components/button/button";
-import { AssignLEDBox } from "./components/box";
+import { AssignLEDBox } from "../components/box";
 
 
 const LEDAssign = () => {
@@ -44,6 +44,8 @@ const LEDAssign = () => {
   }
 
   const handleBoxClick = (i: number, j: number) => {
+    if (ledLoading || ledError) return
+
     setGrid((g: Grid) => {
       const updatedGrid = { ...g }
       const boxes = addLEDtoBox(updatedGrid, { id: ledID, rgb: [0, 0, 0] }, i, j)
@@ -59,7 +61,7 @@ const LEDAssign = () => {
         grid={grid}
         disabled={ledLoading || Boolean(ledError)}
         BoxComponent={AssignLEDBox}
-        boxComponentProps={{ currentLED, onClick: handleBoxClick }}
+        boxComponentProps={{ currentLED, onClick: handleBoxClick, disabled: Boolean(ledLoading || ledError) }}
       />
       <div className="flex gap-4 items-center">
         <Button onClick={() => handleLEDUpdate(-1)} disabled={ledID === 0 || ledID === 150}>Prev</Button>

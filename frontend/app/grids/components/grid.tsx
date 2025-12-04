@@ -2,18 +2,17 @@ import type { Grid as GridType } from "~/utils/api"
 import type { ComponentType } from "react"
 import type { BoxProps } from "./box";
 
-interface Props<ExtraProps extends object = {}> {
+interface Props<T> {
   grid: GridType
   disabled?: boolean;
-  BoxComponent: ComponentType<BoxProps & ExtraProps>
-  boxComponentProps?: ExtraProps
+  BoxComponent: ComponentType<T & BoxProps>
+  boxComponentProps: T
 }
 
 
-const Grid = <ExtraProps extends object = {}>({ grid, disabled, BoxComponent, boxComponentProps }: Props<ExtraProps>) => {
+const Grid = <ExtraProps extends object>({ grid, disabled, BoxComponent, boxComponentProps }: Props<ExtraProps>) => {
   const rows = grid.boxes[0].length
   const disabledCSS = disabled ? "opacity-50" : ""
-  const additionalProps = (boxComponentProps ?? {}) as ExtraProps
 
   return (
     <div className={`grid gap-2 ${disabledCSS}`} style={{ gridTemplateColumns: `repeat(${rows}, minmax(0, 1fr))` }}>
@@ -21,7 +20,10 @@ const Grid = <ExtraProps extends object = {}>({ grid, disabled, BoxComponent, bo
         row.map((box, j) =>
           <BoxComponent
             key={`${i}-${j}`}
-            {...({ box, i, j, ...additionalProps } as BoxProps & ExtraProps)}
+            box={box}
+            i={i}
+            j={j}
+            {...boxComponentProps}
           />))
       }
 
