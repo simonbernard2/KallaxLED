@@ -4,10 +4,12 @@ import type { Box as BoxType, LED } from "~/utils/api";
 
 interface LEDNumberProps {
   ledID: number
+  active: boolean
 }
 const LEDNumber = (props: LEDNumberProps) => {
+  const background = props.active ? "bg-amber-500" : "bg-neutral-300"
   return (
-    <div className={"flex items-center justify-center rounded-full h-6 w-6 text-xs bg-neutral-300 text-neutral-900"}>
+    <div className={`flex items-center justify-center rounded-full h-6 w-6 text-xs ${background} text-neutral-900`}>
       {props.ledID}
     </div>
   )
@@ -15,16 +17,18 @@ const LEDNumber = (props: LEDNumberProps) => {
 
 interface AssignLEDBoxProps {
   box: BoxType
+  currentLED: LED
   onClick?: () => void
 }
 const AssignLEDBox = (props: AssignLEDBoxProps) => {
-  const { box, onClick } = props
+  const { box, currentLED, onClick } = props
   let className = "grid grid-cols-4 w-32 h-32 p-1 items-start bg-neutral-500"
   if (onClick) className += " cursor-pointer "
+  const isCurrent = (id: number) => currentLED.id === id
   return (
     <div onClick={onClick} className={className}>
       {box.leds.map((led: LED) =>
-        <LEDNumber key={led.id} ledID={led.id} />)}
+        <LEDNumber key={led.id} ledID={led.id} active={isCurrent(led.id)} />)}
     </div>
   )
 }
@@ -62,15 +66,16 @@ const NormalBox = (props: NormalBoxProps) => {
 interface BoxProps {
   box: BoxType,
   type: "preview" | "assignLED" | "normal"
+  currentLED?: LED
   onClick?: () => void
 }
 
 const Box = (props: BoxProps) => {
-  const { box, type, onClick } = props
+  const { box, type, currentLED, onClick } = props
 
   return (
     <>
-      {type === "assignLED" && <AssignLEDBox onClick={onClick} box={box} />}
+      {type === "assignLED" && <AssignLEDBox onClick={onClick} box={box} currentLED={currentLED!} />}
       {type === "normal" && <NormalBox onClick={onClick} box={box} />}
       {type === "preview" && <PreviewBox />}
     </>
