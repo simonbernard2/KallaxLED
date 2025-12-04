@@ -1,8 +1,8 @@
 import useAxios from "axios-hooks";
-import { Link, useParams } from "react-router"
+import { Link } from "react-router"
 import type { Grid } from "~/utils/api";
 import GridComponent from "~/grids/components/grid";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { setBoxLEDsRGB } from "~/utils/api";
 import ColorPicker from "~/utils/components/colorPicker/components/colorPicker";
 import type { ColorSwatchType } from "~/utils/components/colorPicker/types/colorPickerTypes";
