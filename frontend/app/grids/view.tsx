@@ -42,7 +42,7 @@ const ViewGrid = () => {
           <Button>Edit</Button>
         </Link></div>
       <>
-        <GridComponent grid={grid} onClick={handleBoxClick} />
+        <GridComponent grid={grid} onClick={handleBoxClick} type="normal" />
         <ColorPicker onClick={handleColorSelect} />
       </>
     </div>

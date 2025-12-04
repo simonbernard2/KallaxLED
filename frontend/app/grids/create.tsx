@@ -55,7 +55,7 @@ const CreateGrid = () => {
         <Button color="green" type="submit">Save</Button>
       </form>
       <div className="mt-10">
-        <GridPreview grid={gridPreview} preview disabled />
+        <GridPreview grid={gridPreview} type="preview" />
       </div>
     </>
   )

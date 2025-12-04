@@ -49,7 +49,7 @@ const LEDAssign = () => {
 
   return (
     <div className="flex flex-col items-center gap-4">
-      <GridComponent grid={grid} onClick={handleBoxClick} disabled={ledLoading || Boolean(ledError)} assignLEDs />
+      <GridComponent grid={grid} onClick={handleBoxClick} disabled={ledLoading || Boolean(ledError)} type="assignLED" />
       <div className="flex gap-4 items-center">
         <Button onClick={() => handleLEDUpdate(-1)} disabled={ledID === 0 || ledID === 150}>Prev</Button>
         {ledID}

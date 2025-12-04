@@ -24,7 +24,7 @@ const ColorPicker = (props: Props) => {
 
   const isSelected = (id: number) => (id === selected?.id)
   return (
-    <div className="grid grid-cols-6 gap-2 bg-slate-500 p-6 rounded-lg">
+    <div className="grid grid-cols-6 gap-2 bg-neutral-600 p-6 rounded-lg shadow-xl">
       {colors.map((swatch) => {
         const { id, name, rgb } = swatch
         return (

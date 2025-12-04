@@ -46,7 +46,6 @@ const EditGrid = () => {
     return <Navigate to="/grids" />
   }
 
-  // TODO: create input and button components 
   return (
     <div className="flex flex-col gap-4">
       <>
