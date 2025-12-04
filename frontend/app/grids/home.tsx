@@ -1,6 +1,7 @@
 import useAxios from "axios-hooks";
 import { Link } from "react-router";
 import type { Grid } from "~/utils/api";
+import Button from "~/utils/components/button/button";
 
 const Home = () => {
   const [{ data: grids, loading, error }] = useAxios<Grid[]>("/grids");
@@ -49,7 +50,7 @@ const Home = () => {
         </table>
       </div>
       <Link to="create">
-        <button className="bg-green-800 py-1 px-3 rounded cursor-pointer">Create Grid</button>
+        <Button color="green">Create Grid</Button>
       </Link>
     </div>
   )

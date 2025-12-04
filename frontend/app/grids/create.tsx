@@ -4,6 +4,7 @@ import { Navigate } from "react-router"
 import { type Grid, createBoxes } from "../utils/api"
 import GridPreview from "./components/grid"
 import Input from "~/utils/components/input/input"
+import Button from "~/utils/components/button/button"
 
 const CreateGrid = () => {
   const [gridWidth, setGridWitdh] = useState(1)
@@ -51,7 +52,7 @@ const CreateGrid = () => {
           <Input name="gridWidth" value={gridWidth} onChange={(e) => setGridWitdh(parseInt(e.target.value))} label="Number of boxes horizontally" type="number" min={1} max={7} />
           <Input name="gridHeight" value={gridHeight} onChange={(e) => setGridHeight(parseInt(e.target.value))} label="Number of boxes horizontally" type="number" min={1} max={7} />
         </div>
-        <button type="submit">Save</button>
+        <Button color="green" type="submit">Save</Button>
       </form>
       <div className="mt-10">
         <GridPreview grid={gridPreview} preview disabled />

@@ -4,6 +4,7 @@ import { addLEDtoBox, type Color, type Grid, type LED } from "~/utils/api";
 import GridComponent from "~/grids/components/grid";
 import { CurrentGridProvider, useCurrentGrid } from "./context/currentGridProvider";
 import { useNavigate } from "react-router";
+import Button from "~/utils/components/button/button";
 
 
 const LEDAssign = () => {
@@ -49,14 +50,14 @@ const LEDAssign = () => {
   return (
     <div className="flex flex-col items-center gap-4">
       <GridComponent grid={grid} onClick={handleBoxClick} disabled={ledLoading || Boolean(ledError)} assignLEDs />
-      <div className="flex gap-4">
-        <button onClick={() => handleLEDUpdate(-1)} className="bg-green-600 px-4 py-2 rounded cursor-pointer">Prev</button>
+      <div className="flex gap-4 items-center">
+        <Button onClick={() => handleLEDUpdate(-1)} disabled={ledID === 0 || ledID === 150}>Prev</Button>
         {ledID}
-        <button onClick={() => handleLEDUpdate(1)} className="bg-red-600 px-4 py-2 rounded cursor-pointer">Next</button>
+        <Button onClick={() => handleLEDUpdate(1)}>Next</Button>
       </div>
       {ledError && <div>Error loading LED</div>}
       <div className="flex gap-4">
-        <button onClick={handleSave} className="bg-gray-500 px-4 py-2 rounded cursor-pointer">Save</button>
+        <Button onClick={handleSave} color="green">Save</Button>
       </div>
     </div >
   )

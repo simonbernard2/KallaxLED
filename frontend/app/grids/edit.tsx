@@ -4,6 +4,7 @@ import type { Grid } from "~/utils/api";
 import { useState } from "react";
 import { CurrentGridProvider, useCurrentGrid } from "./context/currentGridProvider";
 import Input from "~/utils/components/input/input";
+import Button from "~/utils/components/button/button";
 
 const EditGrid = () => {
   const grid = useCurrentGrid();
@@ -55,15 +56,9 @@ const EditGrid = () => {
           </div>
         </div>
         <div className="flex gap-2">
-          <button onClick={handleSave} className="bg-green-600 px-4 py-2 rounded cursor-pointer">
-            {putLoading && "..."}
-            {!putLoading && "save"}
-          </button>
-          <button onClick={() => navigate(`/grids/${grid.id}/assignLEDs`)} className="bg-yellow-600 px-4 py-2 rounded cursor-pointer">assign LEDS</button>
-          <button onClick={() => deleteGrid()} className="bg-red-600 px-4 py-2 rounded cursor-pointer">
-            {deleteLoading && "..."}
-            {!deleteLoading && "delete"}
-          </button>
+          <Button color="green" onClick={handleSave}> {putLoading && "..."} {!putLoading && "save"} </Button>
+          <Button onClick={() => navigate(`/grids/${grid.id}/assignLEDs`)} >assign LEDs</Button>
+          <Button color="red" onClick={() => deleteGrid()}> {deleteLoading && "..."} {!deleteLoading && "delete"} </Button>
         </div>
       </>
     </div>

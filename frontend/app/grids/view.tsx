@@ -7,6 +7,7 @@ import { setBoxLEDsRGB } from "~/utils/api";
 import ColorPicker from "~/utils/components/colorPicker/components/colorPicker";
 import type { ColorSwatchType } from "~/utils/components/colorPicker/types/colorPickerTypes";
 import { CurrentGridProvider, useCurrentGrid } from "./context/currentGridProvider";
+import Button from "~/utils/components/button/button";
 
 const ViewGrid = () => {
   const currentGrid = useCurrentGrid();
@@ -25,7 +26,7 @@ const ViewGrid = () => {
   const handleBoxClick = async (i: number, j: number) => {
     const updatedGrid = { ...grid }
     updatedGrid.boxes[i][j] = setBoxLEDsRGB(updatedGrid.boxes[i][j], { rgb: color })
-    await updateGrid({data: updatedGrid});
+    await updateGrid({ data: updatedGrid });
     setGrid(updatedGrid);
   }
 
@@ -38,7 +39,7 @@ const ViewGrid = () => {
       <div className="flex gap-4 items-center">
         <h1 className="text-lg">{grid.name}</h1>
         <Link to="edit">
-          <button className="bg-gray-600 text-white px-2 py-1 rounded">Edit</button>
+          <Button>Edit</Button>
         </Link></div>
       <>
         <GridComponent grid={grid} onClick={handleBoxClick} />
