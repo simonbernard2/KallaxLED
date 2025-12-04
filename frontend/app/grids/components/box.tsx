@@ -1,6 +1,11 @@
 import { rgbToCSS, isTurnedOff } from "~/utils/utils";
 import type { Box as BoxType, LED } from "~/utils/api";
 
+export interface BoxProps {
+  box: BoxType
+  i: number
+  j: number
+}
 
 interface LEDNumberProps {
   ledID: number
@@ -15,18 +20,18 @@ const LEDNumber = (props: LEDNumberProps) => {
   )
 }
 
-interface AssignLEDBoxProps {
-  box: BoxType
+interface AssignLEDBoxProps extends BoxProps {
   currentLED: LED
-  onClick?: () => void
+  disabled?: boolean
+  onClick: (i: number, j: number) => void
 }
-const AssignLEDBox = (props: AssignLEDBoxProps) => {
-  const { box, currentLED, onClick } = props
+export const AssignLEDBox = (props: AssignLEDBoxProps) => {
+  const { box, currentLED, disabled, i, j, onClick } = props
   let className = "grid grid-cols-4 w-32 h-32 p-1 items-start bg-neutral-500"
-  if (onClick) className += " cursor-pointer "
+  if (!disabled) className += " cursor-pointer "
   const isCurrent = (id: number) => currentLED.id === id
   return (
-    <div onClick={onClick} className={className}>
+    <div onClick={() => onClick?.(i, j)} className={className}>
       {box.leds.map((led: LED) =>
         <LEDNumber key={led.id} ledID={led.id} active={isCurrent(led.id)} />)}
     </div>
@@ -34,18 +39,17 @@ const AssignLEDBox = (props: AssignLEDBoxProps) => {
 }
 
 
-const PreviewBox = () => {
+export const PreviewBox = () => {
   return (
     <div className="flex h-16 w-16 p-2 bg-neutral-500"></div>
   )
 }
 
-interface NormalBoxProps {
-  box: BoxType,
-  onClick?: () => void
+interface NormalBoxProps extends BoxProps {
+  onClick?: (i: number, j: number) => void
 }
 
-const NormalBox = (props: NormalBoxProps) => {
+export const NormalBox = (props: NormalBoxProps) => {
   const { box, onClick } = props
 
   const isEmpty = box.leds.length === 0
@@ -57,29 +61,8 @@ const NormalBox = (props: NormalBoxProps) => {
   const backgroundColor = rgbToCSS(currentRGB)
 
   return (
-    <div onClick={onClick} className={className} style={{ backgroundColor: backgroundColor }}>
+    <div onClick={() => onClick?.(props.i, props.j)} className={className} style={{ backgroundColor: backgroundColor }}>
       {isTurnedOff(currentRGB) && <span>OFF</span>}
     </div>
   )
 }
-
-interface BoxProps {
-  box: BoxType,
-  type: "preview" | "assignLED" | "normal"
-  currentLED?: LED
-  onClick?: () => void
-}
-
-const Box = (props: BoxProps) => {
-  const { box, type, currentLED, onClick } = props
-
-  return (
-    <>
-      {type === "assignLED" && <AssignLEDBox onClick={onClick} box={box} currentLED={currentLED!} />}
-      {type === "normal" && <NormalBox onClick={onClick} box={box} />}
-      {type === "preview" && <PreviewBox />}
-    </>
-  )
-}
-
-export default Box;
