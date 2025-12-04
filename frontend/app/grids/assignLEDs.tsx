@@ -5,6 +5,7 @@ import GridComponent from "~/grids/components/grid";
 import { CurrentGridProvider, useCurrentGrid } from "./context/currentGridProvider";
 import { useNavigate } from "react-router";
 import Button from "~/utils/components/button/button";
+import { AssignLEDBox } from "./components/box";
 
 
 const LEDAssign = () => {
@@ -54,7 +55,12 @@ const LEDAssign = () => {
 
   return (
     <div className="flex flex-col items-center gap-4">
-      <GridComponent grid={grid} onClick={handleBoxClick} disabled={ledLoading || Boolean(ledError)} type="assignLED" currentLED={currentLED!} />
+      <GridComponent grid={grid} disabled={ledLoading || Boolean(ledError)}>
+        {grid.boxes.map((row, i) =>
+          row.map((box, j) =>
+            <AssignLEDBox box={box} onClick={() => handleBoxClick(i, j)} currentLED={currentLED} />))
+        }
+      </GridComponent>
       <div className="flex gap-4 items-center">
         <Button onClick={() => handleLEDUpdate(-1)} disabled={ledID === 0 || ledID === 150}>Prev</Button>
         {ledID}

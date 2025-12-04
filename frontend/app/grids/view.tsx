@@ -8,6 +8,7 @@ import ColorPicker from "~/utils/components/colorPicker/components/colorPicker";
 import type { ColorSwatchType } from "~/utils/components/colorPicker/types/colorPickerTypes";
 import { CurrentGridProvider, useCurrentGrid } from "./context/currentGridProvider";
 import Button from "~/utils/components/button/button";
+import { NormalBox } from "./components/box";
 
 const ViewGrid = () => {
   const currentGrid = useCurrentGrid();
@@ -42,7 +43,12 @@ const ViewGrid = () => {
           <Button>Edit</Button>
         </Link></div>
       <>
-        <GridComponent grid={grid} onClick={handleBoxClick} type="normal" />
+        <GridComponent grid={grid}>
+          {grid.boxes.map((row, i) =>
+            row.map((box, j) =>
+              <NormalBox key={`${i}-${j}`} box={box} onClick={() => handleBoxClick(i, j)} />))
+          }
+        </GridComponent>
         <ColorPicker onClick={handleColorSelect} />
       </>
     </div>

@@ -1,7 +1,6 @@
 import { rgbToCSS, isTurnedOff } from "~/utils/utils";
 import type { Box as BoxType, LED } from "~/utils/api";
 
-
 interface LEDNumberProps {
   ledID: number
   active: boolean
@@ -20,7 +19,7 @@ interface AssignLEDBoxProps {
   currentLED: LED
   onClick?: () => void
 }
-const AssignLEDBox = (props: AssignLEDBoxProps) => {
+export const AssignLEDBox = (props: AssignLEDBoxProps) => {
   const { box, currentLED, onClick } = props
   let className = "grid grid-cols-4 w-32 h-32 p-1 items-start bg-neutral-500"
   if (onClick) className += " cursor-pointer "
@@ -34,7 +33,7 @@ const AssignLEDBox = (props: AssignLEDBoxProps) => {
 }
 
 
-const PreviewBox = () => {
+export const PreviewBox = () => {
   return (
     <div className="flex h-16 w-16 p-2 bg-neutral-500"></div>
   )
@@ -45,7 +44,7 @@ interface NormalBoxProps {
   onClick?: () => void
 }
 
-const NormalBox = (props: NormalBoxProps) => {
+export const NormalBox = (props: NormalBoxProps) => {
   const { box, onClick } = props
 
   const isEmpty = box.leds.length === 0
@@ -62,24 +61,3 @@ const NormalBox = (props: NormalBoxProps) => {
     </div>
   )
 }
-
-interface BoxProps {
-  box: BoxType,
-  type: "preview" | "assignLED" | "normal"
-  currentLED?: LED
-  onClick?: () => void
-}
-
-const Box = (props: BoxProps) => {
-  const { box, type, currentLED, onClick } = props
-
-  return (
-    <>
-      {type === "assignLED" && <AssignLEDBox onClick={onClick} box={box} currentLED={currentLED!} />}
-      {type === "normal" && <NormalBox onClick={onClick} box={box} />}
-      {type === "preview" && <PreviewBox />}
-    </>
-  )
-}
-
-export default Box;

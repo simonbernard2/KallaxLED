@@ -5,6 +5,7 @@ import { type Grid, createBoxes } from "../utils/api"
 import GridPreview from "./components/grid"
 import Input from "~/utils/components/input/input"
 import Button from "~/utils/components/button/button"
+import { PreviewBox } from "./components/box"
 
 const CreateGrid = () => {
   const [gridWidth, setGridWitdh] = useState(1)
@@ -16,8 +17,6 @@ const CreateGrid = () => {
     setGridPreview({ name: gridName, boxes: createBoxes(gridWidth, gridHeight) })
   }, [gridHeight, gridWidth]
   )
-
-
 
   const [
     { data: createGridData },
@@ -55,7 +54,14 @@ const CreateGrid = () => {
         <Button color="green" type="submit">Save</Button>
       </form>
       <div className="mt-10">
-        <GridPreview grid={gridPreview} type="preview" />
+        <GridPreview grid={gridPreview}>
+          {gridPreview.boxes.map((row) =>
+            row.map(() =>
+              <PreviewBox />))
+          }
+
+        </GridPreview>
+
       </div>
     </>
   )
