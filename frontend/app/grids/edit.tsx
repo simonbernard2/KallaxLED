@@ -3,6 +3,7 @@ import { Navigate, useNavigate } from "react-router"
 import type { Grid } from "~/utils/api";
 import { useState } from "react";
 import { CurrentGridProvider, useCurrentGrid } from "./context/currentGridProvider";
+import Input from "~/utils/components/input/input";
 
 const EditGrid = () => {
   const grid = useCurrentGrid();
@@ -50,8 +51,7 @@ const EditGrid = () => {
       <>
         <div className="flex flex-col gap-4 items-start">
           <div className="flex gap-4 items-center">
-            <label htmlFor="gridName">Name:</label>
-            <input className="bg-neutral-700 px-2 py-1 focus:bg-neutral-600" type="text" name="gridName" value={gridName} onChange={(e) => setGridName(e.target.value)} />
+            <Input name="gridName" label="Name" value={gridName} type="text" onChange={(e) => setGridName(e.target.value)} />
           </div>
         </div>
         <div className="flex gap-2">
