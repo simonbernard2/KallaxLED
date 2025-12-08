@@ -15,6 +15,12 @@ export interface Grid {
   boxes: Box[][]
 }
 
+export interface BoxProps {
+  box: Box
+  i: number
+  j: number
+}
+
 export const createBoxes = (rows: number, cols: number): Box[][] => {
   const rowWithBoxes = Array.from({ length: rows }, () => ({
     leds: [],

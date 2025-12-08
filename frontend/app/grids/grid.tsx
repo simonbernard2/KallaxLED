@@ -1,6 +1,5 @@
-import type { Grid as GridType } from "~/utils/api"
+import type { BoxProps, Grid as GridType } from "~/utils/api"
 import type { ComponentType } from "react"
-import type { BoxProps } from "./box";
 
 interface Props<T> {
   grid: GridType

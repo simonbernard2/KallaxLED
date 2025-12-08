@@ -1,11 +1,11 @@
 import useAxios from "axios-hooks";
 import { useState } from "react";
 import { addLEDtoBox, type Color, type Grid, type LED } from "~/utils/api";
-import GridComponent from "~/grids/components/grid";
+import GridComponent from "~/grids/grid";
 import { CurrentGridProvider, useCurrentGrid } from "./../context/currentGridProvider";
 import { useNavigate } from "react-router";
 import Button from "~/utils/components/button/button";
-import { AssignLEDBox } from "../components/box";
+import Box from "./box";
 
 
 const LEDAssign = () => {
@@ -60,7 +60,7 @@ const LEDAssign = () => {
       <GridComponent
         grid={grid}
         disabled={ledLoading || Boolean(ledError)}
-        BoxComponent={AssignLEDBox}
+        BoxComponent={Box}
         boxComponentProps={{ currentLED, onClick: handleBoxClick, disabled: Boolean(ledLoading || ledError) }}
       />
       <div className="flex gap-4 items-center">

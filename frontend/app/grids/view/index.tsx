@@ -1,20 +1,20 @@
 import useAxios from "axios-hooks";
 import { Link } from "react-router"
 import type { Grid } from "~/utils/api";
-import GridComponent from "~/grids/components/grid";
+import GridComponent from "~/grids/grid";
 import { useState } from "react";
 import { setBoxLEDsRGB } from "~/utils/api";
 import ColorPicker from "~/utils/components/colorPicker/components/colorPicker";
 import type { ColorSwatchType } from "~/utils/components/colorPicker/types/colorPickerTypes";
 import { CurrentGridProvider, useCurrentGrid } from "../context/currentGridProvider";
 import Button from "~/utils/components/button/button";
-import { NormalBox } from "../components/box";
+import Box from "./box";
 
 const ViewGrid = () => {
   const currentGrid = useCurrentGrid();
   const [grid, setGrid] = useState(currentGrid)
   const [color, setColor] = useState<[number, number, number]>([0, 0, 0])
-  const [{ data: updateData, loading: updateLoading, error: updateError },
+  const [{ loading: updateLoading, error: updateError },
     updateGrid
   ] = useAxios<Grid>(
     {
@@ -25,6 +25,8 @@ const ViewGrid = () => {
   );
 
   const handleBoxClick = async (i: number, j: number) => {
+    if (updateLoading || updateError) return
+
     const updatedGrid = { ...grid }
     updatedGrid.boxes[i][j] = setBoxLEDsRGB(updatedGrid.boxes[i][j], { rgb: color })
     await updateGrid({ data: updatedGrid });
@@ -43,7 +45,7 @@ const ViewGrid = () => {
           <Button>Edit</Button>
         </Link></div>
       <>
-        <GridComponent grid={grid} BoxComponent={NormalBox} boxComponentProps={{ onClick: handleBoxClick }} />
+        <GridComponent grid={grid} BoxComponent={Box} boxComponentProps={{ onClick: handleBoxClick }} />
         <ColorPicker onClick={handleColorSelect} />
       </>
     </div>
