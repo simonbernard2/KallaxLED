@@ -5,8 +5,23 @@ export interface LED extends Color {
   id: number
 }
 
+export interface Author {
+  id?: string
+  firstName: string
+  lastName: string
+}
+
+export interface Book {
+  id?: string
+  title: string
+  author: Author
+  genre?: string
+}
+
 export interface Box {
+  id?: string
   leds: LED[]
+  books: Book[]
 }
 
 export interface Grid {
@@ -24,6 +39,7 @@ export interface BoxProps {
 export const createBoxes = (rows: number, cols: number): Box[][] => {
   const rowWithBoxes = Array.from({ length: rows }, () => ({
     leds: [],
+    books: [],
   }))
 
   const boxes = Array.from({ length: cols }, () => [...rowWithBoxes])
