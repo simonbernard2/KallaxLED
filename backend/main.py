@@ -2,11 +2,13 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.strips.router import router as strips_router
 from app.grids.router import router as grids_router
+from app.animations.router import router as animations_router
 
 app = FastAPI()
 api_prefix = "/api"
 app.include_router(strips_router, prefix=api_prefix)
 app.include_router(grids_router, prefix=api_prefix)
+app.include_router(animations_router, prefix=api_prefix)
 
 
 app.add_middleware(

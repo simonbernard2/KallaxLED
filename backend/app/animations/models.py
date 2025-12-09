@@ -13,7 +13,7 @@ class AnimationStep(BaseModel):
     delay_ms: int
 
     @classmethod
-    def empty(delay_ms: int) -> "AnimationStep":
+    def empty(cls, delay_ms: int) -> "AnimationStep":
         return AnimationStep(events=[], delay_ms=delay_ms)
 
 

@@ -15,12 +15,11 @@ class NeoPixel:
                 strip += "."
             else:
                 strip += "o"
-        
+
         print(strip)
 
     def fill(self, rgb: tuple[int, int, int]) -> None:
         self.pixels = [rgb for _ in self.pixels]
-
 
     def __is_off(pixel: tuple[int, int, int]) -> bool:
         return pixel == (0, 0, 0)

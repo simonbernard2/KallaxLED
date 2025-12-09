@@ -13,10 +13,8 @@ def to_strip_step(grid: Grid, step: models.AnimationStep) -> StripAnimationStep:
     for e in step.events:
         leds += to_leds(grid, e)
 
-    return StripAnimationStep(
-        leds=leds,
-        delay_ms=step.delay_ms
-    )
+    return StripAnimationStep(leds=leds, delay_ms=step.delay_ms)
+
 
 def to_leds(grid: Grid, e: models.BoxEvent) -> list[LED]:
     box_leds = grid.boxes[e.i][e.j].leds
