@@ -62,3 +62,23 @@ export const setBoxLEDsRGB = (box: Box, color: Color): Box => {
   })
   return box
 }
+
+export const addBookToBox = (grid: Grid, book: Book, boxId: string): Box[][] => {
+  const newGrid = structuredClone(grid)
+
+  for (let i = 0; i < newGrid.boxes.length; i++) {
+    for (let j = 0; j < newGrid.boxes[i].length; j++) {
+      if (newGrid.boxes[i][j].id === boxId) {
+        // avoid duplicate entries when book already exists
+        const alreadyAdded = book.id
+          ? newGrid.boxes[i][j].books.some((b) => b.id === book.id)
+          : false
+
+        if (!alreadyAdded) newGrid.boxes[i][j].books.push(book)
+        return newGrid.boxes
+      }
+    }
+  }
+
+  return newGrid.boxes
+}

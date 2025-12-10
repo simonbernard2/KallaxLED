@@ -2,9 +2,11 @@ import useAxios from "axios-hooks";
 import { Navigate, useNavigate } from "react-router"
 import type { Grid } from "~/utils/api";
 import { useState } from "react";
-import { CurrentGridProvider, useCurrentGrid } from "./context/currentGridProvider";
+import { CurrentGridProvider, useCurrentGrid } from "../context/currentGridProvider";
 import Input from "~/utils/components/input/input";
 import Button from "~/utils/components/button/button";
+import GridComponent from "~/grids/grid"
+import Box from "./box"
 
 const EditGrid = () => {
   const grid = useCurrentGrid();
@@ -40,6 +42,8 @@ const EditGrid = () => {
     });
   }
 
+  const handleBoxClick = (boxId: string) => (navigate(`/grids/${grid.id}/edit/${boxId}`))
+
   if (putError || deleteError) return (<div>Error</div>)
 
   if (deleteData) {
@@ -54,6 +58,7 @@ const EditGrid = () => {
             <Input name="gridName" label="Name" value={gridName} type="text" onChange={(e) => setGridName(e.target.value)} />
           </div>
         </div>
+        <GridComponent grid={grid} BoxComponent={Box} boxComponentProps={{ onClick: handleBoxClick }} />
         <div className="flex gap-2">
           <Button color="green" onClick={handleSave}> {putLoading && "..."} {!putLoading && "save"} </Button>
           <Button onClick={() => navigate(`/grids/${grid.id}/assignLEDs`)} >assign LEDs</Button>
