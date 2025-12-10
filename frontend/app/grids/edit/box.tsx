@@ -1,5 +1,4 @@
 import type { BoxProps } from "~/utils/api"
-import { isTurnedOff, rgbToCSS } from "~/utils/utils"
 
 interface EditBoxProps extends BoxProps {
   onClick: (boxId: string) => void

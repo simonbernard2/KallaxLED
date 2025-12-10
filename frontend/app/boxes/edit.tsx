@@ -1,8 +1,8 @@
 import useAxios from "axios-hooks";
 import { useState } from "react";
-import { useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import { CurrentGridProvider, useCurrentGrid } from "~/grids/context/currentGridProvider"
-import { addBookToBox, type Box, type Grid } from "~/utils/api";
+import { addBookToBox, removeBookFromBox, type Box, type Grid } from "~/utils/api";
 import Button from "~/utils/components/button/button";
 
 const EditBox = () => {
@@ -11,6 +11,7 @@ const EditBox = () => {
   const { boxId } = useParams();
   const box = grid.boxes.find((row: Box[]) => row.find((b: Box) => b.id === boxId))?.find(box => box.id === boxId)
   if (!box) return <div>Error</div>
+  const navigate = useNavigate()
 
   const [books, setBooks] = useState(box.books)
 
@@ -37,11 +38,23 @@ const EditBox = () => {
     });
   }
 
+  const handleRemoveBook = async () => {
+    putGrid({
+      data: {
+        ...grid,
+        boxes: removeBookFromBox(grid, { title: "Test", author: { firstName: "A", lastName: "B" } }, boxId!),
+      }
+    });
+  }
+
+
   return (
-    <>
-      <Button onClick={handleSave}> Add Book</Button>
+    <div className="flex gap-2">
+      <Button color="green" onClick={handleSave}> Add Book</Button>
+      <Button color="red" onClick={handleRemoveBook}> Remove Book</Button>
+      <Button onClick={() => navigate(`/grids/${grid.id}/edit`)}>Go Back</Button>
       {books.map((b) => b.title)}
-    </>
+    </div>
 
   )
 }

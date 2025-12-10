@@ -82,3 +82,28 @@ export const addBookToBox = (grid: Grid, book: Book, boxId: string): Box[][] => 
 
   return newGrid.boxes
 }
+
+export const removeBookFromBox = (grid: Grid, book: Book, boxId: string): Box[][] => {
+  const newGrid = structuredClone(grid)
+
+  const isSameBook = (b: Book) => {
+    if (book.id) return b.id === book.id
+    return (
+      b.title === book.title &&
+      b.author.firstName === book.author.firstName &&
+      b.author.lastName === book.author.lastName
+    )
+  }
+
+  for (let i = 0; i < newGrid.boxes.length; i++) {
+    for (let j = 0; j < newGrid.boxes[i].length; j++) {
+      if (newGrid.boxes[i][j].id === boxId) {
+        newGrid.boxes[i][j].books = newGrid.boxes[i][j].books.filter((b) => !isSameBook(b))
+        return newGrid.boxes
+      }
+    }
+  }
+
+  return newGrid.boxes
+
+}
