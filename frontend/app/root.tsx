@@ -16,7 +16,7 @@ import axios from "axios";
 import { configure as axiosConfigure } from "axios-hooks";
 import Page from "./utils/components/page/page";
 const axiosInstance = axios.create({
-  baseURL: "http://192.168.17.39:5000/api",
+  baseURL: import.meta.env.VITE_BACKEND_URL,
 })
 axiosConfigure({ axios: axiosInstance, cache: false })
 export const links: Route.LinksFunction = () => [
