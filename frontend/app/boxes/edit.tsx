@@ -1,8 +1,8 @@
 import useAxios from "axios-hooks";
 import { useState } from "react";
-import { useNavigate, useParams } from "react-router";
+import { Link, useNavigate, useParams } from "react-router";
 import { CurrentGridProvider, useCurrentGrid } from "~/grids/context/currentGridProvider"
-import { addBookToBox, removeBookFromBox, type Box, type Grid } from "~/utils/api";
+import { addBookToBox, removeBookFromBox, type Book, type Box, type Grid } from "~/utils/api";
 import Button from "~/utils/components/button/button";
 
 const EditBox = () => {
@@ -33,29 +33,72 @@ const EditBox = () => {
     putGrid({
       data: {
         ...grid,
-        boxes: addBookToBox(grid, { title: "Test", author: { firstName: "A", lastName: "B" } }, boxId!),
+        boxes: addBookToBox(grid, { title: "efioawfhjfioaeweaw", author: { firstName: "Pifaille", lastName: "Bernard" } }, boxId!),
       }
     });
   }
 
-  const handleRemoveBook = async () => {
+  const handleRemoveBook = async (book: Book) => {
     putGrid({
       data: {
         ...grid,
-        boxes: removeBookFromBox(grid, { title: "Test", author: { firstName: "A", lastName: "B" } }, boxId!),
+        boxes: removeBookFromBox(grid, book, boxId!),
       }
     });
   }
 
 
   return (
-    <div className="flex gap-2">
-      <Button color="green" onClick={handleSave}> Add Book</Button>
-      <Button color="red" onClick={handleRemoveBook}> Remove Book</Button>
-      <Button onClick={() => navigate(`/grids/${grid.id}/edit`)}>Go Back</Button>
-      {books.map((b) => b.title)}
-    </div>
-
+    <>
+      <h1 className="text-xl">Books</h1>
+      {books.length > 0 &&
+        <div
+          className="mt-10 relative overflow-x-auto bg-neutral-primary-soft shadow-xl rounded-xl border dark:border-neutral-500 border-neutral-300 w-2xl">
+          <table className="w-full text-sm text-left rtl:text-right text-body">
+            <thead className="dark:bg-neutral-700 border-b border-default text-lg">
+              <tr>
+                <th scope="col" className="px-6 py-3 font-medium">
+                  Title
+                </th>
+                <th scope="col" className="px-6 py-3 font-medium">
+                  Author
+                </th>
+                <th scope="col" className="px-6 py-3 font-medium"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {books!.map((book) => (
+                <tr key={grid.id}
+                  className="odd:bg-neutral-200 
+                  dark:odd:bg-neutral-500 
+                  even:bg-neutral-100 
+                  dark:even:bg-neutral-400 
+                  border-b 
+                  last:border-none 
+                  dark:hover:bg-neutral-300 
+                  dark:hover:text-gray-800 
+                  hover:bg-neutral-300 
+                  transition duration-200">
+                  <th scope="row" className="px-6 py-4 font-bold text-heading whitespace-nowrap">
+                    {book.title}
+                  </th>
+                  <td className="px-6 py-4">
+                    {book.author.firstName} {book.author.lastName}
+                  </td>
+                  <td className="px-6 py-4 dark:text-white" align="right">
+                    <Button color="red" onClick={() => handleRemoveBook(book)}>delete</Button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      }
+      <div className="flex gap-2 mt-2">
+        <Button color="green" onClick={handleSave}> Add Book</Button>
+        <Button onClick={() => navigate(`/grids/${grid.id}/edit`)}>Go Back</Button>
+      </div>
+    </>
   )
 }
 
