@@ -38,6 +38,10 @@ class GridFileRepo:
             raise Exception("can't create a grid with an existing id")
         grid.id = str(uuid.uuid4())
 
+        for row in grid.boxes:
+            for box in row:
+                box.id = str(uuid.uuid4())
+
         self.__save_to_db(grid)
         return grid
 
