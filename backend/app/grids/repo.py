@@ -27,15 +27,14 @@ class GridFileRepo:
 
             return results.first()
 
-    # def delete_grid(self, grid_id: str) -> Optional[models.Grid]:
-    #     grid = self.get_grid_by_id(grid_id)
-    #     if grid is None:
-    #         return None
-    #
-    #     self.grids.pop(grid_id)
-    #     self.__update_db_file()
-    #     return grid
-    #
+    def delete_grid(self, grid_id: int) -> Optional[models.Grid]:
+        with Session(self.engine) as session:
+            statement = select(models.Grid).where(models.Grid.id == grid_id)
+            grid = session.exec(statement).one()
+            session.delete(grid)
+            session.commit()
+            return grid
+
     def create_grid(self, grid: models.Grid) -> models.Grid:
         if grid.id is not None:
             raise Exception("can't create a grid with an existing id")
