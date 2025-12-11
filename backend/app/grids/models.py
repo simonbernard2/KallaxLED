@@ -28,5 +28,5 @@ class Box(BaseModel):
 class Grid(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     name: str
-    height: int
-    width: int
+    height: Optional[int] = None
+    width: Optional[int] = None
