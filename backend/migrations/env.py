@@ -5,7 +5,7 @@ from sqlalchemy import pool
 
 from alembic import context
 
-from app.grids.models import Grid
+from app.grids.models import Grid, Author, Book, Box
 from sqlmodel import SQLModel
 
 # this is the Alembic Config object, which provides
