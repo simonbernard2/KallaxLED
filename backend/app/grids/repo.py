@@ -35,6 +35,13 @@ class GridFileRepo:
             session.commit()
             return grid
 
+    def get_boxes(self) -> list[models.Box]:
+        with Session(self.engine) as session:
+            statement = select(models.Box)
+            results = session.exec(statement)
+
+            return list(results.all())
+
     def create_grid(self, grid: models.Grid) -> models.Grid:
         if grid.id is not None:
             raise Exception("can't create a grid with an existing id")
@@ -43,7 +50,27 @@ class GridFileRepo:
             session.add(grid)
             session.commit()
             session.refresh(grid)
+            boxes = []
+            for _ in range(grid.width):  # type: ignore
+                for _ in range(grid.height):  # type: ignore
+                    box = models.Box(grid_id=grid.id, leds=[])
+                    boxes.append(box)
+            session.add_all(boxes)
+            session.commit()
             return grid
+
+    def update_box(self, box_data: models.Box) -> models.Box:
+        if box_data.id is None:
+            raise Exception("missing box.id")
+
+        with Session(self.engine) as session:
+            statement = select(models.Box).where(models.Box.id == box_data.id)
+            results = session.exec(statement)
+            box_db = results.one()
+            box_db.sqlmodel_update(box_data)
+            session.commit()
+            session.refresh(box_db)
+            return box_db
 
     # def update_grid(self, grid: models.Grid) -> models.Grid:
     #     if grid.id is None:

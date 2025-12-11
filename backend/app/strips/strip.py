@@ -43,5 +43,7 @@ class Strip:
 
     def update_leds(self, leds: list[LED]):
         for led in leds:
-            self.pixels[led.id] = led.rgb
+            breakpoint()
+            led_id = led["id"]
+            self.pixels[led_id] = led["rgb"]
         self.pixels.show()
