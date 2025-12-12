@@ -1,33 +1,23 @@
 from fastapi import APIRouter
 import app.grids.models as models
 import app.grids.deps as deps
-import app.strips.deps as strip_deps
+import app.grids.dtos as dtos
 
 router = APIRouter()
 
 
 @router.post("/grids")
-async def create_grid(grid_data: models.Grid, grid_repo: deps.GridsRepoDep) -> models.Grid:
-    return grid_repo.create_grid(grid_data)
+async def create_grid(grid_data: dtos.GridCreate, grid_repo: deps.GridsRepoDep) -> models.Grid:
+    return grid_repo.create_grid(grid_data.to_model())
 
 
 @router.put("/grids/{grid_id}")
 async def update_grid(
     grid_id: int,
-    grid_data: models.Grid,
+    grid_data: dtos.GridUpdate,
     grid_repo: deps.GridsRepoDep,
-    led_strip: strip_deps.LedStripDep,
 ) -> models.Grid:
-    if grid_id != grid_data.id:
-        raise Exception("missmatch ids")
-
-    leds = []
-    for box in grid_data.boxes:
-        for row in box:
-            for led in row.leds:
-                leds.append(led)
-    led_strip.update_leds(leds)
-    return grid_repo.update_grid(grid_data)
+    return grid_repo.update_grid(grid_data.to_model(grid_id))
 
 
 @router.get("/grids")
@@ -38,12 +28,12 @@ async def get_grids(grid_repo: deps.GridsRepoDep) -> list[models.Grid]:
 
 
 @router.get("/grids/{grid_id}")
-async def get_grid(grid_id: int, grid_repo: deps.GridsRepoDep) -> models.Grid:
+async def get_grid(grid_id: int, grid_repo: deps.GridsRepoDep) -> dtos.GridResponse:
     grid = grid_repo.get_grid_by_id(grid_id)
     if grid is None:
         raise Exception("grid not found")
 
-    return grid
+    return dtos.GridResponse.from_grid(grid)
 
 
 @router.delete("/grids/{grid_id}")
@@ -60,17 +50,3 @@ async def get_boxes(grid_repo: deps.GridsRepoDep) -> list[models.Box]:
     boxes = grid_repo.get_boxes()
 
     return boxes
-
-
-@router.put("/boxes/{box_id}")
-async def update_box(
-    box_id: int,
-    box_data: models.Box,
-    grid_repo: deps.GridsRepoDep,
-    led_strip: strip_deps.LedStripDep,
-) -> models.Box:
-    if box_id != box_data.id:
-        raise Exception("missmatch ids")
-
-    led_strip.update_leds(box_data.leds)
-    return grid_repo.update_box(box_data)
