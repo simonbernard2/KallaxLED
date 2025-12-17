@@ -1,7 +1,7 @@
 from typing import Optional
 
-from sqlmodel import Field, Column, Relationship, SQLModel
 from sqlalchemy.dialects.sqlite import JSON
+from sqlmodel import Column, Field, Relationship, SQLModel
 
 
 class Author(SQLModel, table=True):

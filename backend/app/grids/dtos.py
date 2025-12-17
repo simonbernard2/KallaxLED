@@ -1,6 +1,6 @@
 from pydantic import BaseModel
-from app.grids.models import Grid
-from app.grids.models import Box
+
+from app.grids.models import Box, Grid
 
 
 class GridCreate(BaseModel):
