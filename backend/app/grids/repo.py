@@ -19,7 +19,7 @@ class GridFileRepo:
 
     def get_grids(self) -> list[models.Grid]:
         with Session(self.engine) as session:
-            statement = select(models.Grid)
+            statement = select(models.Grid).options(selectinload(models.Grid.boxes))  # type: ignore
             results = session.exec(statement)
 
             return list(results.all())

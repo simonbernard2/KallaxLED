@@ -22,10 +22,10 @@ async def update_grid(
 
 
 @router.get("/grids")
-async def get_grids(grid_repo: deps.GridsRepoDep) -> list[models.Grid]:
+async def get_grids(grid_repo: deps.GridsRepoDep) -> list[dtos.GridListItem]:
     grids = grid_repo.get_grids()
 
-    return grids
+    return [dtos.GridListItem.from_grid(grid) for grid in grids]
 
 
 @router.get("/grids/{grid_id}")

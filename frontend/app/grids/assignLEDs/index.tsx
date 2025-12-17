@@ -16,8 +16,8 @@ const LEDAssign = () => {
   const [{ loading: ledLoading, error: ledError }, putLED] = useAxios<LED, Color>(
     { url: "/leds/0", method: "PUT", data: { rgb: [15, 0, 0] } }
   );
-  const [{ }, saveGrid] = useAxios<Grid, Grid>(
-    { url: `/grids/${grid.id}`, method: "PUT" }, { manual: true }
+  const [{ }, saveAssignments] = useAxios<Grid, Record<number, number[]>>(
+    { url: `/grids/${grid.id}/leds`, method: "PUT" }, { manual: true }
   )
 
   const handleLEDUpdate = async (offset: number) => {
@@ -38,7 +38,16 @@ const LEDAssign = () => {
   }
 
   const handleSave = async () => {
-    await saveGrid({ data: grid })
+    const assignments: Record<number, number[]> = {}
+    grid.boxes.forEach((row) => {
+      row.forEach((box) => {
+        if (box.id == null) return
+        const boxId = typeof box.id === "string" ? Number(box.id) : box.id
+        if (Number.isNaN(boxId)) return
+        assignments[boxId] = box.leds.map((led) => led.id)
+      })
+    })
+    await saveAssignments({ data: assignments })
 
     navigate("/grids");
   }

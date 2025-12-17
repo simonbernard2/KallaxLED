@@ -36,10 +36,10 @@ const Home = () => {
                   </Link>
                 </th>
                 <td className="px-6 py-4">
-                  {grid.boxes[0].length}
+                  {grid.width}
                 </td>
                 <td className="px-6 py-4">
-                  {grid.boxes.length}
+                  {grid.height}
                 </td>
                 <td className="px-6 py-4">
                   <Link to={`${grid.id}/edit`}>edit</Link>
