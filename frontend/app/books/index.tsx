@@ -72,6 +72,10 @@ const BooksPage = () => {
     { url: "/books/import", method: "POST" },
     { manual: true }
   );
+  const [{ loading: exportLoading, error: exportError }, exportBooks] = useAxios<Blob>(
+    { url: "/books/export", method: "GET", responseType: "blob" },
+    { manual: true }
+  );
 
   useEffect(() => {
     void fetchBooks({ params: { query: "" } }).catch(() => undefined);
@@ -135,6 +139,19 @@ const BooksPage = () => {
     formData.append("file", importFile);
     await importBooks({ data: formData });
     await refreshBooks();
+  };
+
+  const handleExport = async () => {
+    const response = await exportBooks();
+    const blob = response?.data ?? new Blob();
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "books.csv";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
   };
 
   return (
@@ -268,7 +285,13 @@ const BooksPage = () => {
           <input type="file" accept=".csv" onChange={(event) => setImportFile(event.target.files?.[0] ?? null)} />
           <Button type="submit" disabled={importLoading || !importFile}>{importLoading ? "Importing..." : "Import CSV"}</Button>
         </form>
+        <div className="flex">
+          <Button onClick={handleExport} disabled={exportLoading}>
+            {exportLoading ? "Exporting..." : "Export CSV"}
+          </Button>
+        </div>
         {importError && <div className="text-sm text-red-500">Error importing CSV.</div>}
+        {exportError && <div className="text-sm text-red-500">Error exporting CSV.</div>}
         {importResult && (
           <div className="text-sm text-neutral-500">
             Imported: {importResult.created}, Skipped: {importResult.skipped}

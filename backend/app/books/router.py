@@ -2,7 +2,7 @@ import csv
 import io
 from typing import Optional
 
-from fastapi import APIRouter, HTTPException, UploadFile, File
+from fastapi import APIRouter, HTTPException, UploadFile, File, Response
 
 import app.books.dtos as dtos
 import app.grids.deps as deps
@@ -110,3 +110,20 @@ async def import_books(grid_repo: deps.GridsRepoDep, file: UploadFile = File(...
         created += 1
 
     return dtos.BookImportResult(created=created, skipped=skipped, errors=errors)
+
+
+@router.get("/books/export")
+async def export_books(grid_repo: deps.GridsRepoDep) -> Response:
+    books = grid_repo.list_books()
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(["title", "author", "isbn", "tags", "box_x", "box_y"])
+    for book in books:
+        box_x = book.box.x if book.box is not None else ""
+        box_y = book.box.y if book.box is not None else ""
+        tags = ";".join(book.tags)
+        writer.writerow([book.title, book.author, book.isbn or "", tags, box_x, box_y])
+
+    content = output.getvalue()
+    headers = {"Content-Disposition": "attachment; filename=books.csv"}
+    return Response(content=content, media_type="text/csv", headers=headers)
