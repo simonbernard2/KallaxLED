@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import useAxios from "axios-hooks";
-import type { Book, BookCreatePayload, BookImportResult, BookUpdatePayload, Grid } from "~/utils/api";
+import type { Book, BookCreatePayload, BookImportResult, BookUpdatePayload, Grid, BoxProps } from "~/utils/api";
 import Button from "~/utils/components/button/button";
 import Input from "~/utils/components/input/input";
+import GridComponent from "~/grids/grid";
 
 const buildTagList = (tags: string) =>
   tags
@@ -12,17 +13,31 @@ const buildTagList = (tags: string) =>
 
 const toTagString = (tags: string[]) => tags.join(", ");
 
+interface SelectBoxProps extends BoxProps {
+  selectedBoxId: number | null
+  onSelect: (boxId: number) => void
+}
+
+const SelectBox = ({ box, selectedBoxId, onSelect }: SelectBoxProps) => {
+  const isSelected = box.id != null && box.id === selectedBoxId
+  const hasLeds = box.leds.length > 0
+  let className = "flex h-14 w-14 items-center justify-center border-2 text-xs"
+  if (hasLeds) className += " bg-neutral-600 text-white"
+  if (!hasLeds) className += " border-dashed text-neutral-500 bg-neutral-200 dark:bg-neutral-700"
+  if (isSelected) className += " bg-amber-500 text-neutral-900"
+  return (
+    <div className={`${className} ${box.id ? "cursor-pointer" : ""}`} onClick={() => box.id && onSelect(box.id)}>
+      {box.x}, {box.y}
+    </div>
+  )
+}
+
 const BooksPage = () => {
   const [{ data: grid }] = useAxios<Grid>("/grid");
-  const boxes = useMemo(() => {
+  const flatBoxes = useMemo(() => {
     if (!grid) return [];
-    return grid.boxes.flat().filter((box) => box.id != null).map((box) => ({
-      id: box.id as number,
-      x: box.x,
-      y: box.y,
-    }));
+    return grid.boxes.flat().filter((box) => box.id != null);
   }, [grid]);
-
   const [query, setQuery] = useState("");
   const [title, setTitle] = useState("");
   const [author, setAuthor] = useState("");
@@ -32,6 +47,10 @@ const BooksPage = () => {
   const [importFile, setImportFile] = useState<File | null>(null);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editDraft, setEditDraft] = useState<BookUpdatePayload>({});
+  const selectedCreateBox = useMemo(() => {
+    if (!boxId || !grid) return null;
+    return flatBoxes.find((box) => box.id === boxId) ?? null;
+  }, [boxId, flatBoxes, grid]);
 
   const [{ data: books, loading: booksLoading, error: booksError }, fetchBooks] = useAxios<Book[]>(
     { url: "/books", method: "GET" },
@@ -55,7 +74,7 @@ const BooksPage = () => {
   );
 
   useEffect(() => {
-    fetchBooks({ params: { query: "" } });
+    void fetchBooks({ params: { query: "" } }).catch(() => undefined);
   }, [fetchBooks]);
 
   const refreshBooks = async () => {
@@ -179,27 +198,26 @@ const BooksPage = () => {
                     value={toTagString(editDraft.tags ?? [])}
                     onChange={(event) => setEditDraft((prev) => ({ ...prev, tags: buildTagList(event.target.value) }))}
                   />
-                  <div className="flex flex-col">
-                    <label htmlFor="editBox" className="font-semibold">Box:</label>
-                    <select
-                      id="editBox"
-                      className="bg-neutral-300 dark:bg-neutral-700 focus:outline-neutral-500 px-2 py-1 rounded"
-                      value={editDraft.box_id ?? ""}
-                      onChange={(event) =>
-                        setEditDraft((prev) => ({
-                          ...prev,
-                          box_id: event.target.value === "" ? null : Number(event.target.value),
-                        }))
-                      }
-                    >
-                      <option value="">Unassigned</option>
-                      {boxes.map((box) => (
-                        <option key={box.id} value={box.id}>
-                          {box.x}, {box.y}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                  {grid ? (
+                    <div className="flex flex-col gap-2">
+                      <div className="text-sm text-neutral-500">
+                        Selected box: {(() => {
+                          const selected = flatBoxes.find((box) => box.id === editDraft.box_id);
+                          return selected ? `${selected.x}, ${selected.y}` : "Unassigned";
+                        })()}
+                      </div>
+                      <GridComponent
+                        grid={grid}
+                        BoxComponent={SelectBox}
+                        boxComponentProps={{
+                          selectedBoxId: editDraft.box_id ?? null,
+                          onSelect: (id: number) => setEditDraft((prev) => ({ ...prev, box_id: id })),
+                        }}
+                      />
+                    </div>
+                  ) : (
+                    <div className="text-sm text-neutral-500">Create a grid to assign boxes.</div>
+                  )}
                   <div className="flex gap-2">
                     <Button onClick={() => handleUpdate(book.id!)} disabled={updateLoading}>
                       {updateLoading ? "Saving..." : "Save"}
@@ -222,23 +240,21 @@ const BooksPage = () => {
           <Input name="author" label="Author" type="text" value={author} onChange={(event) => setAuthor(event.target.value)} />
           <Input name="isbn" label="ISBN" type="text" value={isbn} onChange={(event) => setIsbn(event.target.value)} />
           <Input name="tags" label="Tags (comma separated)" type="text" value={tags} onChange={(event) => setTags(event.target.value)} />
-          <div className="flex flex-col">
-            <label htmlFor="boxSelect" className="font-semibold">Box:</label>
-            <select
-              id="boxSelect"
-              className="bg-neutral-300 dark:bg-neutral-700 focus:outline-neutral-500 px-2 py-1 rounded"
-              value={boxId}
-              onChange={(event) => setBoxId(event.target.value === "" ? "" : Number(event.target.value))}
-              disabled={!grid}
-            >
-              <option value="">Select a box</option>
-              {boxes.map((box) => (
-                <option key={box.id} value={box.id}>
-                  {box.x}, {box.y}
-                </option>
-              ))}
-            </select>
-          </div>
+          {grid ? (
+            <div className="flex flex-col gap-2">
+              <div className="text-sm text-neutral-500">
+                Selected box: {selectedCreateBox ? `${selectedCreateBox.x}, ${selectedCreateBox.y}` : "None"}
+              </div>
+              <GridComponent
+                grid={grid}
+                BoxComponent={SelectBox}
+                boxComponentProps={{
+                  selectedBoxId: boxId === "" ? null : boxId,
+                  onSelect: (id: number) => setBoxId(id),
+                }}
+              />
+            </div>
+          ) : null}
           {createError && <div className="text-sm text-red-500">Error saving book.</div>}
           <Button type="submit" disabled={createLoading || !grid || !boxId}>
             {createLoading ? "Saving..." : "Save book"}
