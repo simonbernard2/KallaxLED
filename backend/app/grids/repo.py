@@ -17,27 +17,20 @@ class GridFileRepo:
 
         SQLModel.metadata.create_all(self.engine)  # TODO: Move this out of the way to a migration.
 
-    def get_grids(self) -> list[models.Grid]:
+    def get_grid(self) -> Optional[models.Grid]:
         with Session(self.engine) as session:
             statement = select(models.Grid).options(selectinload(models.Grid.boxes))  # type: ignore
-            results = session.exec(statement)
-
-            return list(results.all())
-
-    def get_grid_by_id(self, grid_id: int) -> Optional[models.Grid]:
-        with Session(self.engine) as session:
-            statement = select(models.Grid).options(selectinload(models.Grid.boxes)).where(models.Grid.id == grid_id)  # type: ignore
-            result = session.exec(statement).one()
-
+            result = session.exec(statement).first()
             return result
 
-    def delete_grid(self, grid_id: int) -> Optional[models.Grid]:
+    def delete_grid(self) -> Optional[models.Grid]:
         with Session(self.engine) as session:
-            statement = select(models.Grid).where(models.Grid.id == grid_id)
-            grid = session.exec(statement).one()
+            statement = select(models.Grid)
+            grid = session.exec(statement).first()
+            if grid is None:
+                return None
             session.delete(grid)
             session.commit()
-
             return grid
 
     def get_boxes(self) -> list[models.Box]:
@@ -52,43 +45,133 @@ class GridFileRepo:
             raise Exception("can't create a grid with an existing id")
 
         with Session(self.engine) as session:
+            existing = session.exec(select(models.Grid)).first()
+            if existing is not None:
+                raise Exception("grid already exists")
             session.add(grid)
             session.commit()
             session.refresh(grid)
+            statement = select(models.Grid).options(selectinload(models.Grid.boxes)).where(models.Grid.id == grid.id)  # type: ignore
+            return session.exec(statement).one()
 
-            return grid
-
-    def update_box(self, box_data: models.Box) -> models.Box:
-        if box_data.id is None:
-            raise Exception("missing box.id")
-
+    def get_box_by_id(self, box_id: int) -> Optional[models.Box]:
         with Session(self.engine) as session:
-            statement = select(models.Box).where(models.Box.id == box_data.id)
-            results = session.exec(statement)
-            box_db = results.one()
-            box_db.sqlmodel_update(box_data)
-            session.commit()
-            session.refresh(box_db)
-            return box_db
+            return session.get(models.Box, box_id)
 
-    def update_grid(
-        self,
-        grid_data: models.Grid,
-    ) -> models.Grid:
-        if grid_data.id is None:
-            raise Exception("missing grid.id")
-
+    def get_box_by_coords(self, x: int, y: int) -> Optional[models.Box]:
         with Session(self.engine) as session:
-            statement = select(models.Grid).where(models.Grid.id == grid_data.id)
+            statement = select(models.Box).where(models.Box.x == x, models.Box.y == y)
+            return session.exec(statement).first()
 
-            grid = session.exec(statement).one()
-            grid.name = grid_data.name
-
+    def update_grid_name(self, name: str) -> Optional[models.Grid]:
+        with Session(self.engine) as session:
+            grid = session.exec(select(models.Grid)).first()
+            if grid is None:
+                return None
+            grid.name = name
             session.add(grid)
             session.commit()
-            session.refresh(grid)
+            statement = select(models.Grid).options(selectinload(models.Grid.boxes)).where(models.Grid.id == grid.id)  # type: ignore
+            return session.exec(statement).one()
 
-            return grid
+    def update_led_assignments(self, assignments: dict[int, list[int]]) -> None:
+        if not assignments:
+            return
+        with Session(self.engine) as session:
+            for box_id, leds in assignments.items():
+                box = session.get(models.Box, box_id)
+                if box is None:
+                    raise Exception(f"missing box id={box_id}")
+                box.leds = leds
+                session.add(box)
+            session.commit()
+
+    def create_book(self, book: models.Book) -> models.Book:
+        if book.id is not None:
+            raise Exception("can't create a book with an existing id")
+        with Session(self.engine) as session:
+            session.add(book)
+            session.commit()
+            statement = select(models.Book).options(selectinload(models.Book.box)).where(models.Book.id == book.id)  # type: ignore
+            return session.exec(statement).one()
+
+    def update_book(self, book_id: int, updates: dict) -> Optional[models.Book]:
+        with Session(self.engine) as session:
+            book = session.get(models.Book, book_id)
+            if book is None:
+                return None
+            for key, value in updates.items():
+                setattr(book, key, value)
+            session.add(book)
+            session.commit()
+            statement = select(models.Book).options(selectinload(models.Book.box)).where(models.Book.id == book.id)  # type: ignore
+            return session.exec(statement).one()
+
+    def delete_book(self, book_id: int) -> Optional[models.Book]:
+        with Session(self.engine) as session:
+            book = session.get(models.Book, book_id)
+            if book is None:
+                return None
+            session.delete(book)
+            session.commit()
+            return book
+
+    def list_books(self) -> list[models.Book]:
+        with Session(self.engine) as session:
+            statement = select(models.Book).options(selectinload(models.Book.box))  # type: ignore
+            return list(session.exec(statement).all())
+
+    def search_books(self, query: Optional[str]) -> list[models.Book]:
+        books = self.list_books()
+        if query is None or query.strip() == "":
+            return books
+        needle = query.lower()
+
+        def matches(book: models.Book) -> bool:
+            in_title = needle in book.title.lower()
+            in_author = needle in book.author.lower()
+            in_isbn = book.isbn is not None and needle in book.isbn.lower()
+            in_tags = any(needle in tag.lower() for tag in book.tags)
+            return in_title or in_author or in_isbn or in_tags
+
+        return [book for book in books if matches(book)]
+
+    def _get_or_create_lighting_state(self, session: Session) -> models.LightingState:
+        state = session.exec(select(models.LightingState)).first()
+        if state is None:
+            state = models.LightingState()
+            session.add(state)
+            session.commit()
+            session.refresh(state)
+        return state
+
+    def get_lighting_state(self) -> models.LightingState:
+        with Session(self.engine) as session:
+            return self._get_or_create_lighting_state(session)
+
+    def set_highlight(self, box_id: int, rgb: list[int]) -> models.LightingState:
+        with Session(self.engine) as session:
+            state = self._get_or_create_lighting_state(session)
+            state.highlight_box_id = box_id
+            state.highlight_rgb = rgb
+            state.active_scene = None
+            state.scene_params = {}
+            session.add(state)
+            session.commit()
+            session.refresh(state)
+            return state
+
+    def clear_highlight(self) -> models.LightingState:
+        with Session(self.engine) as session:
+            state = self._get_or_create_lighting_state(session)
+            state.highlight_box_id = None
+            state.highlight_rgb = None
+            state.active_scene = None
+            state.scene_params = {}
+            session.add(state)
+            session.commit()
+            session.refresh(state)
+            return state
 
     #
     # def __save_to_db(self, grid) -> None:

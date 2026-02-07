@@ -35,27 +35,42 @@ class GridUpdate(BaseModel):
         return Grid(id=id, name=self.name)
 
 
+class BoxResponse(BaseModel):
+    id: int
+    x: int
+    y: int
+    leds: list[int]
+
+    @staticmethod
+    def from_box(box: Box) -> "BoxResponse":
+        if box.id is None:
+            raise Exception("no id")
+        return BoxResponse(id=box.id, x=box.x, y=box.y, leds=box.leds)
+
+
 class GridResponse(BaseModel):
     id: int
     name: str
-    boxes: list[list[Box]]
+    width: int
+    height: int
+    boxes: list[list[BoxResponse]]
 
     @staticmethod
-    def _build_box_grid(boxes: list[Box]) -> list[list[Box]]:
+    def _build_box_grid(boxes: list[Box]) -> list[list[BoxResponse]]:
         width, height = _calculate_dimensions(boxes)
         if width == 0 or height == 0:
             return []
 
         box_map = {(box.x, box.y): box for box in boxes}
 
-        grid: list[list[Box]] = []
+        grid: list[list[BoxResponse]] = []
         for y in range(height):
-            row: list[Box] = []
+            row: list[BoxResponse] = []
             for x in range(width):
                 box = box_map.get((x, y))
                 if box is None:
                     raise ValueError(f"missing box at x={x} y={y}")
-                row.append(box)
+                row.append(BoxResponse.from_box(box))
             grid.append(row)
 
         return grid
@@ -65,25 +80,11 @@ class GridResponse(BaseModel):
         if grid.id is None:
             raise Exception("no id")
 
-        return GridResponse(**grid.model_dump(), boxes=GridResponse._build_box_grid(grid.boxes))
-
-
-class GridListItem(BaseModel):
-    id: int
-    name: str
-    width: int
-    height: int
-
-    @staticmethod
-    def from_grid(grid: Grid) -> "GridListItem":
-        if grid.id is None:
-            raise Exception("no id")
-
         width, height = _calculate_dimensions(grid.boxes)
-
-        return GridListItem(
+        return GridResponse(
             id=grid.id,
             name=grid.name,
             width=width,
             height=height,
+            boxes=GridResponse._build_box_grid(grid.boxes),
         )

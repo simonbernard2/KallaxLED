@@ -1,18 +1,18 @@
 import useAxios from "axios-hooks";
 import { createContext, useContext } from "react";
-import { useParams } from "react-router";
 import type { Grid } from "~/utils/api";
 
 const emptyGrid: Grid = {
     name: "",
+    width: 0,
+    height: 0,
     boxes: [],
 }
 
 const GridContext = createContext<Grid>({...emptyGrid});
 
 export const CurrentGridProvider = (props: React.PropsWithChildren) => {
-    const { gridId } = useParams();
-    const [{data, loading, error}] = useAxios<Grid>(`/grids/${gridId}`);
+    const [{data, loading, error}] = useAxios<Grid>(`/grid`);
 
     if (loading) {
         return <div>Loading...</div>;
@@ -23,9 +23,9 @@ export const CurrentGridProvider = (props: React.PropsWithChildren) => {
     }
 
     return (
-        <GridContext value={{...data!}}>
+        <GridContext.Provider value={{...data!}}>
             {props.children}
-        </GridContext>
+        </GridContext.Provider>
     )
 };
 

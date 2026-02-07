@@ -10,11 +10,15 @@ interface Props<T> {
 
 
 const Grid = <ExtraProps extends object>({ grid, disabled, BoxComponent, boxComponentProps }: Props<ExtraProps>) => {
-  const rows = grid.boxes[0].length
+  const columns = grid.width || grid.boxes[0]?.length || 0
   const disabledCSS = disabled ? "opacity-50" : ""
 
+  if (columns === 0) {
+    return <div className="text-sm text-neutral-500">No boxes yet.</div>
+  }
+
   return (
-    <div className={`grid gap-2 ${disabledCSS}`} style={{ gridTemplateColumns: `repeat(${rows}, minmax(0, 1fr))` }}>
+    <div className={`grid gap-2 ${disabledCSS}`} style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}>
       {grid.boxes.map((row, i) =>
         row.map((box, j) =>
           <BoxComponent

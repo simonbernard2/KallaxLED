@@ -1,7 +1,7 @@
 import useAxios from "axios-hooks";
-import { Navigate, useNavigate } from "react-router"
+import { useNavigate } from "react-router"
 import type { Grid } from "~/utils/api";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { CurrentGridProvider, useCurrentGrid } from "./context/currentGridProvider";
 import Input from "~/utils/components/input/input";
 import Button from "~/utils/components/button/button";
@@ -11,22 +11,12 @@ const EditGrid = () => {
   const [gridName, setGridName] = useState(grid.name)
   const navigate = useNavigate()
 
-  const [{ data: putData, loading: putLoading, error: putError },
+  const [{ loading: putLoading, error: putError },
     putGrid
-  ] = useAxios<Grid, Grid>(
+  ] = useAxios<Grid, { name: string }>(
     {
-      url: `/grids/${grid.id}`,
+      url: `/grid`,
       method: "PUT"
-    },
-    { manual: true }
-  );
-
-  const [{ data: deleteData, loading: deleteLoading, error: deleteError },
-    deleteGrid
-  ] = useAxios(
-    {
-      url: `/grids/${grid.id}`,
-      method: "DELETE"
     },
     { manual: true }
   );
@@ -34,17 +24,16 @@ const EditGrid = () => {
   const handleSave = async () => {
     putGrid({
       data: {
-        ...grid,
         name: gridName,
       }
     });
   }
 
-  if (putError || deleteError) return (<div>Error</div>)
+  if (putError) return (<div>Error</div>)
 
-  if (deleteData) {
-    return <Navigate to="/grids" />
-  }
+  useEffect(() => {
+    setGridName(grid.name)
+  }, [grid.name])
 
   return (
     <div className="flex flex-col gap-4">
@@ -56,8 +45,7 @@ const EditGrid = () => {
         </div>
         <div className="flex gap-2">
           <Button color="green" onClick={handleSave}> {putLoading && "..."} {!putLoading && "save"} </Button>
-          <Button onClick={() => navigate(`/grids/${grid.id}/assignLEDs`)} >assign LEDs</Button>
-          <Button color="red" onClick={() => deleteGrid()}> {deleteLoading && "..."} {!deleteLoading && "delete"} </Button>
+          <Button onClick={() => navigate(`/grid/assign-leds`)} >assign LEDs</Button>
         </div>
       </>
     </div>

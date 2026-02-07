@@ -25,8 +25,8 @@ const AssignLEDBox = (props: AssignLEDBoxProps) => {
   const isCurrent = (id: number) => currentLED.id === id
   return (
     <div onClick={() => onClick?.(i, j)} className={className}>
-      {box.leds.map((led: LED) =>
-        <LEDNumber key={led.id} ledID={led.id} active={isCurrent(led.id)} />)}
+      {box.leds.map((ledId) =>
+        <LEDNumber key={ledId} ledID={ledId} active={isCurrent(ledId)} />)}
     </div>
   )
 }
