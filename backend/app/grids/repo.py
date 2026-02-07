@@ -154,8 +154,6 @@ class GridFileRepo:
             state = self._get_or_create_lighting_state(session)
             state.highlight_box_id = box_id
             state.highlight_rgb = rgb
-            state.active_scene = None
-            state.scene_params = {}
             session.add(state)
             session.commit()
             session.refresh(state)
@@ -166,8 +164,16 @@ class GridFileRepo:
             state = self._get_or_create_lighting_state(session)
             state.highlight_box_id = None
             state.highlight_rgb = None
-            state.active_scene = None
-            state.scene_params = {}
+            session.add(state)
+            session.commit()
+            session.refresh(state)
+            return state
+
+    def set_scene(self, name: Optional[str], params: dict) -> models.LightingState:
+        with Session(self.engine) as session:
+            state = self._get_or_create_lighting_state(session)
+            state.active_scene = name
+            state.scene_params = params
             session.add(state)
             session.commit()
             session.refresh(state)

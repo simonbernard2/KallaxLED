@@ -1,11 +1,16 @@
 from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class HighlightRequest(BaseModel):
     box_id: int
     rgb: tuple[int, int, int]
+
+
+class SceneRequest(BaseModel):
+    name: str
+    params: dict = Field(default_factory=dict)
 
 
 class LightingStateResponse(BaseModel):

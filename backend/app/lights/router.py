@@ -16,6 +16,13 @@ def _state_to_response(state) -> dtos.LightingStateResponse:
     )
 
 
+def _collect_led_ids(grid) -> list[int]:
+    led_ids: list[int] = []
+    for box in grid.boxes:
+        led_ids.extend(box.leds)
+    return sorted(set(led_ids))
+
+
 @router.get("/lights/state")
 async def get_lighting_state(grid_repo: grids_deps.GridsRepoDep) -> dtos.LightingStateResponse:
     state = grid_repo.get_lighting_state()
@@ -45,5 +52,50 @@ async def clear_highlight(
     led_strip: strips_deps.LedStripDep,
 ) -> dtos.LightingStateResponse:
     state = grid_repo.clear_highlight()
+    if state.active_scene == "solid":
+        grid = grid_repo.get_grid()
+        if grid is None:
+            led_strip.turn_off()
+            return _state_to_response(state)
+        rgb = state.scene_params.get("rgb")
+        if isinstance(rgb, (list, tuple)) and len(rgb) == 3:
+            led_ids = _collect_led_ids(grid)
+            led_strip.turn_off()
+            if led_ids:
+                led_strip.update_leds_by_ids(led_ids, (rgb[0], rgb[1], rgb[2]))
+            return _state_to_response(state)
     led_strip.turn_off()
+    return _state_to_response(state)
+
+
+@router.post("/lights/scene")
+async def set_scene(
+    request: dtos.SceneRequest,
+    grid_repo: grids_deps.GridsRepoDep,
+    led_strip: strips_deps.LedStripDep,
+) -> dtos.LightingStateResponse:
+    allowed = {"off", "solid", "rainbow", "breathe"}
+    if request.name not in allowed:
+        raise HTTPException(status_code=400, detail="unknown scene")
+
+    if request.name == "off":
+        state = grid_repo.set_scene(None, {})
+        led_strip.turn_off()
+        return _state_to_response(state)
+
+    if request.name == "solid":
+        rgb = request.params.get("rgb")
+        if not isinstance(rgb, (list, tuple)) or len(rgb) != 3:
+            raise HTTPException(status_code=400, detail="solid scene requires params.rgb")
+        grid = grid_repo.get_grid()
+        if grid is None:
+            raise HTTPException(status_code=404, detail="grid not found")
+        led_ids = _collect_led_ids(grid)
+        led_strip.turn_off()
+        if led_ids:
+            led_strip.update_leds_by_ids(led_ids, (rgb[0], rgb[1], rgb[2]))
+        state = grid_repo.set_scene(request.name, request.params)
+        return _state_to_response(state)
+
+    state = grid_repo.set_scene(request.name, request.params)
     return _state_to_response(state)
