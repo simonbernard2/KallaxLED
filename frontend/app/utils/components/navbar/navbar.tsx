@@ -4,6 +4,7 @@ const NavBar = () => {
   const menuItems = [
     { "path": "/", "name": "Home" },
     { "path": "/grid", "name": "Grid" },
+    { "path": "/books", "name": "Books" },
   ]
 
   return (

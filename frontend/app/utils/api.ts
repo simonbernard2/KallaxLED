@@ -35,6 +35,28 @@ export interface Book {
   } | null
 }
 
+export interface BookCreatePayload {
+  title: string
+  author: string
+  isbn?: string | null
+  tags: string[]
+  box_id?: number | null
+}
+
+export interface BookUpdatePayload {
+  title?: string
+  author?: string
+  isbn?: string | null
+  tags?: string[]
+  box_id?: number | null
+}
+
+export interface BookImportResult {
+  created: number
+  skipped: number
+  errors: string[]
+}
+
 export interface BoxProps {
   box: Box
   i: number
