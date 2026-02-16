@@ -53,15 +53,17 @@ const LEDAssign = () => {
     navigate('/grid')
   }
 
-  const handleBoxClick = (i: number, j: number) => {
+  const handleBoxClick = async (i: number, j: number) => {
     if (ledLoading || ledError) return
 
-    setGrid((g: Grid) => {
-      const updatedGrid = { ...g }
-      const boxes = addLEDtoBox(updatedGrid, ledID, i, j)
-      updatedGrid.boxes = boxes
-      return updatedGrid
-    })
+    const updatedGrid = { ...grid }
+    const boxes = addLEDtoBox(updatedGrid, ledID, i, j)
+    updatedGrid.boxes = boxes
+    setGrid(updatedGrid)
+
+    if (ledID < 149) {
+      await handleLEDUpdate(1)
+    }
   }
 
   useEffect(() => {
