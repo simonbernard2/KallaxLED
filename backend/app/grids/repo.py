@@ -1,62 +1,188 @@
-import app.grids.models as models
-from typing import Optional
 from pathlib import Path
-import json
-import uuid
+from typing import Optional
+
+from sqlalchemy.orm import selectinload
+from sqlmodel import Session, SQLModel, create_engine, select
+
+import app.grids.models as models
 
 
 class GridFileRepo:
     def __init__(self, dir_path: Path) -> None:
         self.dir_path = dir_path
         self.dir_path.mkdir(exist_ok=True)
-        self.db_file = self.dir_path / "grid.json"
-        self.grids = {}
-        if self.db_file.exists():
-            data = json.loads(self.db_file.read_text())
-            self.grids = data
+        self.sqlite_file_name = "database.db"
+        self.sqlite_url = f"sqlite:///{self.sqlite_file_name}"
+        self.engine = create_engine(self.sqlite_url, echo=True)
 
-    def get_grids(self) -> list[models.Grid]:
-        return [models.Grid.model_validate(grid) for grid in self.grids.values()]
+        SQLModel.metadata.create_all(self.engine)  # TODO: Move this out of the way to a migration.
 
-    def get_grid_by_id(self, grid_id: str) -> Optional[models.Grid]:
-        if grid_id not in self.grids:
-            return None
+    def get_grid(self) -> Optional[models.Grid]:
+        with Session(self.engine) as session:
+            statement = select(models.Grid).options(selectinload(models.Grid.boxes))  # type: ignore
+            result = session.exec(statement).first()
+            return result
 
-        return models.Grid.model_validate(self.grids[grid_id])
+    def delete_grid(self) -> Optional[models.Grid]:
+        with Session(self.engine) as session:
+            statement = select(models.Grid)
+            grid = session.exec(statement).first()
+            if grid is None:
+                return None
+            session.delete(grid)
+            session.commit()
+            return grid
 
-    def delete_grid(self, grid_id: str) -> Optional[models.Grid]:
-        grid = self.get_grid_by_id(grid_id)
-        if grid is None:
-            return None
+    def get_boxes(self) -> list[models.Box]:
+        with Session(self.engine) as session:
+            statement = select(models.Box)
+            results = session.exec(statement)
 
-        self.grids.pop(grid_id)
-        self.__update_db_file()
-        return grid
+            return list(results.all())
 
     def create_grid(self, grid: models.Grid) -> models.Grid:
         if grid.id is not None:
             raise Exception("can't create a grid with an existing id")
-        grid.id = str(uuid.uuid4())
 
-        for row in grid.boxes:
-            for box in row:
-                box.id = str(uuid.uuid4())
+        with Session(self.engine) as session:
+            existing = session.exec(select(models.Grid)).first()
+            if existing is not None:
+                raise Exception("grid already exists")
+            session.add(grid)
+            session.commit()
+            session.refresh(grid)
+            statement = select(models.Grid).options(selectinload(models.Grid.boxes)).where(models.Grid.id == grid.id)  # type: ignore
+            return session.exec(statement).one()
 
-        self.__save_to_db(grid)
-        return grid
+    def get_box_by_id(self, box_id: int) -> Optional[models.Box]:
+        with Session(self.engine) as session:
+            return session.get(models.Box, box_id)
 
-    def update_grid(self, grid: models.Grid) -> models.Grid:
-        if grid.id is None:
-            raise Exception("missing grid.id")
-        if grid.id not in self.grids:
-            raise Exception("grid not found")
+    def get_box_by_coords(self, x: int, y: int) -> Optional[models.Box]:
+        with Session(self.engine) as session:
+            statement = select(models.Box).where(models.Box.x == x, models.Box.y == y)
+            return session.exec(statement).first()
 
-        self.__save_to_db(grid)
-        return grid
+    def update_grid_name(self, name: str) -> Optional[models.Grid]:
+        with Session(self.engine) as session:
+            grid = session.exec(select(models.Grid)).first()
+            if grid is None:
+                return None
+            grid.name = name
+            session.add(grid)
+            session.commit()
+            statement = select(models.Grid).options(selectinload(models.Grid.boxes)).where(models.Grid.id == grid.id)  # type: ignore
+            return session.exec(statement).one()
 
-    def __save_to_db(self, grid) -> None:
-        self.grids[grid.id] = grid.model_dump()
-        self.__update_db_file()
+    def update_led_assignments(self, assignments: dict[int, list[int]]) -> None:
+        if not assignments:
+            return
+        with Session(self.engine) as session:
+            for box_id, leds in assignments.items():
+                box = session.get(models.Box, box_id)
+                if box is None:
+                    raise Exception(f"missing box id={box_id}")
+                box.leds = leds
+                session.add(box)
+            session.commit()
 
-    def __update_db_file(self) -> None:
-        self.db_file.write_text(json.dumps(self.grids))
+    def create_book(self, book: models.Book) -> models.Book:
+        if book.id is not None:
+            raise Exception("can't create a book with an existing id")
+        with Session(self.engine) as session:
+            session.add(book)
+            session.commit()
+            statement = select(models.Book).options(selectinload(models.Book.box)).where(models.Book.id == book.id)  # type: ignore
+            return session.exec(statement).one()
+
+    def update_book(self, book_id: int, updates: dict) -> Optional[models.Book]:
+        with Session(self.engine) as session:
+            book = session.get(models.Book, book_id)
+            if book is None:
+                return None
+            for key, value in updates.items():
+                setattr(book, key, value)
+            session.add(book)
+            session.commit()
+            statement = select(models.Book).options(selectinload(models.Book.box)).where(models.Book.id == book.id)  # type: ignore
+            return session.exec(statement).one()
+
+    def delete_book(self, book_id: int) -> Optional[models.Book]:
+        with Session(self.engine) as session:
+            book = session.get(models.Book, book_id)
+            if book is None:
+                return None
+            session.delete(book)
+            session.commit()
+            return book
+
+    def list_books(self) -> list[models.Book]:
+        with Session(self.engine) as session:
+            statement = select(models.Book).options(selectinload(models.Book.box))  # type: ignore
+            return list(session.exec(statement).all())
+
+    def search_books(self, query: Optional[str]) -> list[models.Book]:
+        books = self.list_books()
+        if query is None or query.strip() == "":
+            return books
+        needle = query.lower()
+
+        def matches(book: models.Book) -> bool:
+            in_title = needle in book.title.lower()
+            in_author = needle in book.author.lower()
+            in_isbn = book.isbn is not None and needle in book.isbn.lower()
+            in_tags = any(needle in tag.lower() for tag in book.tags)
+            return in_title or in_author or in_isbn or in_tags
+
+        return [book for book in books if matches(book)]
+
+    def _get_or_create_lighting_state(self, session: Session) -> models.LightingState:
+        state = session.exec(select(models.LightingState)).first()
+        if state is None:
+            state = models.LightingState()
+            session.add(state)
+            session.commit()
+            session.refresh(state)
+        return state
+
+    def get_lighting_state(self) -> models.LightingState:
+        with Session(self.engine) as session:
+            return self._get_or_create_lighting_state(session)
+
+    def set_highlight(self, box_id: int, rgb: list[int]) -> models.LightingState:
+        with Session(self.engine) as session:
+            state = self._get_or_create_lighting_state(session)
+            state.highlight_box_id = box_id
+            state.highlight_rgb = rgb
+            session.add(state)
+            session.commit()
+            session.refresh(state)
+            return state
+
+    def clear_highlight(self) -> models.LightingState:
+        with Session(self.engine) as session:
+            state = self._get_or_create_lighting_state(session)
+            state.highlight_box_id = None
+            state.highlight_rgb = None
+            session.add(state)
+            session.commit()
+            session.refresh(state)
+            return state
+
+    def set_scene(self, name: Optional[str], params: dict) -> models.LightingState:
+        with Session(self.engine) as session:
+            state = self._get_or_create_lighting_state(session)
+            state.active_scene = name
+            state.scene_params = params
+            session.add(state)
+            session.commit()
+            session.refresh(state)
+            return state
+
+    #
+    # def __save_to_db(self, grid) -> None:
+    #     self.grids[grid.id] = grid.model_dump()
+    #     self.__update_db_file()
+    #
+    # def __update_db_file(self) -> None:
+    #     self.db_file.write_text(json.dumps(self.grids))

@@ -1,7 +1,9 @@
-from app.strips.strip import Strip
-from typing import Annotated
-from fastapi import Depends
 from functools import lru_cache
+from typing import Annotated
+
+from fastapi import Depends
+
+from app.strips.strip import Strip
 
 
 @lru_cache

@@ -1,10 +1,12 @@
+from typing import Union
+
+from app.strips.models import LED, Color
+
 try:
     import board  # type: ignore
     import neopixel  # type: ignore
 except ImportError:
     from app.strips.stub import board, neopixel
-
-from app.strips.models import LED, Color
 
 
 class Strip:
@@ -41,7 +43,13 @@ class Strip:
         self.pixels[index] = color.rgb
         self.pixels.show()
 
-    def update_leds(self, leds: list[LED]):
+    def update_leds(self, leds: list[LED]) -> None:
         for led in leds:
             self.pixels[led.id] = led.rgb
+        self.pixels.show()
+
+    def update_leds_by_ids(self, led_ids: list[int], color: Union[Color, tuple[int, int, int]]) -> None:
+        rgb = color.rgb if isinstance(color, Color) else color
+        for led_id in led_ids:
+            self.pixels[led_id] = rgb
         self.pixels.show()

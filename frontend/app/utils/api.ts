@@ -1,33 +1,60 @@
 export interface Color {
   rgb: [number, number, number]
 }
-export interface LED extends Color {
+
+export interface LED {
   id: number
-}
-
-export interface Author {
-  id?: string
-  firstName: string
-  lastName: string
-}
-
-export interface Book {
-  id?: string
-  title: string
-  author: Author
-  genre?: string
+  rgb: [number, number, number]
 }
 
 export interface Box {
-  id?: string
-  leds: LED[]
-  books: Book[]
+  id?: number
+  x: number
+  y: number
+  leds: number[]
 }
 
 export interface Grid {
-  id?: string
+  id?: number
   name: string
+  width: number
+  height: number
   boxes: Box[][]
+}
+
+export interface Book {
+  id?: number
+  title: string
+  author: string
+  isbn?: string | null
+  tags: string[]
+  box?: {
+    id: number
+    x: number
+    y: number
+  } | null
+}
+
+export interface BookCreatePayload {
+  title: string
+  author: string
+  isbn?: string | null
+  tags: string[]
+  box_id?: number | null
+}
+
+export interface BookUpdatePayload {
+  title?: string
+  author?: string
+  isbn?: string | null
+  tags?: string[]
+  box_id?: number | null
+}
+
+export interface BookImportResult {
+  created: number
+  skipped: number
+  errors: string[]
 }
 
 export interface BoxProps {
@@ -36,29 +63,25 @@ export interface BoxProps {
   j: number
 }
 
-export const createBoxes = (rows: number, cols: number): Box[][] => {
-  const rowWithBoxes = Array.from({ length: rows }, () => ({
-    leds: [],
-    books: [],
-  }))
-
-  const boxes = Array.from({ length: cols }, () => [...rowWithBoxes])
+export const createBoxes = (width: number, height: number): Box[][] => {
+  const boxes: Box[][] = []
+  for (let y = 0; y < height; y += 1) {
+    const row: Box[] = []
+    for (let x = 0; x < width; x += 1) {
+      row.push({ x, y, leds: [] })
+    }
+    boxes.push(row)
+  }
   return boxes
 }
 
-export const addLEDtoBox = (grid: Grid, led: LED, i: number, j: number): Box[][] => {
+export const addLEDtoBox = (grid: Grid, ledId: number, i: number, j: number): Box[][] => {
   const newGrid = structuredClone(grid)
-  if (newGrid.boxes[i][j].leds.some((l) => l.id === led.id)) {
-    newGrid.boxes[i][j].leds = newGrid.boxes[i][j].leds.filter((l: LED) => l.id !== led.id)
+  const current = newGrid.boxes[i][j].leds
+  if (current.includes(ledId)) {
+    newGrid.boxes[i][j].leds = current.filter((id) => id !== ledId)
     return newGrid.boxes
   }
-  newGrid.boxes[i][j].leds.push(led)
+  newGrid.boxes[i][j].leds.push(ledId)
   return newGrid.boxes
-}
-
-export const setBoxLEDsRGB = (box: Box, color: Color): Box => {
-  box.leds.forEach((_, index) => {
-    box.leds[index].rgb = color.rgb
-  })
-  return box
 }

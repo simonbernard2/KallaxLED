@@ -1,7 +1,7 @@
 from fastapi import APIRouter
-import app.strips.models as models
-import app.strips.deps as deps
 
+import app.strips.deps as deps
+import app.strips.models as models
 
 router = APIRouter()
 

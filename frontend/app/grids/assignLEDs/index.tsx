@@ -1,5 +1,5 @@
 import useAxios from "axios-hooks";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { addLEDtoBox, type Color, type Grid, type LED } from "~/utils/api";
 import GridComponent from "~/grids/grid";
 import { CurrentGridProvider, useCurrentGrid } from "./../context/currentGridProvider";
@@ -16,8 +16,8 @@ const LEDAssign = () => {
   const [{ loading: ledLoading, error: ledError }, putLED] = useAxios<LED, Color>(
     { url: "/leds/0", method: "PUT", data: { rgb: [15, 0, 0] } }
   );
-  const [{ }, saveGrid] = useAxios<Grid, Grid>(
-    { url: `/grids/${grid.id}`, method: "PUT" }, { manual: true }
+  const [{ }, saveAssignments] = useAxios<Grid, Record<number, number[]>>(
+    { url: `/grid/leds`, method: "PUT" }, { manual: true }
   )
 
   const handleLEDUpdate = async (offset: number) => {
@@ -38,9 +38,16 @@ const LEDAssign = () => {
   }
 
   const handleSave = async () => {
-    await saveGrid({ data: grid })
+    const assignments: Record<number, number[]> = {}
+    grid.boxes.forEach((row) => {
+      row.forEach((box) => {
+        if (box.id == null) return
+        assignments[box.id] = box.leds
+      })
+    })
+    await saveAssignments({ data: assignments })
 
-    navigate("/grids");
+    navigate("/grid");
   }
 
   const handleBoxClick = (i: number, j: number) => {
@@ -48,12 +55,15 @@ const LEDAssign = () => {
 
     setGrid((g: Grid) => {
       const updatedGrid = { ...g }
-      const boxes = addLEDtoBox(updatedGrid, { id: ledID, rgb: [0, 0, 0] }, i, j)
+      const boxes = addLEDtoBox(updatedGrid, ledID, i, j)
       updatedGrid.boxes = boxes
       return updatedGrid
-    }
-    )
+    })
   }
+
+  useEffect(() => {
+    setGrid(currentGrid)
+  }, [currentGrid])
 
   return (
     <div className="flex flex-col items-center gap-4">

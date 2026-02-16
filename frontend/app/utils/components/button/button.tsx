@@ -20,7 +20,12 @@ const Button = (props: Props) => {
       buttonColor = "bg-neutral-600"
   }
   return (
-    <button type={type} onClick={onClick} className={`${buttonColor} px-2 py-1 rounded ${disabled ? "opacity-50" : "cursor-pointer"}`} >
+    <button
+      type={type}
+      onClick={onClick}
+      disabled={disabled}
+      className={`${buttonColor} px-2 py-1 rounded ${disabled ? "opacity-50" : "cursor-pointer"}`}
+    >
       {children}
     </button >
   )
