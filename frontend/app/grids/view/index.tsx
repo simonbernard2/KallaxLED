@@ -7,16 +7,12 @@ import type { ColorSwatchType } from '~/utils/components/colorPicker/types/color
 import { CurrentGridProvider, useCurrentGrid } from '../context/currentGridProvider'
 import Button from '~/utils/components/button/button'
 import Box from './box'
+import { toLedTuple } from '~/utils/utils'
 
 const ViewGrid = () => {
   const currentGrid = useCurrentGrid()
   const [grid, setGrid] = useState(currentGrid)
   const [color, setColor] = useState<[number, number, number]>([255, 255, 255])
-
-  const toLedTuple = (value: ColorSwatchType): [number, number, number] => {
-    const rgb = value.ledRgb ?? value.rgb
-    return [rgb.red, rgb.green, rgb.blue]
-  }
 
   const [{ loading: highlightLoading, error: highlightError }, highlightBox] = useAxios(
     { url: '/lights/highlight', method: 'POST' },

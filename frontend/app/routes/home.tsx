@@ -5,6 +5,7 @@ import type { Book } from '~/utils/api'
 import Button from '~/utils/components/button/button'
 import ColorPicker from '~/utils/components/colorPicker/components/colorPicker'
 import type { ColorSwatchType } from '~/utils/components/colorPicker/types/colorPickerTypes'
+import { toLedTuple } from '~/utils/utils'
 
 export function meta({}: Route.MetaArgs) {
   return [{ title: 'Kallax Lighting' }, { name: 'description', content: 'Find books and light their boxes.' }]
@@ -15,11 +16,6 @@ export default function Home() {
   const [color, setColor] = useState<[number, number, number]>([255, 255, 255])
   const [sceneName, setSceneName] = useState('off')
   const [sceneColor, setSceneColor] = useState<[number, number, number]>([255, 255, 255])
-
-  const toLedTuple = (value: ColorSwatchType): [number, number, number] => {
-    const rgb = value.ledRgb ?? value.rgb
-    return [rgb.red, rgb.green, rgb.blue]
-  }
 
   const [{ data: books, loading: searchLoading, error: searchError }, searchBooks] = useAxios<Book[]>(
     { url: '/books', method: 'GET' },
