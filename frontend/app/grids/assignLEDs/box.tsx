@@ -1,11 +1,11 @@
-import type { BoxProps, LED } from "~/utils/api"
+import type { BoxProps, LED } from '~/utils/api'
 
 interface LEDNumberProps {
   ledID: number
   active: boolean
 }
 const LEDNumber = (props: LEDNumberProps) => {
-  const background = props.active ? "bg-amber-500" : "bg-neutral-300"
+  const background = props.active ? 'bg-amber-500' : 'bg-neutral-300'
   return (
     <div className={`flex items-center justify-center rounded-full h-6 w-6 text-xs ${background} text-neutral-900`}>
       {props.ledID}
@@ -20,13 +20,14 @@ interface AssignLEDBoxProps extends BoxProps {
 }
 const AssignLEDBox = (props: AssignLEDBoxProps) => {
   const { box, currentLED, disabled, i, j, onClick } = props
-  let className = "grid grid-cols-4 w-32 h-32 p-1 items-start bg-neutral-500"
-  if (!disabled) className += " cursor-pointer "
+  let className = 'grid grid-cols-4 w-32 h-32 p-1 items-start bg-neutral-500'
+  if (!disabled) className += ' cursor-pointer '
   const isCurrent = (id: number) => currentLED.id === id
   return (
     <div onClick={() => onClick?.(i, j)} className={className}>
-      {box.leds.map((ledId) =>
-        <LEDNumber key={ledId} ledID={ledId} active={isCurrent(ledId)} />)}
+      {box.leds.map(ledId => (
+        <LEDNumber key={ledId} ledID={ledId} active={isCurrent(ledId)} />
+      ))}
     </div>
   )
 }

@@ -1,33 +1,33 @@
 interface Props {
   onClick?: () => void
-  color?: "green" | "red"
-  type?: "submit" | "reset" | "button"
+  color?: 'green' | 'red'
+  type?: 'submit' | 'reset' | 'button'
   disabled?: boolean
   children?: React.ReactNode
 }
 
 const Button = (props: Props) => {
   const { type, onClick, color, disabled, children } = props
-  let buttonColor;
+  let buttonColor
   switch (color) {
-    case "green":
-      buttonColor = "bg-green-600"
+    case 'green':
+      buttonColor = 'bg-green-600'
       break
-    case "red":
-      buttonColor = "bg-red-600"
+    case 'red':
+      buttonColor = 'bg-red-600'
       break
     default:
-      buttonColor = "bg-neutral-600"
+      buttonColor = 'bg-neutral-600'
   }
   return (
     <button
       type={type}
       onClick={onClick}
       disabled={disabled}
-      className={`${buttonColor} px-2 py-1 rounded ${disabled ? "opacity-50" : "cursor-pointer"}`}
+      className={`${buttonColor} px-2 py-1 rounded ${disabled ? 'opacity-50' : 'cursor-pointer'}`}
     >
       {children}
-    </button >
+    </button>
   )
 }
 

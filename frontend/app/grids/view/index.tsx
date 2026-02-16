@@ -1,15 +1,15 @@
-import useAxios from "axios-hooks";
-import { Link } from "react-router"
-import GridComponent from "~/grids/grid";
-import { useEffect, useState } from "react";
-import ColorPicker from "~/utils/components/colorPicker/components/colorPicker";
-import type { ColorSwatchType } from "~/utils/components/colorPicker/types/colorPickerTypes";
-import { CurrentGridProvider, useCurrentGrid } from "../context/currentGridProvider";
-import Button from "~/utils/components/button/button";
-import Box from "./box";
+import useAxios from 'axios-hooks'
+import { Link } from 'react-router'
+import GridComponent from '~/grids/grid'
+import { useEffect, useState } from 'react'
+import ColorPicker from '~/utils/components/colorPicker/components/colorPicker'
+import type { ColorSwatchType } from '~/utils/components/colorPicker/types/colorPickerTypes'
+import { CurrentGridProvider, useCurrentGrid } from '../context/currentGridProvider'
+import Button from '~/utils/components/button/button'
+import Box from './box'
 
 const ViewGrid = () => {
-  const currentGrid = useCurrentGrid();
+  const currentGrid = useCurrentGrid()
   const [grid, setGrid] = useState(currentGrid)
   const [color, setColor] = useState<[number, number, number]>([255, 255, 255])
 
@@ -19,11 +19,11 @@ const ViewGrid = () => {
   }
 
   const [{ loading: highlightLoading, error: highlightError }, highlightBox] = useAxios(
-    { url: "/lights/highlight", method: "POST" },
+    { url: '/lights/highlight', method: 'POST' },
     { manual: true }
   )
   const [{ loading: clearLoading, error: clearError }, clearHighlight] = useAxios(
-    { url: "/lights/clear", method: "POST" },
+    { url: '/lights/clear', method: 'POST' },
     { manual: true }
   )
 
@@ -48,13 +48,14 @@ const ViewGrid = () => {
         <h1 className="text-lg">{grid.name}</h1>
         <Link to="/grid/edit">
           <Button>Edit</Button>
-        </Link></div>
+        </Link>
+      </div>
       <>
         <GridComponent grid={grid} BoxComponent={Box} boxComponentProps={{ onClick: handleBoxClick }} />
         <div className="flex items-center gap-4">
           <ColorPicker onClick={handleColorSelect} />
           <Button onClick={() => clearHighlight()} disabled={clearLoading || highlightLoading}>
-            {clearLoading ? "clearing..." : "clear"}
+            {clearLoading ? 'clearing...' : 'clear'}
           </Button>
         </div>
         {(highlightError || clearError) && <div>Error updating lights</div>}
@@ -67,4 +68,4 @@ export default () => (
   <CurrentGridProvider>
     <ViewGrid />
   </CurrentGridProvider>
-);
+)

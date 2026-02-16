@@ -79,7 +79,7 @@ export const addLEDtoBox = (grid: Grid, ledId: number, i: number, j: number): Bo
   const newGrid = structuredClone(grid)
   const current = newGrid.boxes[i][j].leds
   if (current.includes(ledId)) {
-    newGrid.boxes[i][j].leds = current.filter((id) => id !== ledId)
+    newGrid.boxes[i][j].leds = current.filter(id => id !== ledId)
     return newGrid.boxes
   }
   newGrid.boxes[i][j].leds.push(ledId)

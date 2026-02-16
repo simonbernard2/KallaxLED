@@ -1,22 +1,19 @@
-import { useState, type FormEvent } from "react";
-import useAxios from "axios-hooks";
-import type { Route } from "./+types/home";
-import type { Book } from "~/utils/api";
-import Button from "~/utils/components/button/button";
-import ColorPicker from "~/utils/components/colorPicker/components/colorPicker";
-import type { ColorSwatchType } from "~/utils/components/colorPicker/types/colorPickerTypes";
+import { useState, type FormEvent } from 'react'
+import useAxios from 'axios-hooks'
+import type { Route } from './+types/home'
+import type { Book } from '~/utils/api'
+import Button from '~/utils/components/button/button'
+import ColorPicker from '~/utils/components/colorPicker/components/colorPicker'
+import type { ColorSwatchType } from '~/utils/components/colorPicker/types/colorPickerTypes'
 
-export function meta({ }: Route.MetaArgs) {
-  return [
-    { title: "Kallax Lighting" },
-    { name: "description", content: "Find books and light their boxes." },
-  ];
+export function meta({}: Route.MetaArgs) {
+  return [{ title: 'Kallax Lighting' }, { name: 'description', content: 'Find books and light their boxes.' }]
 }
 
 export default function Home() {
-  const [query, setQuery] = useState("")
+  const [query, setQuery] = useState('')
   const [color, setColor] = useState<[number, number, number]>([255, 255, 255])
-  const [sceneName, setSceneName] = useState("off")
+  const [sceneName, setSceneName] = useState('off')
   const [sceneColor, setSceneColor] = useState<[number, number, number]>([255, 255, 255])
 
   const toLedTuple = (value: ColorSwatchType): [number, number, number] => {
@@ -25,20 +22,20 @@ export default function Home() {
   }
 
   const [{ data: books, loading: searchLoading, error: searchError }, searchBooks] = useAxios<Book[]>(
-    { url: "/books", method: "GET" },
+    { url: '/books', method: 'GET' },
     { manual: true }
   )
 
   const [{ loading: highlightLoading, error: highlightError }, highlightBox] = useAxios(
-    { url: "/lights/highlight", method: "POST" },
+    { url: '/lights/highlight', method: 'POST' },
     { manual: true }
   )
   const [{ loading: clearLoading, error: clearError }, clearHighlight] = useAxios(
-    { url: "/lights/clear", method: "POST" },
+    { url: '/lights/clear', method: 'POST' },
     { manual: true }
   )
   const [{ loading: sceneLoading, error: sceneError }, setScene] = useAxios(
-    { url: "/lights/scene", method: "POST" },
+    { url: '/lights/scene', method: 'POST' },
     { manual: true }
   )
 
@@ -61,7 +58,7 @@ export default function Home() {
   }
 
   const handleSceneApply = async () => {
-    if (sceneName === "solid") {
+    if (sceneName === 'solid') {
       await setScene({ data: { name: sceneName, params: { rgb: sceneColor } } })
       return
     }
@@ -77,27 +74,29 @@ export default function Home() {
             className="flex-1 bg-neutral-300 dark:bg-neutral-700 focus:outline-neutral-500 px-2 py-1 rounded"
             placeholder="Search by title, author, ISBN, or tag"
             value={query}
-            onChange={(event) => setQuery(event.target.value)}
+            onChange={event => setQuery(event.target.value)}
           />
-          <Button type="submit">{searchLoading ? "Searching..." : "Search"}</Button>
+          <Button type="submit">{searchLoading ? 'Searching...' : 'Search'}</Button>
         </form>
         <div className="flex items-center gap-4">
           <ColorPicker onClick={handleColorSelect} />
           <Button onClick={() => clearHighlight()} disabled={clearLoading || highlightLoading}>
-            {clearLoading ? "Clearing..." : "Clear highlight"}
+            {clearLoading ? 'Clearing...' : 'Clear highlight'}
           </Button>
         </div>
         {searchError && <div>Error searching books.</div>}
         {highlightError && <div>Error highlighting box.</div>}
         {clearError && <div>Error clearing highlight.</div>}
         <div className="flex flex-col gap-2">
-          {(books || []).map((book) => (
+          {(books || []).map(book => (
             <div key={book.id} className="flex items-center justify-between border rounded px-3 py-2">
               <div>
                 <div className="font-semibold">{book.title}</div>
                 <div className="text-sm text-neutral-500">{book.author}</div>
                 {book.box && (
-                  <div className="text-xs text-neutral-400">Box: {book.box.x}, {book.box.y}</div>
+                  <div className="text-xs text-neutral-400">
+                    Box: {book.box.x}, {book.box.y}
+                  </div>
                 )}
               </div>
               <Button onClick={() => handleHighlight(book)} disabled={!book.box?.id || highlightLoading}>
@@ -112,12 +111,14 @@ export default function Home() {
         <h2 className="text-xl font-semibold">Scenes</h2>
         <div className="flex flex-col gap-3">
           <div className="flex flex-col">
-            <label htmlFor="sceneSelect" className="font-semibold">Scene</label>
+            <label htmlFor="sceneSelect" className="font-semibold">
+              Scene
+            </label>
             <select
               id="sceneSelect"
               className="bg-neutral-300 dark:bg-neutral-700 focus:outline-neutral-500 px-2 py-1 rounded"
               value={sceneName}
-              onChange={(event) => setSceneName(event.target.value)}
+              onChange={event => setSceneName(event.target.value)}
             >
               <option value="off">Off</option>
               <option value="solid">Solid</option>
@@ -125,16 +126,16 @@ export default function Home() {
               <option value="breathe">Breathe (stored)</option>
             </select>
           </div>
-          {sceneName === "solid" && (
+          {sceneName === 'solid' && (
             <div className="flex items-center gap-4">
               <ColorPicker onClick={handleSceneColorSelect} />
             </div>
           )}
           <div className="flex gap-2">
             <Button onClick={handleSceneApply} disabled={sceneLoading}>
-              {sceneLoading ? "Applying..." : "Apply scene"}
+              {sceneLoading ? 'Applying...' : 'Apply scene'}
             </Button>
-            <Button onClick={() => setScene({ data: { name: "off", params: {} } })} disabled={sceneLoading}>
+            <Button onClick={() => setScene({ data: { name: 'off', params: {} } })} disabled={sceneLoading}>
               Turn off
             </Button>
           </div>
@@ -142,7 +143,6 @@ export default function Home() {
           <div className="text-xs text-neutral-500">Rainbow/breathe are stored but not animated yet.</div>
         </div>
       </section>
-
     </div>
   )
 }
