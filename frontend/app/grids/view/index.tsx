@@ -12,6 +12,12 @@ const ViewGrid = () => {
   const currentGrid = useCurrentGrid();
   const [grid, setGrid] = useState(currentGrid)
   const [color, setColor] = useState<[number, number, number]>([255, 255, 255])
+
+  const toLedTuple = (value: ColorSwatchType): [number, number, number] => {
+    const rgb = value.ledRgb ?? value.rgb
+    return [rgb.red, rgb.green, rgb.blue]
+  }
+
   const [{ loading: highlightLoading, error: highlightError }, highlightBox] = useAxios(
     { url: "/lights/highlight", method: "POST" },
     { manual: true }
@@ -29,7 +35,7 @@ const ViewGrid = () => {
   }
 
   const handleColorSelect = (value: ColorSwatchType) => {
-    setColor([value.rgb.red, value.rgb.green, value.rgb.blue])
+    setColor(toLedTuple(value))
   }
 
   useEffect(() => {

@@ -1,95 +1,50 @@
-import type { ColorSwatchType } from "./types/colorPickerTypes"
+import type { ColorSwatchType, RGBType } from "./types/colorPickerTypes"
 
+// Tuned for WS2812-class LEDs so physical output tracks on-screen swatches more closely.
+const LED_GAMMA = 1.85
+const LED_CHANNEL_BALANCE = {
+  red: 1.0,
+  green: 0.74,
+  blue: 0.8,
+}
+
+const clampChannel = (value: number): number => (Math.min(255, Math.max(0, Math.round(value))))
+
+const calibrateChannel = (value: number, balance: number): number => {
+  const normalized = clampChannel(value) / 255
+  return clampChannel((normalized ** LED_GAMMA) * 255 * balance)
+}
+
+const calibrateLedRGB = (rgb: RGBType): RGBType => ({
+  red: calibrateChannel(rgb.red, LED_CHANNEL_BALANCE.red),
+  green: calibrateChannel(rgb.green, LED_CHANNEL_BALANCE.green),
+  blue: calibrateChannel(rgb.blue, LED_CHANNEL_BALANCE.blue),
+})
+
+const swatch = (id: number, name: string, rgb: RGBType): ColorSwatchType => ({
+  id,
+  name,
+  rgb,
+  ledRgb: calibrateLedRGB(rgb),
+})
 
 export const colors: ColorSwatchType[] = [
-  {
-    id: 1,
-    name: "red",
-    rgb: { red: 231, green: 76, blue: 60 }
-  },
-  {
-    id: 2,
-    name: "pink",
-    rgb: { red: 233, green: 30, blue: 99 }
-  },
-  {
-    id: 3,
-    name: "purple",
-    rgb: { red: 171, green: 71, blue: 188 }
-  },
-  {
-    id: 4,
-    name: "deepPurple",
-    rgb: { red: 103, green: 58, blue: 183 }
-  },
-  {
-    id: 5,
-    name: "indigo",
-    rgb: { red: 63, green: 81, blue: 181 }
-  },
-  {
-    id: 6,
-    name: "blue",
-    rgb: { red: 33, green: 150, blue: 243 }
-  },
-  {
-    id: 7,
-    name: "lightBlue",
-    rgb: { red: 66, green: 165, blue: 245 }
-  },
-  {
-    id: 8,
-    name: "sky",
-    rgb: { red: 79, green: 195, blue: 247 }
-  },
-  {
-    id: 9,
-    name: "teal",
-    rgb: { red: 38, green: 166, blue: 154 }
-  },
-  {
-    id: 10,
-    name: "green",
-    rgb: { red: 102, green: 187, blue: 106 }
-  },
-  {
-    id: 11,
-    name: "lightGreen",
-    rgb: { red: 139, green: 195, blue: 74 }
-  },
-  {
-    id: 12,
-    name: "lime",
-    rgb: { red: 192, green: 202, blue: 51 }
-  },
-  {
-    id: 13,
-    name: "paleYellow",
-    rgb: { red: 255, green: 241, blue: 118 }
-  },
-  {
-    id: 14,
-    name: "amber",
-    rgb: { red: 255, green: 213, blue: 79 }
-  },
-  {
-    id: 15,
-    name: "orange",
-    rgb: { red: 255, green: 183, blue: 77 }
-  },
-  {
-    id: 16,
-    name: "gray",
-    rgb: { red: 117, green: 117, blue: 117 }
-  },
-  {
-    id: 17,
-    name: "blueGray",
-    rgb: { red: 96, green: 125, blue: 139 }
-  },
-  {
-    id: 18,
-    name: "off",
-    rgb: { red: 0, green: 0, blue: 0 }
-  }
+  swatch(1, "red", { red: 244, green: 67, blue: 54 }),
+  swatch(2, "rose", { red: 233, green: 30, blue: 99 }),
+  swatch(3, "magenta", { red: 216, green: 27, blue: 96 }),
+  swatch(4, "purple", { red: 156, green: 39, blue: 176 }),
+  swatch(5, "indigo", { red: 92, green: 107, blue: 192 }),
+  swatch(6, "blue", { red: 33, green: 150, blue: 243 }),
+  swatch(7, "cyan", { red: 0, green: 188, blue: 212 }),
+  swatch(8, "sky", { red: 79, green: 195, blue: 247 }),
+  swatch(9, "teal", { red: 0, green: 150, blue: 136 }),
+  swatch(10, "green", { red: 76, green: 175, blue: 80 }),
+  swatch(11, "lightGreen", { red: 139, green: 195, blue: 74 }),
+  swatch(12, "lime", { red: 205, green: 220, blue: 57 }),
+  swatch(13, "yellow", { red: 255, green: 235, blue: 59 }),
+  swatch(14, "amber", { red: 255, green: 193, blue: 7 }),
+  swatch(15, "orange", { red: 255, green: 152, blue: 0 }),
+  swatch(16, "warmWhite", { red: 255, green: 214, blue: 170 }),
+  swatch(17, "white", { red: 255, green: 255, blue: 255 }),
+  swatch(18, "off", { red: 0, green: 0, blue: 0 }),
 ]

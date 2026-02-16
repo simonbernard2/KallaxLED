@@ -19,6 +19,11 @@ export default function Home() {
   const [sceneName, setSceneName] = useState("off")
   const [sceneColor, setSceneColor] = useState<[number, number, number]>([255, 255, 255])
 
+  const toLedTuple = (value: ColorSwatchType): [number, number, number] => {
+    const rgb = value.ledRgb ?? value.rgb
+    return [rgb.red, rgb.green, rgb.blue]
+  }
+
   const [{ data: books, loading: searchLoading, error: searchError }, searchBooks] = useAxios<Book[]>(
     { url: "/books", method: "GET" },
     { manual: true }
@@ -43,11 +48,11 @@ export default function Home() {
   }
 
   const handleColorSelect = (value: ColorSwatchType) => {
-    setColor([value.rgb.red, value.rgb.green, value.rgb.blue])
+    setColor(toLedTuple(value))
   }
 
   const handleSceneColorSelect = (value: ColorSwatchType) => {
-    setSceneColor([value.rgb.red, value.rgb.green, value.rgb.blue])
+    setSceneColor(toLedTuple(value))
   }
 
   const handleHighlight = async (book: Book) => {

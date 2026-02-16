@@ -7,15 +7,8 @@ interface Props {
   onClick: (selected: ColorSwatchType) => void
 }
 const ColorPicker = (props: Props) => {
-  const [selected, setSelected] = useState<ColorSwatchType>({
-    "id": 18,
-    "rgb": {
-      "red": 0,
-      "green": 0,
-      "blue": 0
-    },
-    "name": "off"
-  })
+  const offSwatch = colors.find((swatch) => swatch.name === "off") ?? colors[0]
+  const [selected, setSelected] = useState<ColorSwatchType>(offSwatch)
   const handleSelect = (swatch: ColorSwatchType) => {
     if (!swatch) { return }
     setSelected(swatch)
