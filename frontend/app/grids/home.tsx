@@ -1,10 +1,10 @@
-import useAxios from "axios-hooks";
-import { Link } from "react-router";
-import type { Grid } from "~/utils/api";
-import Button from "~/utils/components/button/button";
+import useAxios from 'axios-hooks'
+import { Link } from 'react-router'
+import type { Grid } from '~/utils/api'
+import Button from '~/utils/components/button/button'
 
 const Home = () => {
-  const [{ data: grid, loading, error }] = useAxios<Grid>("/grid");
+  const [{ data: grid, loading, error }] = useAxios<Grid>('/grid')
   if (loading) {
     return <div>Loading</div>
   }
@@ -47,16 +47,10 @@ const Home = () => {
             {grid && (
               <tr className="odd:bg-neutral-200 dark:odd:bg-neutral-500 even:bg-neutral-100 dark:even:bg-neutral-400 border-b last:border-none dark:hover:bg-neutral-300 dark:hover:text-gray-800 hover:bg-neutral-300 transition duration-200">
                 <th scope="row" className="px-6 py-4 font-bold text-heading whitespace-nowrap underline">
-                  <Link to="/grid/view">
-                    {grid.name}
-                  </Link>
+                  <Link to="/grid/view">{grid.name}</Link>
                 </th>
-                <td className="px-6 py-4">
-                  {grid.width}
-                </td>
-                <td className="px-6 py-4">
-                  {grid.height}
-                </td>
+                <td className="px-6 py-4">{grid.width}</td>
+                <td className="px-6 py-4">{grid.height}</td>
                 <td className="px-6 py-4">
                   <Link to="/grid/edit">edit</Link>
                 </td>
