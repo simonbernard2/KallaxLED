@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from datetime import datetime
 from typing import Optional
 
@@ -16,7 +14,7 @@ class Box(SQLModel, table=True):
     leds: list[int] = Field(default_factory=list, sa_column=Column(JSON))
 
     grid_id: Optional[int] = Field(default=None, foreign_key="grid.id")
-    grid: Optional["Grid"] = Relationship(back_populates="boxes")
+    grid: "Grid" = Relationship(back_populates="boxes")
     books: list["LibraryBook"] = Relationship(back_populates="box", sa_relationship_kwargs={"cascade": "all, delete"})
 
 
@@ -60,8 +58,8 @@ class LibraryBook(SQLModel, table=True):
     box_id: Optional[int] = Field(default=None, foreign_key="box.id")
     archive_publication_id: Optional[int] = Field(default=None, foreign_key="archive_publications.id")
 
-    box: Optional[Box] = Relationship(back_populates="books")
-    archive_publication: Optional[ArchivePublication] = Relationship(back_populates="library_books")
+    box: Box = Relationship(back_populates="books")
+    archive_publication: ArchivePublication = Relationship(back_populates="library_books")
 
 
 class ArchiveEntry(SQLModel, table=True):
@@ -75,7 +73,7 @@ class ArchiveEntry(SQLModel, table=True):
     creators: list[str] = Field(default_factory=list, sa_column=Column(JSON))
     summary: Optional[str] = None
 
-    publication: Optional[ArchivePublication] = Relationship(back_populates="entries")
+    publication: ArchivePublication = Relationship(back_populates="entries")
     topic_links: list["ArchiveEntryTopicLink"] = Relationship(
         back_populates="entry",
         sa_relationship_kwargs={"cascade": "all, delete-orphan"},
@@ -100,8 +98,8 @@ class ArchiveEntryTopicLink(SQLModel, table=True):
     entry_id: int = Field(foreign_key="archive_entries.id", index=True)
     topic_id: int = Field(foreign_key="magic_topics.id", index=True)
 
-    entry: Optional[ArchiveEntry] = Relationship(back_populates="topic_links")
-    topic: Optional[MagicTopic] = Relationship(back_populates="entry_links")
+    entry: ArchiveEntry = Relationship(back_populates="topic_links")
+    topic: MagicTopic = Relationship(back_populates="entry_links")
 
 
 class LightingState(SQLModel, table=True):
