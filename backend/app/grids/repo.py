@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime, UTC
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 
@@ -289,7 +289,7 @@ class GridFileRepo:
             record.title = publication.title
             record.subtitle = publication.subtitle
             record.authors = publication.authors
-            record.imported_at = datetime.now(UTC)
+            record.imported_at = datetime.now(timezone.utc)
             session.add(record)
             session.commit()
             session.refresh(record)
