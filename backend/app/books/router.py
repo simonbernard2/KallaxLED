@@ -4,6 +4,14 @@ from typing import Optional
 
 from fastapi import APIRouter, HTTPException, UploadFile, File, Response
 
+from app.archive import (
+    ConjuringArchiveParseError,
+    normalize_archive_source,
+    parse_archive_publication,
+    parse_archive_publication_preview,
+)
+import app.archive.deps as archive_deps
+from app.archive.fetcher import ArchiveFetchError
 import app.books.dtos as dtos
 import app.grids.deps as deps
 import app.grids.models as models
@@ -28,6 +36,15 @@ async def search_books(
     return [dtos.BookResponse.from_book(book) for book in books]
 
 
+@router.get("/books/search")
+async def search_books_with_context(
+    grid_repo: deps.GridsRepoDep,
+    query: Optional[str] = None,
+) -> list[dtos.BookSearchResponse]:
+    matches = grid_repo.search_book_matches(query)
+    return [dtos.BookSearchResponse.from_match(match) for match in matches]
+
+
 @router.put("/books/{book_id}")
 async def update_book(
     book_id: int,
@@ -50,6 +67,62 @@ async def delete_book(book_id: int, grid_repo: deps.GridsRepoDep) -> dtos.BookRe
     if book is None:
         raise HTTPException(status_code=404, detail="book not found")
     return dtos.BookResponse.from_book(book)
+
+
+@router.post("/books/{book_id}/archive-link")
+async def link_book_archive(
+    book_id: int,
+    payload: dtos.ArchiveLinkRequest,
+    grid_repo: deps.GridsRepoDep,
+    archive_fetcher: archive_deps.ArchiveFetcherDep,
+) -> dtos.ArchiveLinkResponse:
+    try:
+        external_id, source_url = normalize_archive_source(payload.source)
+        html = archive_fetcher.fetch(source_url)
+        publication = parse_archive_publication_preview(html, external_id, source_url)
+    except ConjuringArchiveParseError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except ArchiveFetchError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+
+    book = grid_repo.link_book_to_archive(book_id, publication)
+    if book is None:
+        raise HTTPException(status_code=404, detail="book not found")
+
+    return dtos.ArchiveLinkResponse(
+        preview=dtos.ArchiveLinkPreview.from_publication(publication),
+        book=dtos.BookResponse.from_book(book),
+    )
+
+
+@router.post("/books/{book_id}/archive-import")
+async def import_book_archive(
+    book_id: int,
+    grid_repo: deps.GridsRepoDep,
+    archive_fetcher: archive_deps.ArchiveFetcherDep,
+) -> dtos.BookResponse:
+    book = grid_repo.get_book(book_id)
+    if book is None:
+        raise HTTPException(status_code=404, detail="book not found")
+    if book.archive_publication is None:
+        raise HTTPException(status_code=400, detail="book is not linked to an archive publication")
+
+    try:
+        html = archive_fetcher.fetch(book.archive_publication.source_url)
+        publication = parse_archive_publication(
+            html,
+            book.archive_publication.external_id,
+            book.archive_publication.source_url,
+        )
+    except ConjuringArchiveParseError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except ArchiveFetchError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+
+    imported_book = grid_repo.import_archive_publication(book_id, publication)
+    if imported_book is None:
+        raise HTTPException(status_code=404, detail="book not found")
+    return dtos.BookResponse.from_book(imported_book)
 
 
 @router.post("/books/import")
@@ -105,7 +178,8 @@ async def import_books(grid_repo: deps.GridsRepoDep, file: UploadFile = File(...
             separator = ";" if ";" in tags_value else ","
             tags = [tag.strip() for tag in tags_value.split(separator) if tag.strip()]
 
-        book = models.Book(title=title, author=author, isbn=isbn, tags=tags, box_id=box.id)
+        notes = (row.get("notes") or "").strip() or None
+        book = models.Book(title=title, author=author, isbn=isbn, user_tags=tags, notes=notes, box_id=box.id)
         grid_repo.create_book(book)
         created += 1
 
@@ -117,13 +191,19 @@ async def export_books(grid_repo: deps.GridsRepoDep) -> Response:
     books = grid_repo.list_books()
     output = io.StringIO()
     writer = csv.writer(output)
-    writer.writerow(["title", "author", "isbn", "tags", "box_x", "box_y"])
+    writer.writerow(["title", "author", "isbn", "tags", "notes", "box_x", "box_y"])
     for book in books:
         box_x = book.box.x if book.box is not None else ""
         box_y = book.box.y if book.box is not None else ""
-        tags = ";".join(book.tags)
-        writer.writerow([book.title, book.author, book.isbn or "", tags, box_x, box_y])
+        tags = ";".join(book.user_tags)
+        writer.writerow([book.title, book.author, book.isbn or "", tags, book.notes or "", box_x, box_y])
 
     content = output.getvalue()
     headers = {"Content-Disposition": "attachment; filename=books.csv"}
     return Response(content=content, media_type="text/csv", headers=headers)
+
+
+@router.get("/topics")
+async def list_topics(grid_repo: deps.GridsRepoDep, query: Optional[str] = None) -> list[dtos.TopicResponse]:
+    topics = grid_repo.list_topics(query)
+    return [dtos.TopicResponse.from_topic(topic) for topic in topics]

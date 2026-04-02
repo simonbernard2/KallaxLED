@@ -3,29 +3,29 @@ import type { ChangeEvent } from 'react'
 interface Props {
   name: string
   label: string
-  type: 'number' | 'text'
+  type?: 'number' | 'text' | 'search' | 'url'
   min?: number
   max?: number
+  placeholder?: string
   value: number | string
   onChange: (e: ChangeEvent<HTMLInputElement>) => void
 }
-const Input = (props: Props) => {
-  const { name, label, type, min, max, value, onChange } = props
+
+const Input = ({ name, label, type = 'text', min, max, placeholder, value, onChange }: Props) => {
   return (
-    <div className="flex flex-col">
-      <label htmlFor={name} className="font-semibold">
-        {label}:
-      </label>
+    <label htmlFor={name} className="field">
+      <span className="field-label">{label}</span>
       <input
         id={name}
-        className="bg-neutral-300 dark:bg-neutral-700 focus:outline-neutral-500 px-2 py-1 rounded"
+        className="field-input"
         type={type}
         value={value}
         min={min}
         max={max}
+        placeholder={placeholder}
         onChange={(e: ChangeEvent<HTMLInputElement>) => onChange(e)}
       />
-    </div>
+    </label>
   )
 }
 

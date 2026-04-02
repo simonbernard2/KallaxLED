@@ -1,144 +1,359 @@
-import { useState, type FormEvent } from 'react'
-import useAxios from 'axios-hooks'
-import type { Route } from './+types/home'
-import type { Book } from '~/utils/api'
+import { startTransition, useEffect, useMemo, useState, type FormEvent } from 'react'
+import { Link } from 'react-router'
 import Button from '~/utils/components/button/button'
-import ColorPicker from '~/utils/components/colorPicker/components/colorPicker'
-import type { ColorSwatchType } from '~/utils/components/colorPicker/types/colorPickerTypes'
-import { toLedTuple } from '~/utils/utils'
+import Input from '~/utils/components/input/input'
+import {
+  applyScene,
+  clearHighlight as clearHighlightRequest,
+  getLightingState,
+  highlightBookBox,
+  listTopics,
+  searchBooks,
+  type BookSearchResult,
+  type LightingState,
+  type MatchReason,
+  type SceneName,
+  type Topic,
+} from '~/utils/api'
+import { hexToRgbTuple } from '~/utils/utils'
 
-export function meta({}: Route.MetaArgs) {
-  return [{ title: 'Kallax Lighting' }, { name: 'description', content: 'Find books and light their boxes.' }]
+const reasonLabels: Record<MatchReason['type'], string> = {
+  title: 'Title',
+  author: 'Author',
+  isbn: 'ISBN',
+  tag: 'Tag',
+  note: 'Notes',
+  publication: 'Publication',
+  publication_author: 'Publication author',
+  entry: 'Entry',
+  entry_creator: 'Entry creator',
+  topic: 'Topic',
+}
+
+const sceneOptions: Array<{ value: SceneName; label: string }> = [
+  { value: 'off', label: 'Off' },
+  { value: 'solid', label: 'Solid' },
+  { value: 'rainbow', label: 'Rainbow' },
+  { value: 'breathe', label: 'Breathe' },
+]
+
+const formatReason = (reason: MatchReason) => {
+  if (!reason.detail) return `${reasonLabels[reason.type]}: ${reason.label}`
+  return `${reasonLabels[reason.type]}: ${reason.label} • ${reason.detail}`
+}
+
+const formatLightingSummary = (lightingState: LightingState | null) => {
+  if (!lightingState) return 'Ready to search and light a shelf.'
+  if (lightingState.highlight_box_id) return `Highlight active on box #${lightingState.highlight_box_id}.`
+  if (lightingState.active_scene === 'solid') return 'Solid scene is active across the shelf.'
+  if (lightingState.active_scene) return `${lightingState.active_scene} scene is active.`
+  return 'No scene or highlight is currently active.'
 }
 
 export default function Home() {
   const [query, setQuery] = useState('')
-  const [color, setColor] = useState<[number, number, number]>([255, 255, 255])
-  const [sceneName, setSceneName] = useState('off')
-  const [sceneColor, setSceneColor] = useState<[number, number, number]>([255, 255, 255])
+  const [highlightColor, setHighlightColor] = useState('#ffcf7d')
+  const [sceneName, setSceneName] = useState<SceneName>('off')
+  const [sceneColor, setSceneColor] = useState('#c79745')
+  const [results, setResults] = useState<BookSearchResult[]>([])
+  const [topics, setTopics] = useState<Topic[]>([])
+  const [lightingState, setLightingState] = useState<LightingState | null>(null)
+  const [isSearching, setIsSearching] = useState(true)
+  const [busyBookId, setBusyBookId] = useState<number | null>(null)
+  const [sceneBusy, setSceneBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  const [{ data: books, loading: searchLoading, error: searchError }, searchBooks] = useAxios<Book[]>(
-    { url: '/books', method: 'GET' },
-    { manual: true }
-  )
+  const featuredTopics = useMemo(() => topics.slice(0, 10), [topics])
 
-  const [{ loading: highlightLoading, error: highlightError }, highlightBox] = useAxios(
-    { url: '/lights/highlight', method: 'POST' },
-    { manual: true }
-  )
-  const [{ loading: clearLoading, error: clearError }, clearHighlight] = useAxios(
-    { url: '/lights/clear', method: 'POST' },
-    { manual: true }
-  )
-  const [{ loading: sceneLoading, error: sceneError }, setScene] = useAxios(
-    { url: '/lights/scene', method: 'POST' },
-    { manual: true }
-  )
+  const loadDashboard = async (nextQuery = '') => {
+    setIsSearching(true)
+    setError(null)
+
+    try {
+      const [searchResults, topicResults, state] = await Promise.all([
+        searchBooks(nextQuery),
+        listTopics(''),
+        getLightingState(),
+      ])
+
+      startTransition(() => {
+        setResults(searchResults)
+        setTopics(topicResults)
+        setLightingState(state)
+      })
+    } catch {
+      setError('The dashboard could not load. Check the API connection and try again.')
+    } finally {
+      setIsSearching(false)
+    }
+  }
+
+  useEffect(() => {
+    void loadDashboard('')
+  }, [])
 
   const handleSearch = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    await searchBooks({ params: { query } })
+    await loadDashboard(query)
   }
 
-  const handleColorSelect = (value: ColorSwatchType) => {
-    setColor(toLedTuple(value))
+  const handleTopicSearch = async (topicPath: string) => {
+    setQuery(topicPath)
+    await loadDashboard(topicPath)
   }
 
-  const handleSceneColorSelect = (value: ColorSwatchType) => {
-    setSceneColor(toLedTuple(value))
-  }
+  const handleHighlight = async (book: BookSearchResult) => {
+    if (!book.box) return
 
-  const handleHighlight = async (book: Book) => {
-    if (!book.box?.id) return
-    await highlightBox({ data: { box_id: book.box.id, rgb: color } })
-  }
-
-  const handleSceneApply = async () => {
-    if (sceneName === 'solid') {
-      await setScene({ data: { name: sceneName, params: { rgb: sceneColor } } })
-      return
+    setBusyBookId(book.id)
+    setError(null)
+    try {
+      const state = await highlightBookBox(book.box.id, hexToRgbTuple(highlightColor))
+      setLightingState(state)
+    } catch {
+      setError('That shelf box could not be highlighted.')
+    } finally {
+      setBusyBookId(null)
     }
-    await setScene({ data: { name: sceneName, params: {} } })
+  }
+
+  const handleClearHighlight = async () => {
+    setSceneBusy(true)
+    setError(null)
+    try {
+      const state = await clearHighlightRequest()
+      setLightingState(state)
+    } catch {
+      setError('The current highlight could not be cleared.')
+    } finally {
+      setSceneBusy(false)
+    }
+  }
+
+  const handleApplyScene = async () => {
+    setSceneBusy(true)
+    setError(null)
+    try {
+      const state =
+        sceneName === 'solid'
+          ? await applyScene(sceneName, { rgb: hexToRgbTuple(sceneColor) })
+          : await applyScene(sceneName, {})
+      setLightingState(state)
+    } catch {
+      setError('The scene could not be updated.')
+    } finally {
+      setSceneBusy(false)
+    }
   }
 
   return (
-    <div className="flex flex-col gap-10 w-full max-w-3xl">
-      <section className="flex flex-col gap-4">
-        <h1 className="text-2xl font-semibold">Find a Book</h1>
-        <form className="flex gap-2" onSubmit={handleSearch}>
-          <input
-            className="flex-1 bg-neutral-300 dark:bg-neutral-700 focus:outline-neutral-500 px-2 py-1 rounded"
-            placeholder="Search by title, author, ISBN, or tag"
-            value={query}
-            onChange={event => setQuery(event.target.value)}
-          />
-          <Button type="submit">{searchLoading ? 'Searching...' : 'Search'}</Button>
-        </form>
-        <div className="flex items-center gap-4">
-          <ColorPicker onClick={handleColorSelect} />
-          <Button onClick={() => clearHighlight()} disabled={clearLoading || highlightLoading}>
-            {clearLoading ? 'Clearing...' : 'Clear highlight'}
-          </Button>
-        </div>
-        {searchError && <div>Error searching books.</div>}
-        {highlightError && <div>Error highlighting box.</div>}
-        {clearError && <div>Error clearing highlight.</div>}
-        <div className="flex flex-col gap-2">
-          {(books || []).map(book => (
-            <div key={book.id} className="flex items-center justify-between border rounded px-3 py-2">
-              <div>
-                <div className="font-semibold">{book.title}</div>
-                <div className="text-sm text-neutral-500">{book.author}</div>
-                {book.box && (
-                  <div className="text-xs text-neutral-400">
-                    Box: {book.box.x}, {book.box.y}
-                  </div>
-                )}
-              </div>
-              <Button onClick={() => handleHighlight(book)} disabled={!book.box?.id || highlightLoading}>
-                Light up
+    <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr),20rem]">
+      <div className="flex flex-col gap-6">
+        <section className="panel-strong">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+            <div className="max-w-2xl">
+              <p className="section-kicker">Find</p>
+              <h1 className="section-heading mt-2">Search the shelf by book, move, or topic</h1>
+              <p className="mt-3 text-sm leading-6 text-[var(--ink-muted)]">
+                Search local books, imported archive entry titles, and topic paths like packet tricks or false shuffles,
+                then light the matching shelf box in one tap.
+              </p>
+            </div>
+
+            <div className="rounded-3xl bg-[var(--forest-strong)] px-4 py-3 text-sm text-white shadow-[0_24px_50px_-28px_rgba(31,74,54,0.85)]">
+              {formatLightingSummary(lightingState)}
+            </div>
+          </div>
+
+          <form className="mt-6 flex flex-col gap-3 sm:flex-row" onSubmit={handleSearch}>
+            <Input
+              name="book-search"
+              label="Search"
+              type="search"
+              placeholder="The Paper Engine, packet tricks, false shuffle..."
+              value={query}
+              onChange={event => setQuery(event.target.value)}
+            />
+            <div className="flex items-end gap-3 sm:min-w-52">
+              <Button type="submit" className="w-full" disabled={isSearching}>
+                {isSearching ? 'Searching...' : 'Search shelf'}
+              </Button>
+              <Button
+                tone="ghost"
+                className="w-full"
+                onClick={() => {
+                  setQuery('')
+                  void loadDashboard('')
+                }}
+              >
+                Reset
               </Button>
             </div>
-          ))}
-        </div>
-      </section>
+          </form>
 
-      <section className="flex flex-col gap-4">
-        <h2 className="text-xl font-semibold">Scenes</h2>
-        <div className="flex flex-col gap-3">
-          <div className="flex flex-col">
-            <label htmlFor="sceneSelect" className="font-semibold">
-              Scene
-            </label>
-            <select
-              id="sceneSelect"
-              className="bg-neutral-300 dark:bg-neutral-700 focus:outline-neutral-500 px-2 py-1 rounded"
-              value={sceneName}
-              onChange={event => setSceneName(event.target.value)}
-            >
-              <option value="off">Off</option>
-              <option value="solid">Solid</option>
-              <option value="rainbow">Rainbow (stored)</option>
-              <option value="breathe">Breathe (stored)</option>
-            </select>
-          </div>
-          {sceneName === 'solid' && (
-            <div className="flex items-center gap-4">
-              <ColorPicker onClick={handleSceneColorSelect} />
+          <details className="panel mt-4 md:hidden">
+            <summary className="cursor-pointer list-none text-sm font-semibold text-[var(--ink)]">Quick topic filters</summary>
+            <div className="mt-4 flex flex-wrap gap-2">
+              {featuredTopics.map(topic => (
+                <button
+                  key={topic.id}
+                  type="button"
+                  className="pill hover:border-[var(--accent-strong)] hover:text-[var(--ink)]"
+                  onClick={() => void handleTopicSearch(topic.path)}
+                >
+                  {topic.name}
+                </button>
+              ))}
             </div>
-          )}
-          <div className="flex gap-2">
-            <Button onClick={handleSceneApply} disabled={sceneLoading}>
-              {sceneLoading ? 'Applying...' : 'Apply scene'}
+          </details>
+        </section>
+
+        <section className="panel">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <p className="section-kicker">Results</p>
+              <h2 className="mt-2 text-xl font-bold text-[var(--ink)]">Books on this shelf</h2>
+            </div>
+            <Link to="/manage/books" className="text-sm font-semibold text-[var(--forest)]">
+              Manage catalog
+            </Link>
+          </div>
+
+          <div className="mt-5 flex flex-col gap-4">
+            {results.map(book => (
+              <article key={book.id} className="rounded-[28px] border border-black/8 bg-white/70 p-4 shadow-[0_18px_40px_-34px_rgba(39,29,23,0.45)]">
+                <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                  <div className="space-y-3">
+                    <div>
+                      <h3 className="text-lg font-bold text-[var(--ink)]">{book.title}</h3>
+                      <p className="text-sm text-[var(--ink-muted)]">{book.author}</p>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2">
+                      {book.box ? (
+                        <span className="pill bg-[var(--forest)]/10 text-[var(--forest)]">
+                          Box {book.box.x}, {book.box.y}
+                        </span>
+                      ) : (
+                        <span className="pill">No box assigned</span>
+                      )}
+                      {book.user_tags.map(tag => (
+                        <span key={tag} className="pill">
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+
+                    {book.match_reasons.length > 0 && (
+                      <ul className="flex flex-wrap gap-2">
+                        {book.match_reasons.map(reason => (
+                          <li key={`${reason.type}-${reason.label}-${reason.detail}`} className="pill bg-[var(--accent)]/20 text-[var(--ink)]">
+                            {formatReason(reason)}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+
+                    {book.archive_publication && (
+                      <div className="rounded-3xl bg-[var(--forest-strong)]/6 p-3 text-sm text-[var(--ink-muted)]">
+                        <p className="font-semibold text-[var(--ink)]">{book.archive_publication.title}</p>
+                        <p className="mt-1">{book.archive_publication.authors.join(', ')}</p>
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          {book.archive_publication.topics_preview.slice(0, 4).map(topic => (
+                            <button
+                              key={topic.id}
+                              type="button"
+                              className="pill hover:border-[var(--accent-strong)] hover:text-[var(--ink)]"
+                              onClick={() => void handleTopicSearch(topic.path)}
+                            >
+                              {topic.name}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex min-w-0 flex-col gap-3 lg:w-52">
+                    <label className="field">
+                      <span className="field-label">Highlight color</span>
+                      <input
+                        aria-label={`Highlight color for ${book.title}`}
+                        className="field-input h-12 p-2"
+                        type="color"
+                        value={highlightColor}
+                        onChange={event => setHighlightColor(event.target.value)}
+                      />
+                    </label>
+                    <Button onClick={() => void handleHighlight(book)} disabled={!book.box || busyBookId === book.id}>
+                      {busyBookId === book.id ? 'Lighting...' : book.box ? 'Light this shelf' : 'Assign a box first'}
+                    </Button>
+                  </div>
+                </div>
+              </article>
+            ))}
+
+            {!isSearching && results.length === 0 && (
+              <div className="rounded-3xl border border-dashed border-black/10 bg-white/50 p-6 text-sm text-[var(--ink-muted)]">
+                No books matched that query yet. Link more archive metadata in <Link to="/manage/books" className="font-semibold text-[var(--forest)]">Manage</Link> to improve topic search.
+              </div>
+            )}
+          </div>
+        </section>
+
+        {error && <div className="panel border-[#7b332c]/20 text-sm text-[#7b332c]">{error}</div>}
+      </div>
+
+      <aside className="flex flex-col gap-6">
+        <section className="panel hidden md:block">
+          <p className="section-kicker">Topics</p>
+          <h2 className="mt-2 text-xl font-bold text-[var(--ink)]">Quick filters</h2>
+          <div className="mt-4 flex flex-wrap gap-2">
+            {featuredTopics.map(topic => (
+              <button
+                key={topic.id}
+                type="button"
+                className="pill hover:border-[var(--accent-strong)] hover:text-[var(--ink)]"
+                onClick={() => void handleTopicSearch(topic.path)}
+              >
+                {topic.name}
+              </button>
+            ))}
+          </div>
+        </section>
+
+        <section className="panel">
+          <p className="section-kicker">Scenes</p>
+          <h2 className="mt-2 text-xl font-bold text-[var(--ink)]">Ambient control</h2>
+
+          <div className="mt-4 flex flex-col gap-4">
+            <label className="field">
+              <span className="field-label">Scene</span>
+              <select className="field-input" value={sceneName} onChange={event => setSceneName(event.target.value as SceneName)}>
+                {sceneOptions.map(option => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            {sceneName === 'solid' && (
+              <label className="field">
+                <span className="field-label">Solid color</span>
+                <input className="field-input h-12 p-2" type="color" value={sceneColor} onChange={event => setSceneColor(event.target.value)} />
+              </label>
+            )}
+
+            <Button tone="secondary" onClick={() => void handleApplyScene()} disabled={sceneBusy}>
+              {sceneBusy ? 'Updating...' : 'Apply scene'}
             </Button>
-            <Button onClick={() => setScene({ data: { name: 'off', params: {} } })} disabled={sceneLoading}>
-              Turn off
+            <Button tone="ghost" onClick={() => void handleClearHighlight()} disabled={sceneBusy}>
+              Clear highlight
             </Button>
           </div>
-          {sceneError && <div>Error applying scene.</div>}
-          <div className="text-xs text-neutral-500">Rainbow/breathe are stored but not animated yet.</div>
-        </div>
-      </section>
+        </section>
+      </aside>
     </div>
   )
 }

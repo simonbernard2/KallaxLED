@@ -5,13 +5,21 @@ from sqlalchemy import pool
 
 from alembic import context
 
-from app.grids.models import Grid, Book, Box, LightingState
+from app.grids.models import (
+    ArchiveEntry,
+    ArchiveEntryTopicLink,
+    ArchivePublication,
+    Book,
+    Box,
+    Grid,
+    LightingState,
+    MagicTopic,
+)
 from sqlmodel import SQLModel
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
-config.set_main_option("sqlalchemy.url", "sqlite:///database.db")
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
