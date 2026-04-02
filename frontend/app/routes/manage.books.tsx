@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
+import { formatBoxLabel } from '~/grids/box-label'
+import ShelfBoxPicker from '~/grids/shelf-box-picker'
 import Button from '~/utils/components/button/button'
 import Input from '~/utils/components/input/input'
 import {
@@ -22,7 +24,7 @@ interface BookDraft {
   isbn: string
   userTags: string
   notes: string
-  boxId: string
+  boxId: number | null
 }
 
 const emptyDraft: BookDraft = {
@@ -31,7 +33,7 @@ const emptyDraft: BookDraft = {
   isbn: '',
   userTags: '',
   notes: '',
-  boxId: '',
+  boxId: null,
 }
 
 const toDraft = (book: Book): BookDraft => ({
@@ -40,7 +42,7 @@ const toDraft = (book: Book): BookDraft => ({
   isbn: book.isbn ?? '',
   userTags: joinCommaList(book.user_tags),
   notes: book.notes ?? '',
-  boxId: book.box?.id ? `${book.box.id}` : '',
+  boxId: book.box?.id ?? null,
 })
 
 export default function ManageBooks() {
@@ -50,6 +52,7 @@ export default function ManageBooks() {
   const [createDraft, setCreateDraft] = useState<BookDraft>(emptyDraft)
   const [editingId, setEditingId] = useState<number | null>(null)
   const [editDraft, setEditDraft] = useState<BookDraft>(emptyDraft)
+  const [editMissingBoxLabel, setEditMissingBoxLabel] = useState<string | null>(null)
   const [archiveSources, setArchiveSources] = useState<Record<number, string>>({})
   const [isLoading, setIsLoading] = useState(true)
   const [status, setStatus] = useState<string | null>(null)
@@ -59,6 +62,13 @@ export default function ManageBooks() {
     () => (grid ? grid.boxes.flat().filter((box): box is typeof box & { id: number } => box.id != null) : []),
     [grid]
   )
+
+  const hasCurrentBox = (boxId: number | null) => boxId != null && boxes.some(box => box.id === boxId)
+
+  const stopEditing = () => {
+    setEditingId(null)
+    setEditMissingBoxLabel(null)
+  }
 
   const loadBooksPage = async (nextQuery = query) => {
     setIsLoading(true)
@@ -103,7 +113,7 @@ export default function ManageBooks() {
         isbn: createDraft.isbn || null,
         user_tags: splitCommaList(createDraft.userTags),
         notes: createDraft.notes || null,
-        box_id: createDraft.boxId ? Number(createDraft.boxId) : null,
+        box_id: createDraft.boxId,
       })
       setCreateDraft(emptyDraft)
       setStatus('Book created.')
@@ -116,6 +126,7 @@ export default function ManageBooks() {
   const startEditing = (book: Book) => {
     setEditingId(book.id)
     setEditDraft(toDraft(book))
+    setEditMissingBoxLabel(book.box && !hasCurrentBox(book.box.id) ? formatBoxLabel(book.box) : null)
     setArchiveSources(prev => ({ ...prev, [book.id]: prev[book.id] ?? book.archive_publication?.source_url ?? '' }))
   }
 
@@ -130,9 +141,9 @@ export default function ManageBooks() {
         isbn: editDraft.isbn || null,
         user_tags: splitCommaList(editDraft.userTags),
         notes: editDraft.notes || null,
-        box_id: editDraft.boxId ? Number(editDraft.boxId) : null,
+        box_id: editDraft.boxId,
       })
-      setEditingId(null)
+      stopEditing()
       setStatus('Book updated.')
       await loadBooksPage(query)
     } catch {
@@ -147,11 +158,20 @@ export default function ManageBooks() {
     try {
       await deleteBook(bookId)
       setStatus('Book deleted.')
-      if (editingId === bookId) setEditingId(null)
+      if (editingId === bookId) stopEditing()
       await loadBooksPage(query)
     } catch {
       setError('Book deletion failed.')
     }
+  }
+
+  const handleCreateBoxSelect = (boxId: number | null) => {
+    setCreateDraft(prev => ({ ...prev, boxId }))
+  }
+
+  const handleEditBoxSelect = (boxId: number | null) => {
+    setEditDraft(prev => ({ ...prev, boxId }))
+    if (boxId == null || hasCurrentBox(boxId)) setEditMissingBoxLabel(null)
   }
 
   const handleArchiveLink = async (bookId: number) => {
@@ -297,21 +317,15 @@ export default function ManageBooks() {
             onChange={event => setCreateDraft(prev => ({ ...prev, userTags: event.target.value }))}
           />
 
-          <label className="field">
+          <div className="field">
             <span className="field-label">Shelf box</span>
-            <select
-              className="field-input"
-              value={createDraft.boxId}
-              onChange={event => setCreateDraft(prev => ({ ...prev, boxId: event.target.value }))}
-            >
-              <option value="">Unassigned</option>
-              {boxes.map(box => (
-                <option key={box.id} value={box.id}>
-                  Box {box.x}, {box.y}
-                </option>
-              ))}
-            </select>
-          </label>
+            <ShelfBoxPicker
+              grid={grid}
+              selectedBoxId={createDraft.boxId}
+              onSelect={handleCreateBoxSelect}
+              ariaLabel="Shelf box for new book"
+            />
+          </div>
 
           <label className="field lg:col-span-2">
             <span className="field-label">Notes</span>
@@ -342,7 +356,7 @@ export default function ManageBooks() {
                 <div className="flex flex-wrap gap-2">
                   {book.box ? (
                     <span className="pill bg-[var(--forest)]/10 text-[var(--forest)]">
-                      Box {book.box.x}, {book.box.y}
+                      {formatBoxLabel(book.box)}
                     </span>
                   ) : (
                     <span className="pill">Unassigned</span>
@@ -409,21 +423,16 @@ export default function ManageBooks() {
                   onChange={event => setEditDraft(prev => ({ ...prev, userTags: event.target.value }))}
                 />
 
-                <label className="field">
+                <div className="field">
                   <span className="field-label">Shelf box</span>
-                  <select
-                    className="field-input"
-                    value={editDraft.boxId}
-                    onChange={event => setEditDraft(prev => ({ ...prev, boxId: event.target.value }))}
-                  >
-                    <option value="">Unassigned</option>
-                    {boxes.map(box => (
-                      <option key={box.id} value={box.id}>
-                        Box {box.x}, {box.y}
-                      </option>
-                    ))}
-                  </select>
-                </label>
+                  <ShelfBoxPicker
+                    grid={grid}
+                    selectedBoxId={editDraft.boxId}
+                    onSelect={handleEditBoxSelect}
+                    missingSelectionLabel={editMissingBoxLabel}
+                    ariaLabel={`Shelf box for ${book.title}`}
+                  />
+                </div>
 
                 <label className="field lg:col-span-2">
                   <span className="field-label">Notes</span>
@@ -457,7 +466,7 @@ export default function ManageBooks() {
                   <Button tone="secondary" onClick={() => void handleSave(book.id)}>
                     Save changes
                   </Button>
-                  <Button tone="ghost" onClick={() => setEditingId(null)}>
+                  <Button tone="ghost" onClick={stopEditing}>
                     Cancel
                   </Button>
                 </div>

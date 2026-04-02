@@ -1,3 +1,4 @@
+import { formatBoxLabel } from '~/grids/box-label'
 import type { Box, Grid } from '~/utils/api'
 
 interface GridDisplayProps {
@@ -27,7 +28,7 @@ const GridDisplay = ({ grid, renderBox, className = '' }: GridDisplayProps) => {
               key={`${rowIndex}-${columnIndex}`}
               className="rounded-3xl border border-black/8 bg-white/75 p-3 text-center text-xs font-semibold text-[var(--ink-muted)]"
             >
-              {box.x}, {box.y}
+              {formatBoxLabel(box)}
             </div>
           )
         )

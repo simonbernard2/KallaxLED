@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Optional
 
 from sqlalchemy.orm import selectinload
-from sqlmodel import Session, select
+from sqlmodel import Session, delete, select
 
 from app.archive.parser import ParsedArchivePublication
 from app.db import create_sqlite_engine, resolve_database_path, run_migrations
@@ -86,12 +86,42 @@ class GridFileRepo:
             statement = select(models.Box).where(models.Box.x == x, models.Box.y == y)
             return session.exec(statement).first()
 
-    def update_grid_name(self, name: str) -> Optional[models.Grid]:
+    def update_grid(self, name: str, width: int, height: int) -> Optional[models.Grid]:
         with Session(self.engine) as session:
-            grid = session.exec(select(models.Grid)).first()
+            grid = session.exec(self._grid_statement()).first()
             if grid is None:
                 return None
+
             grid.name = name
+            boxes_by_coords = {(box.x, box.y): box for box in grid.boxes}
+            removed_box_ids = {
+                box.id
+                for box in grid.boxes
+                if (box.x >= width or box.y >= height) and box.id is not None
+            }
+
+            if removed_box_ids:
+                removed_books = session.exec(
+                    select(models.LibraryBook).where(models.LibraryBook.box_id.in_(removed_box_ids))
+                ).all()
+                for book in removed_books:
+                    book.box_id = None
+                    session.add(book)
+
+                state = session.exec(select(models.LightingState)).first()
+                if state is not None and state.highlight_box_id in removed_box_ids:
+                    state.highlight_box_id = None
+                    state.highlight_rgb = None
+                    session.add(state)
+
+                session.exec(delete(models.Box).where(models.Box.id.in_(removed_box_ids)))
+
+            for y in range(height):
+                for x in range(width):
+                    if (x, y) in boxes_by_coords:
+                        continue
+                    session.add(models.Box(x=x, y=y, leds=[], grid_id=grid.id))
+
             session.add(grid)
             session.commit()
             return session.exec(self._grid_statement().where(models.Grid.id == grid.id)).one()

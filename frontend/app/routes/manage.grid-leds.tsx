@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router'
+import { formatBoxLabel } from '~/grids/box-label'
 import GridDisplay from '~/grids/grid'
 import Button from '~/utils/components/button/button'
 import Input from '~/utils/components/input/input'
@@ -139,7 +140,7 @@ export default function ManageGridLeds() {
                   onClick={() => void handleBoxToggle(rowIndex, columnIndex)}
                 >
                   <span className="text-sm font-semibold text-[var(--ink)]">
-                    Box {box.x}, {box.y}
+                    {formatBoxLabel(box)}
                   </span>
                   <span className="text-xs text-[var(--ink-muted)]">
                     {box.leds.length > 0 ? `${box.leds.length} LEDs assigned` : 'No LEDs assigned'}

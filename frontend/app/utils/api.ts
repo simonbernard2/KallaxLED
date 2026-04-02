@@ -214,7 +214,7 @@ export const createGrid = async (payload: { name: string; width: number; height:
   return response.data
 }
 
-export const updateGrid = async (payload: { name: string }) => {
+export const updateGrid = async (payload: { name: string; width: number; height: number }) => {
   const response = await apiClient.put<Grid>('/grid', payload)
   return response.data
 }

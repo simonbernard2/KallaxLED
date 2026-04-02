@@ -67,6 +67,7 @@ describe('Home route', () => {
 
     expect((await screen.findAllByText('The Paper Engine')).length).toBeGreaterThan(0)
     expect(screen.getByText(/Topic: Packet Tricks/)).toBeInTheDocument()
+    expect(screen.getByText('Column 2, Row 3')).toBeInTheDocument()
 
     await user.click(screen.getByRole('button', { name: 'Light this shelf' }))
 

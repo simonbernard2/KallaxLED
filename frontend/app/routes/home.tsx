@@ -1,5 +1,6 @@
 import { startTransition, useEffect, useMemo, useState, type FormEvent } from 'react'
 import { Link } from 'react-router'
+import { formatBoxLabel } from '~/grids/box-label'
 import Button from '~/utils/components/button/button'
 import Input from '~/utils/components/input/input'
 import {
@@ -232,7 +233,7 @@ export default function Home() {
                     <div className="flex flex-wrap gap-2">
                       {book.box ? (
                         <span className="pill bg-[var(--forest)]/10 text-[var(--forest)]">
-                          Box {book.box.x}, {book.box.y}
+                          {formatBoxLabel(book.box)}
                         </span>
                       ) : (
                         <span className="pill">No box assigned</span>

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { Link } from 'react-router'
+import { formatBoxLabel } from '~/grids/box-label'
 import GridDisplay from '~/grids/grid'
 import Button from '~/utils/components/button/button'
 import Input from '~/utils/components/input/input'
@@ -8,8 +9,8 @@ import { createGrid, getGrid, updateGrid, type Grid } from '~/utils/api'
 export default function ManageGrid() {
   const [grid, setGrid] = useState<Grid | null>(null)
   const [draftName, setDraftName] = useState('Main Shelf')
-  const [createWidth, setCreateWidth] = useState('4')
-  const [createHeight, setCreateHeight] = useState('4')
+  const [draftWidth, setDraftWidth] = useState('4')
+  const [draftHeight, setDraftHeight] = useState('4')
   const [isLoading, setIsLoading] = useState(true)
   const [status, setStatus] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -22,6 +23,8 @@ export default function ManageGrid() {
       const gridResult = await getGrid()
       setGrid(gridResult)
       setDraftName(gridResult?.name ?? 'Main Shelf')
+      setDraftWidth(gridResult ? `${gridResult.width}` : '4')
+      setDraftHeight(gridResult ? `${gridResult.height}` : '4')
     } catch {
       setError('Grid data could not be loaded.')
     } finally {
@@ -44,24 +47,34 @@ export default function ManageGrid() {
     try {
       const createdGrid = await createGrid({
         name: draftName,
-        width: Number(createWidth),
-        height: Number(createHeight),
+        width: Number(draftWidth),
+        height: Number(draftHeight),
       })
       setGrid(createdGrid)
       setDraftName(createdGrid.name)
+      setDraftWidth(`${createdGrid.width}`)
+      setDraftHeight(`${createdGrid.height}`)
       setStatus('Grid created.')
     } catch {
       setError('Grid creation failed.')
     }
   }
 
-  const handleRename = async () => {
+  const handleUpdate = async (event?: FormEvent<HTMLFormElement>) => {
+    event?.preventDefault()
     setError(null)
     setStatus(null)
 
     try {
-      const updatedGrid = await updateGrid({ name: draftName })
+      const updatedGrid = await updateGrid({
+        name: draftName,
+        width: Number(draftWidth),
+        height: Number(draftHeight),
+      })
       setGrid(updatedGrid)
+      setDraftName(updatedGrid.name)
+      setDraftWidth(`${updatedGrid.width}`)
+      setDraftHeight(`${updatedGrid.height}`)
       setStatus('Grid updated.')
     } catch {
       setError('Grid update failed.')
@@ -82,8 +95,8 @@ export default function ManageGrid() {
               type="number"
               min={1}
               max={12}
-              value={createWidth}
-              onChange={event => setCreateWidth(event.target.value)}
+              value={draftWidth}
+              onChange={event => setDraftWidth(event.target.value)}
             />
             <Input
               name="grid-height"
@@ -91,8 +104,8 @@ export default function ManageGrid() {
               type="number"
               min={1}
               max={12}
-              value={createHeight}
-              onChange={event => setCreateHeight(event.target.value)}
+              value={draftHeight}
+              onChange={event => setDraftHeight(event.target.value)}
             />
             <div className="lg:col-span-3">
               <Button type="submit" tone="secondary">
@@ -120,14 +133,35 @@ export default function ManageGrid() {
               </div>
             </div>
 
-            <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+            <form className="mt-5 grid gap-4 lg:grid-cols-3" onSubmit={event => void handleUpdate(event)}>
               <Input name="rename-grid" label="Grid name" value={draftName} onChange={event => setDraftName(event.target.value)} />
-              <div className="flex items-end gap-3">
-                <Button tone="ghost" onClick={() => void handleRename()}>
-                  Save name
+              <Input
+                name="edit-grid-width"
+                label="Columns"
+                type="number"
+                min={1}
+                max={12}
+                value={draftWidth}
+                onChange={event => setDraftWidth(event.target.value)}
+              />
+              <Input
+                name="edit-grid-height"
+                label="Rows"
+                type="number"
+                min={1}
+                max={12}
+                value={draftHeight}
+                onChange={event => setDraftHeight(event.target.value)}
+              />
+              <div className="lg:col-span-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <p className="text-sm text-[var(--ink-muted)]">
+                  Shrinking the layout removes boxes outside the new bounds and unassigns any books stored there.
+                </p>
+                <Button type="submit" tone="ghost">
+                  Save grid
                 </Button>
               </div>
-            </div>
+            </form>
           </section>
 
           <section className="panel">
@@ -146,7 +180,7 @@ export default function ManageGrid() {
                     ].join(' ')}
                   >
                     <span className="text-sm font-semibold text-[var(--ink)]">
-                      Box {box.x}, {box.y}
+                      {formatBoxLabel(box)}
                     </span>
                     <span className="text-xs text-[var(--ink-muted)]">
                       {box.leds.length > 0 ? `${box.leds.length} LEDs assigned` : 'No LEDs assigned'}

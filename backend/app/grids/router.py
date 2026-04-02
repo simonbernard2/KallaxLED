@@ -26,7 +26,7 @@ async def get_grid(grid_repo: deps.GridsRepoDep) -> dtos.GridResponse:
 
 @router.put("/grid")
 async def update_grid(grid_data: dtos.GridUpdate, grid_repo: deps.GridsRepoDep) -> dtos.GridResponse:
-    grid = grid_repo.update_grid_name(grid_data.name)
+    grid = grid_repo.update_grid(grid_data.name, grid_data.width, grid_data.height)
     if grid is None:
         raise HTTPException(status_code=404, detail="grid not found")
     return dtos.GridResponse.from_grid(grid)

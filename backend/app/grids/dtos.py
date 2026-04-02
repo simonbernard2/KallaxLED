@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from app.grids.models import Box, Grid
 
@@ -15,8 +15,8 @@ def _calculate_dimensions(boxes: list[Box]) -> tuple[int, int]:
 
 class GridCreate(BaseModel):
     name: str
-    width: int
-    height: int
+    width: int = Field(ge=1, le=12)
+    height: int = Field(ge=1, le=12)
 
     def to_model(self) -> Grid:
         boxes = []
@@ -30,6 +30,8 @@ class GridCreate(BaseModel):
 
 class GridUpdate(BaseModel):
     name: str
+    width: int = Field(ge=1, le=12)
+    height: int = Field(ge=1, le=12)
 
     def to_model(self, id: int) -> Grid:
         return Grid(id=id, name=self.name)
