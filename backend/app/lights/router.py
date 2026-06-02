@@ -52,6 +52,7 @@ async def clear_highlight(
     led_strip: strips_deps.LedStripDep,
 ) -> dtos.LightingStateResponse:
     state = grid_repo.clear_highlight()
+    # Only 'solid' can be restored from DB state; other scenes require a live animation loop.
     if state.active_scene == "solid":
         grid = grid_repo.get_grid()
         if grid is None:
@@ -74,7 +75,7 @@ async def set_scene(
     grid_repo: grids_deps.GridsRepoDep,
     led_strip: strips_deps.LedStripDep,
 ) -> dtos.LightingStateResponse:
-    allowed = {"off", "solid", "rainbow", "breathe"}
+    allowed = {"off", "solid"}
     if request.name not in allowed:
         raise HTTPException(status_code=400, detail="unknown scene")
 
@@ -83,19 +84,15 @@ async def set_scene(
         led_strip.turn_off()
         return _state_to_response(state)
 
-    if request.name == "solid":
-        rgb = request.params.get("rgb")
-        if not isinstance(rgb, (list, tuple)) or len(rgb) != 3:
-            raise HTTPException(status_code=400, detail="solid scene requires params.rgb")
-        grid = grid_repo.get_grid()
-        if grid is None:
-            raise HTTPException(status_code=404, detail="grid not found")
-        led_ids = _collect_led_ids(grid)
-        led_strip.turn_off()
-        if led_ids:
-            led_strip.update_leds_by_ids(led_ids, (rgb[0], rgb[1], rgb[2]))
-        state = grid_repo.set_scene(request.name, request.params)
-        return _state_to_response(state)
-
+    rgb = request.params.get("rgb")
+    if not isinstance(rgb, (list, tuple)) or len(rgb) != 3:
+        raise HTTPException(status_code=400, detail="solid scene requires params.rgb")
+    grid = grid_repo.get_grid()
+    if grid is None:
+        raise HTTPException(status_code=404, detail="grid not found")
+    led_ids = _collect_led_ids(grid)
+    led_strip.turn_off()
+    if led_ids:
+        led_strip.update_leds_by_ids(led_ids, (rgb[0], rgb[1], rgb[2]))
     state = grid_repo.set_scene(request.name, request.params)
     return _state_to_response(state)

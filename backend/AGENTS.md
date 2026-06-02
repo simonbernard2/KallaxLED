@@ -1,36 +1,68 @@
 # Repository Guidelines
 
-## Project Structure & Module Organization
-- `main.py` orchestrates the sample animation loop and is the quickest entry point for validating new effects.
-- `app/` houses reusable helpers; `strip.py` defines the `Strip` class along with transition, bullet, and swipe utilities.
-- Place additional animation modules under `app/` and expose shared helpers via `app/__init__.py` for consistent imports.
-- Add tests under `tests/` (create the folder if absent) and mirror module names, e.g., `tests/test_strip.py` for `app/strip.py`.
+## Project Overview
+
+KallaxLED backend is a FastAPI application that serves the KallaxLED bookshelf API. It manages a local library catalog, a shelf grid, LED lighting state, and cached Conjuring Archive metadata. The database is SQLite, managed via SQLModel (ORM) and Alembic (migrations). On a Raspberry Pi the LED strip is driven via Adafruit NeoPixel; in development a lightweight stub stands in.
+
+## Module Map
+
+- `main.py` — FastAPI app entry point: registers routers, CORS, and a request-logging middleware.
+- `app/books/` — Library catalog CRUD, CSV import/export, Conjuring Archive link and import endpoints, and topic listing.
+- `app/grids/` — Shelf grid and box management. `repo.py` (`GridFileRepo`) is the single database access layer used by all routers.
+- `app/lights/` — LED scene (`solid`, `off`) and per-box highlight control. Persists state to DB and drives the strip.
+- `app/strips/` — Hardware abstraction. `strip.py` defines `Strip`; `stub/` provides in-process fakes for development without a Pi.
+- `app/archive/` — Conjuring Archive HTML fetching (`fetcher.py`) and parsing (`parser.py`). `deps.py` wires the fetcher as a FastAPI dependency.
+- `app/db.py` — Engine factory and migration runner (called automatically on `GridFileRepo` init).
+- `migrations/` — Alembic version files. Applied automatically on startup; source of truth for the schema.
 
 ## Build, Test, and Development Commands
-- `uv sync` installs the locked dependency set defined in `pyproject.toml` and `uv.lock`.
-- `uv run main.py` executes the default animation on the connected NeoPixel strip; interrupt with `Ctrl+C` when finished.
-- `uv run ruff check app main.py` lints the code; use `uv run ruff check --fix` to apply safe auto-fixes.
-- `uv run ruff format app main.py` enforces consistent formatting before committing.
 
-## Coding Style & Naming Conventions
-- Target Python 3.9+ with 4-space indentation and explicit type hints (`list[int]`, `tuple[int, int, int]`) for LED calculations.
-- Keep modules lowercase_with_underscores, classes in CapWords (`Strip`), and functions or methods in snake_case (`transition_single_led`).
-- Group imports as in `app/strip.py`: standard library, third-party, then local modules; leave a blank line between groups.
-- Declare shared numeric or color constants in ALL_CAPS (e.g., `RGB`, `Pixels`) to distinguish configuration from runtime state.
+```bash
+uv sync --extra test        # install deps including pytest
+uv run pytest               # run the full test suite
+uv run fastapi dev main.py  # start the API server (dev mode, auto-reload)
+uv sync --extra dev         # install linting and type-check tools
+uv run ruff check app main.py       # lint
+uv run ruff check --fix app main.py # auto-fix safe lint issues
+uv run ruff format app main.py      # enforce consistent formatting
+```
+
+## Python Version and Style
+
+- Target **Python 3.9+**: use `list[T]`, `dict[K, V]`, `tuple[...]` for type hints (not `list | None` union syntax — use `Optional[T]` from `typing` instead).
+- 4-space indentation. `snake_case` for modules and functions, `CapWords` for classes.
+- Group imports: standard library, third-party, local; blank line between groups.
 
 ## Testing Guidelines
-- Use `pytest` for unit tests; install it with `uv add pytest` and run suites via `uv run pytest`.
-- Mock hardware-dependent modules such as `neopixel` and `board` so tests stay deterministic even without a connected strip.
-- Prefer `numpy.testing` helpers when asserting LED state arrays returned by animation helpers.
-- Document any manual hardware validation (e.g., LED colors observed) in the PR when automated coverage is impractical.
 
-## Commit & Pull Request Guidelines
-- Follow the existing history: concise, action-oriented commit messages such as `Refine bullet transition`; keep them in the imperative mood.
-- Ensure the working tree is clean (`git status`) and lint/tests pass before pushing.
-- PR descriptions should summarize the change, list automated and hardware tests performed, and link related issues or tickets.
-- Attach screenshots or short videos whenever a visual effect changes so reviewers can confirm the expected output.
+- Tests live under `tests/`; run with `uv run pytest`.
+- `tests/conftest.py` provides two fixtures:
+  - `client_with_stub` — FastAPI `TestClient` with `StubStrip` (records LED calls) and a real `GridFileRepo` in a temp directory.
+  - `client_with_stubs` — same, plus a `StubArchiveFetcher` (register HTML fixtures by URL).
+- `tmp_path` + `monkeypatch.chdir` isolates each test's SQLite database.
+- The archive parser test (`test_archive_parser.py`) uses a real HTML fixture at `tests/fixtures/conjuring_archive_medium_140.html`.
+- Hardware-dependent modules (`neopixel`, `board`) are already stubbed in `app/strips/stub/`; no additional mocking needed.
 
-## Hardware & Configuration Tips
-- By default the strip runs on GPIO 18 via `board.D18`; adjust `Strip.default()` if your wiring requires a different pin or LED count.
-- Always shut off LEDs after manual runs by calling `strip.turn_off()` in a `finally` block, as illustrated in `main.py`.
-- For desk-side development without hardware, wrap `neopixel.NeoPixel` in a lightweight stub that records writes to a NumPy array, then reuse the existing animation helpers against the stub.
+## Migrations
+
+Add new schema changes under `migrations/versions/` using:
+
+```bash
+uv run alembic revision -m "short description"
+```
+
+Migrations run automatically when `GridFileRepo` is instantiated (via `run_migrations` in `app/db.py`). Do not modify existing migration files after they have been applied.
+
+## Commit & PR Guidelines
+
+- Concise, imperative commit messages (e.g. `Add archive_url to CSV export`).
+- Ensure `uv run pytest` passes and `uv run ruff check` is clean before pushing.
+- PR descriptions should list what was changed and how it was tested (automated + manual where hardware is involved).
+- For changes that touch LED behaviour, note whether the change was validated on the Pi or only against the stub.
+
+## Hardware Notes
+
+- The strip runs on GPIO 18 (`board.D18`) by default; adjust `Strip.default()` if your wiring differs.
+- LED count defaults to 150; pass `number_of_leds` to `Strip.default()` to change it.
+- Always call `strip.turn_off()` after manual runs to leave the strip dark.
+- The `[pi]` extras (`adafruit-circuitpython-neopixel`, `rpi-gpio`, `rpi-ws281x`) are only needed on the Raspberry Pi: `uv sync --extra pi`.

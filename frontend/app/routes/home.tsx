@@ -1,4 +1,4 @@
-import { startTransition, useEffect, useMemo, useState, type FormEvent } from 'react'
+import { startTransition, useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 import { Link } from 'react-router'
 import { formatBoxLabel } from '~/grids/box-label'
 import Button from '~/utils/components/button/button'
@@ -34,8 +34,6 @@ const reasonLabels: Record<MatchReason['type'], string> = {
 const sceneOptions: Array<{ value: SceneName; label: string }> = [
   { value: 'off', label: 'Off' },
   { value: 'solid', label: 'Solid' },
-  { value: 'rainbow', label: 'Rainbow' },
-  { value: 'breathe', label: 'Breathe' },
 ]
 
 const formatReason = (reason: MatchReason) => {
@@ -58,28 +56,29 @@ export default function Home() {
   const [sceneColor, setSceneColor] = useState('#c79745')
   const [results, setResults] = useState<BookSearchResult[]>([])
   const [topics, setTopics] = useState<Topic[]>([])
+  const [topicFilter, setTopicFilter] = useState('')
   const [lightingState, setLightingState] = useState<LightingState | null>(null)
   const [isSearching, setIsSearching] = useState(true)
   const [busyBookId, setBusyBookId] = useState<number | null>(null)
   const [sceneBusy, setSceneBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const isFirstRender = useRef(true)
 
-  const featuredTopics = useMemo(() => topics.slice(0, 10), [topics])
+  const filteredTopics = useMemo(() => {
+    if (!topicFilter) return topics
+    const lower = topicFilter.toLowerCase()
+    return topics.filter(t => t.name.toLowerCase().includes(lower) || t.path.toLowerCase().includes(lower))
+  }, [topics, topicFilter])
 
   const loadDashboard = async (nextQuery = '') => {
     setIsSearching(true)
     setError(null)
 
     try {
-      const [searchResults, topicResults, state] = await Promise.all([
-        searchBooks(nextQuery),
-        listTopics(''),
-        getLightingState(),
-      ])
+      const [searchResults, state] = await Promise.all([searchBooks(nextQuery), getLightingState()])
 
       startTransition(() => {
         setResults(searchResults)
-        setTopics(topicResults)
         setLightingState(state)
       })
     } catch {
@@ -92,6 +91,20 @@ export default function Home() {
   useEffect(() => {
     void loadDashboard('')
   }, [])
+
+  useEffect(() => {
+    listTopics('').then(setTopics).catch(() => {})
+  }, [])
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false
+      return
+    }
+    const timer = setTimeout(() => { void loadDashboard(query) }, 300)
+    return () => clearTimeout(timer)
+  }, [query])
 
   const handleSearch = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -194,8 +207,16 @@ export default function Home() {
 
           <details className="panel mt-4 md:hidden">
             <summary className="cursor-pointer list-none text-sm font-semibold text-[var(--ink)]">Quick topic filters</summary>
+            <Input
+              name="topic-filter-mobile"
+              label="Filter topics"
+              type="search"
+              placeholder="e.g. cards"
+              value={topicFilter}
+              onChange={event => setTopicFilter(event.target.value)}
+            />
             <div className="mt-4 flex flex-wrap gap-2">
-              {featuredTopics.map(topic => (
+              {filteredTopics.map(topic => (
                 <button
                   key={topic.id}
                   type="button"
@@ -309,8 +330,16 @@ export default function Home() {
         <section className="panel hidden md:block">
           <p className="section-kicker">Topics</p>
           <h2 className="mt-2 text-xl font-bold text-[var(--ink)]">Quick filters</h2>
+          <Input
+            name="topic-filter"
+            label="Filter topics"
+            type="search"
+            placeholder="e.g. cards"
+            value={topicFilter}
+            onChange={event => setTopicFilter(event.target.value)}
+          />
           <div className="mt-4 flex flex-wrap gap-2">
-            {featuredTopics.map(topic => (
+            {filteredTopics.map(topic => (
               <button
                 key={topic.id}
                 type="button"

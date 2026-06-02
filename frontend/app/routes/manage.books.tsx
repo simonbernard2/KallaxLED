@@ -53,6 +53,7 @@ export default function ManageBooks() {
   const [editingId, setEditingId] = useState<number | null>(null)
   const [editDraft, setEditDraft] = useState<BookDraft>(emptyDraft)
   const [editMissingBoxLabel, setEditMissingBoxLabel] = useState<string | null>(null)
+  const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null)
   const [archiveSources, setArchiveSources] = useState<Record<number, string>>({})
   const [isLoading, setIsLoading] = useState(true)
   const [status, setStatus] = useState<string | null>(null)
@@ -386,13 +387,25 @@ export default function ManageBooks() {
                 )}
               </div>
 
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <Button tone="ghost" onClick={() => startEditing(book)}>
                   Edit
                 </Button>
-                <Button tone="danger" onClick={() => void handleDelete(book.id)}>
-                  Delete
-                </Button>
+                {confirmDeleteId === book.id ? (
+                  <>
+                    <span className="text-sm text-[#7b332c]">Really delete?</span>
+                    <Button tone="danger" onClick={() => { void handleDelete(book.id); setConfirmDeleteId(null) }}>
+                      Confirm
+                    </Button>
+                    <Button tone="ghost" onClick={() => setConfirmDeleteId(null)}>
+                      Cancel
+                    </Button>
+                  </>
+                ) : (
+                  <Button tone="danger" onClick={() => setConfirmDeleteId(book.id)}>
+                    Delete
+                  </Button>
+                )}
               </div>
             </div>
 
@@ -448,7 +461,7 @@ export default function ManageBooks() {
                   <div className="flex flex-col gap-3 sm:flex-row">
                     <input
                       className="field-input flex-1"
-                      type="url"
+                      type="text"
                       value={archiveSources[book.id] ?? ''}
                       onChange={event => setArchiveSources(prev => ({ ...prev, [book.id]: event.target.value }))}
                       placeholder="https://www.conjuringarchive.com/list/medium/140"

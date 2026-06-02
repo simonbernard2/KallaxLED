@@ -191,12 +191,13 @@ async def export_books(grid_repo: deps.GridsRepoDep) -> Response:
     books = grid_repo.list_books()
     output = io.StringIO()
     writer = csv.writer(output)
-    writer.writerow(["title", "author", "isbn", "tags", "notes", "box_x", "box_y"])
+    writer.writerow(["title", "author", "isbn", "tags", "notes", "box_x", "box_y", "archive_url"])
     for book in books:
         box_x = book.box.x if book.box is not None else ""
         box_y = book.box.y if book.box is not None else ""
         tags = ";".join(book.user_tags)
-        writer.writerow([book.title, book.author, book.isbn or "", tags, book.notes or "", box_x, box_y])
+        archive_url = book.archive_publication.source_url if book.archive_publication is not None else ""
+        writer.writerow([book.title, book.author, book.isbn or "", tags, book.notes or "", box_x, box_y, archive_url])
 
     content = output.getvalue()
     headers = {"Content-Disposition": "attachment; filename=books.csv"}
