@@ -1,28 +1,40 @@
-import type { BoxProps, Grid as GridType } from '~/utils/api'
-import type { ComponentType } from 'react'
+import { formatBoxLabel } from '~/grids/box-label'
+import type { Box, Grid } from '~/utils/api'
 
-interface Props<T> {
-  grid: GridType
-  disabled?: boolean
-  BoxComponent: ComponentType<T & BoxProps>
-  boxComponentProps: T
+interface GridDisplayProps {
+  grid: Grid
+  renderBox?: (box: Box, rowIndex: number, columnIndex: number) => React.ReactNode
+  className?: string
 }
 
-const Grid = <ExtraProps extends object>({ grid, disabled, BoxComponent, boxComponentProps }: Props<ExtraProps>) => {
+const GridDisplay = ({ grid, renderBox, className = '' }: GridDisplayProps) => {
   const columns = grid.width || grid.boxes[0]?.length || 0
-  const disabledCSS = disabled ? 'opacity-50' : ''
 
   if (columns === 0) {
-    return <div className="text-sm text-neutral-500">No boxes yet.</div>
+    return <div className="rounded-3xl border border-dashed border-black/10 bg-white/60 p-4 text-sm text-[var(--ink-muted)]">No boxes yet.</div>
   }
 
   return (
-    <div className={`grid gap-2 ${disabledCSS}`} style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}>
-      {grid.boxes.map((row, i) =>
-        row.map((box, j) => <BoxComponent key={`${i}-${j}`} box={box} i={i} j={j} {...boxComponentProps} />)
+    <div
+      className={['grid gap-3', className].join(' ').trim()}
+      style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}
+    >
+      {grid.boxes.map((row, rowIndex) =>
+        row.map((box, columnIndex) =>
+          renderBox ? (
+            <div key={`${rowIndex}-${columnIndex}`}>{renderBox(box, rowIndex, columnIndex)}</div>
+          ) : (
+            <div
+              key={`${rowIndex}-${columnIndex}`}
+              className="rounded-3xl border border-black/8 bg-white/75 p-3 text-center text-xs font-semibold text-[var(--ink-muted)]"
+            >
+              {formatBoxLabel(box)}
+            </div>
+          )
+        )
       )}
     </div>
   )
 }
 
-export default Grid
+export default GridDisplay
