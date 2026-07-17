@@ -56,4 +56,38 @@ def checkerboard(geometry: StripGeometry, t: float, params: dict) -> np.ndarray:
     return np.where(parity[:, None] == 0, color_a, color_b)
 
 
-ANIMATIONS: dict[str, AnimationFn] = {"checkerboard": checkerboard}
+def rainbow(geometry: StripGeometry, t: float, params: dict) -> np.ndarray:
+    speed = float(params.get("speed", 0.1))  # hue cycles per second
+    scale = float(params.get("scale", 1.0))  # spatial hue cycles across the strip
+    hue = (geometry.frac * scale + t * speed) % 1.0
+    return _hsv_to_rgb(hue)
+
+
+def swipe(geometry: StripGeometry, t: float, params: dict) -> np.ndarray:
+    rgb = np.array(params.get("rgb", (255, 255, 255)), dtype=np.uint8)
+    background = np.array(params.get("background_rgb", (0, 0, 0)), dtype=np.uint8)
+    speed = float(params.get("speed", 0.5))  # sweeps per second
+    width = float(params.get("width", 0.3))  # band width as fraction of the shelf
+    direction = params.get("direction", "right")
+    pos = geometry.pos_x if direction == "right" else 1.0 - geometry.pos_x
+    head = (t * speed) % (1.0 + width)
+    lit = (pos >= head - width) & (pos <= head)
+    return np.where(lit[:, None], rgb, background)
+
+
+def _hsv_to_rgb(hue: np.ndarray) -> np.ndarray:
+    """Vectorized hue -> (N, 3) uint8 with full saturation and value."""
+    h = (hue % 1.0) * 6.0
+    sector = h.astype(np.int64) % 6
+    f = h - np.floor(h)
+    rising = (f * 255).astype(np.uint8)
+    falling = ((1.0 - f) * 255).astype(np.uint8)
+    full = np.full_like(rising, 255)
+    zero = np.zeros_like(rising)
+    r = np.choose(sector, [full, falling, zero, zero, rising, full])
+    g = np.choose(sector, [rising, full, full, falling, zero, zero])
+    b = np.choose(sector, [zero, zero, rising, full, full, falling])
+    return np.stack([r, g, b], axis=1)
+
+
+ANIMATIONS: dict[str, AnimationFn] = {"checkerboard": checkerboard, "rainbow": rainbow, "swipe": swipe}

@@ -1,7 +1,7 @@
 import numpy as np
 
 from app.grids.models import Box, Grid
-from app.lights.animations import ANIMATIONS, build_geometry, checkerboard
+from app.lights.animations import ANIMATIONS, _hsv_to_rgb, build_geometry, checkerboard, rainbow, swipe
 
 
 def _grid(boxes: list[Box]) -> Grid:
@@ -99,5 +99,57 @@ def test_checkerboard_static_when_period_is_zero():
     np.testing.assert_array_equal(checkerboard(geometry, 123.4, params), checkerboard(geometry, 0.0, params))
 
 
-def test_animations_registry_contains_checkerboard():
-    assert ANIMATIONS["checkerboard"] is checkerboard
+def test_animations_registry_contains_all_scenes():
+    assert ANIMATIONS == {"checkerboard": checkerboard, "rainbow": rainbow, "swipe": swipe}
+
+
+def test_hsv_to_rgb_primaries():
+    frame = _hsv_to_rgb(np.array([0.0, 1 / 3, 2 / 3]))
+
+    np.testing.assert_array_equal(frame, [[255, 0, 0], [0, 255, 0], [0, 0, 255]])
+
+
+def _row_geometry():
+    # Four boxes in a single row, one LED each: pos_x = frac spread over [0, 1].
+    grid = _grid([Box(x=i, y=0, leds=[i]) for i in range(4)])
+    geometry = build_geometry(grid, num_pixels=4)
+    assert geometry is not None
+    return geometry
+
+
+def test_rainbow_shape_dtype_and_gradient():
+    frame = rainbow(_row_geometry(), 0.0, {"speed": 0.1, "scale": 1.0})
+
+    assert frame.shape == (4, 3)
+    assert frame.dtype == np.uint8
+    # frac 0 -> red, frac 1/3 -> green, frac 2/3 -> blue
+    np.testing.assert_array_equal(frame[0], [255, 0, 0])
+    np.testing.assert_array_equal(frame[1], [0, 255, 0])
+    np.testing.assert_array_equal(frame[2], [0, 0, 255])
+
+
+def test_rainbow_is_periodic_in_time():
+    geometry = _row_geometry()
+    params = {"speed": 0.5, "scale": 1.0}
+
+    np.testing.assert_array_equal(rainbow(geometry, 0.0, params), rainbow(geometry, 2.0, params))
+
+
+def test_swipe_band_moves_right():
+    geometry = _row_geometry()
+    params = {"rgb": RED, "background_rgb": BLUE, "speed": 1.0, "width": 0.4}
+
+    # t=0: head at 0, only pos_x == 0 lit.
+    np.testing.assert_array_equal(swipe(geometry, 0.0, params), [RED, BLUE, BLUE, BLUE])
+    # t=1: head at 1.0, band covers pos in [0.6, 1.0].
+    np.testing.assert_array_equal(swipe(geometry, 1.0, params), [BLUE, BLUE, RED, RED])
+
+
+def test_swipe_direction_left_mirrors_right():
+    geometry = _row_geometry()
+    base = {"rgb": RED, "background_rgb": BLUE, "speed": 1.0, "width": 0.4}
+
+    right = swipe(geometry, 1.0, {**base, "direction": "right"})
+    left = swipe(geometry, 1.0, {**base, "direction": "left"})
+
+    np.testing.assert_array_equal(left, right[::-1])
