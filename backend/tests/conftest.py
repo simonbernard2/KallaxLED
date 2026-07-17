@@ -11,6 +11,7 @@ from app.archive.deps import archive_fetcher
 from app.archive.fetcher import ArchiveFetchError
 from app.grids.deps import grid_repo
 from app.grids.repo import GridFileRepo
+from app.lights.deps import animation_engine
 from app.main import app
 from app.strips.deps import led_strip
 
@@ -53,6 +54,7 @@ def client_with_stubs(tmp_path, monkeypatch):
     grid_repo.cache_clear()
     led_strip.cache_clear()
     archive_fetcher.cache_clear()
+    animation_engine.cache_clear()
     app.dependency_overrides.clear()
 
     repo = GridFileRepo(Path("db"))
@@ -66,6 +68,7 @@ def client_with_stubs(tmp_path, monkeypatch):
     with TestClient(app) as client:
         yield client, strip_stub, archive_stub
 
+    animation_engine().stop()
     app.dependency_overrides.clear()
 
 
