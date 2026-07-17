@@ -1,17 +1,18 @@
 import logging
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+
 from app.books.router import router as books_router
 from app.grids.deps import grid_repo
+from app.grids.router import router as grids_router
 from app.lights.deps import animation_engine
 from app.lights.router import apply_scene
+from app.lights.router import router as lights_router
 from app.strips.deps import led_strip
 from app.strips.router import router as strips_router
-from app.grids.router import router as grids_router
-from app.lights.router import router as lights_router
 
 logger = logging.getLogger("uvicorn.error")
 
