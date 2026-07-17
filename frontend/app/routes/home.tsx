@@ -34,6 +34,9 @@ const reasonLabels: Record<MatchReason['type'], string> = {
 const sceneOptions: Array<{ value: SceneName; label: string }> = [
   { value: 'off', label: 'Off' },
   { value: 'solid', label: 'Solid' },
+  { value: 'checkerboard', label: 'Checkerboard' },
+  { value: 'rainbow', label: 'Rainbow' },
+  { value: 'swipe', label: 'Color swipe' },
 ]
 
 const formatReason = (reason: MatchReason) => {
@@ -54,6 +57,13 @@ export default function Home() {
   const [highlightColor, setHighlightColor] = useState('#ffcf7d')
   const [sceneName, setSceneName] = useState<SceneName>('off')
   const [sceneColor, setSceneColor] = useState('#c79745')
+  const [checkerColorA, setCheckerColorA] = useState('#c79745')
+  const [checkerColorB, setCheckerColorB] = useState('#1d3557')
+  const [rainbowSpeed, setRainbowSpeed] = useState(0.1)
+  const [rainbowScale, setRainbowScale] = useState(1)
+  const [swipeColor, setSwipeColor] = useState('#c79745')
+  const [swipeSpeed, setSwipeSpeed] = useState(0.5)
+  const [swipeDirection, setSwipeDirection] = useState<'right' | 'left'>('right')
   const [results, setResults] = useState<BookSearchResult[]>([])
   const [topics, setTopics] = useState<Topic[]>([])
   const [topicFilter, setTopicFilter] = useState('')
@@ -144,14 +154,26 @@ export default function Home() {
     }
   }
 
+  const buildSceneParams = (): Record<string, unknown> => {
+    switch (sceneName) {
+      case 'solid':
+        return { rgb: hexToRgbTuple(sceneColor) }
+      case 'checkerboard':
+        return { color_a: hexToRgbTuple(checkerColorA), color_b: hexToRgbTuple(checkerColorB) }
+      case 'rainbow':
+        return { speed: rainbowSpeed, scale: rainbowScale }
+      case 'swipe':
+        return { rgb: hexToRgbTuple(swipeColor), speed: swipeSpeed, direction: swipeDirection }
+      default:
+        return {}
+    }
+  }
+
   const handleApplyScene = async () => {
     setSceneBusy(true)
     setError(null)
     try {
-      const state =
-        sceneName === 'solid'
-          ? await applyScene(sceneName, { rgb: hexToRgbTuple(sceneColor) })
-          : await applyScene(sceneName, {})
+      const state = await applyScene(sceneName, buildSceneParams())
       setLightingState(state)
     } catch {
       setError('The scene could not be updated.')
@@ -373,6 +395,77 @@ export default function Home() {
                 <span className="field-label">Solid color</span>
                 <input className="field-input h-12 p-2" type="color" value={sceneColor} onChange={event => setSceneColor(event.target.value)} />
               </label>
+            )}
+
+            {sceneName === 'checkerboard' && (
+              <>
+                <label className="field">
+                  <span className="field-label">Color A</span>
+                  <input className="field-input h-12 p-2" type="color" value={checkerColorA} onChange={event => setCheckerColorA(event.target.value)} />
+                </label>
+                <label className="field">
+                  <span className="field-label">Color B</span>
+                  <input className="field-input h-12 p-2" type="color" value={checkerColorB} onChange={event => setCheckerColorB(event.target.value)} />
+                </label>
+              </>
+            )}
+
+            {sceneName === 'rainbow' && (
+              <>
+                <label className="field">
+                  <span className="field-label">Speed (cycles/s)</span>
+                  <input
+                    className="field-input"
+                    type="number"
+                    step="0.05"
+                    min="0"
+                    value={rainbowSpeed}
+                    onChange={event => setRainbowSpeed(Number(event.target.value) || 0)}
+                  />
+                </label>
+                <label className="field">
+                  <span className="field-label">Spread (cycles across shelf)</span>
+                  <input
+                    className="field-input"
+                    type="number"
+                    step="0.5"
+                    min="0"
+                    value={rainbowScale}
+                    onChange={event => setRainbowScale(Number(event.target.value) || 0)}
+                  />
+                </label>
+              </>
+            )}
+
+            {sceneName === 'swipe' && (
+              <>
+                <label className="field">
+                  <span className="field-label">Swipe color</span>
+                  <input className="field-input h-12 p-2" type="color" value={swipeColor} onChange={event => setSwipeColor(event.target.value)} />
+                </label>
+                <label className="field">
+                  <span className="field-label">Speed (sweeps/s)</span>
+                  <input
+                    className="field-input"
+                    type="number"
+                    step="0.1"
+                    min="0"
+                    value={swipeSpeed}
+                    onChange={event => setSwipeSpeed(Number(event.target.value) || 0)}
+                  />
+                </label>
+                <label className="field">
+                  <span className="field-label">Direction</span>
+                  <select
+                    className="field-input"
+                    value={swipeDirection}
+                    onChange={event => setSwipeDirection(event.target.value as 'right' | 'left')}
+                  >
+                    <option value="right">Left to right</option>
+                    <option value="left">Right to left</option>
+                  </select>
+                </label>
+              </>
             )}
 
             <Button tone="secondary" onClick={() => void handleApplyScene()} disabled={sceneBusy}>
