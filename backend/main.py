@@ -1,15 +1,41 @@
 import logging
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from app.books.router import router as books_router
+from app.grids.deps import grid_repo
+from app.lights.deps import animation_engine
+from app.lights.router import apply_scene
+from app.strips.deps import led_strip
 from app.strips.router import router as strips_router
 from app.grids.router import router as grids_router
 from app.lights.router import router as lights_router
 
-app = FastAPI()
 logger = logging.getLogger("uvicorn.error")
+
+
+def _resume_persisted_scene() -> None:
+    # Read state first so a fresh DB never instantiates the strip or engine.
+    state = grid_repo().get_lighting_state()
+    if state.active_scene is None:
+        return
+    logger.info("Resuming persisted scene %r", state.active_scene)
+    apply_scene(state.active_scene, state.scene_params, grid_repo(), led_strip(), animation_engine())
+
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    try:
+        _resume_persisted_scene()
+    except Exception:  # pragma: no cover - startup must never fail on bad persisted state
+        logger.exception("Failed to resume persisted scene on startup")
+    yield
+    animation_engine().stop()
+
+
+app = FastAPI(lifespan=lifespan)
 api_prefix = "/api"
 app.include_router(strips_router, prefix=api_prefix)
 app.include_router(grids_router, prefix=api_prefix)
