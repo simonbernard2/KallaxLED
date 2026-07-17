@@ -1,7 +1,7 @@
 import numpy as np
 
 from app.grids.models import Box, Grid
-from app.lights.animations import build_geometry
+from app.lights.animations import ANIMATIONS, build_geometry, checkerboard
 
 
 def _grid(boxes: list[Box]) -> Grid:
@@ -55,3 +55,49 @@ def test_build_geometry_single_box_normalizes_to_zero():
     assert geometry is not None
     np.testing.assert_allclose(geometry.pos_x, [0.0])
     np.testing.assert_allclose(geometry.frac, [0.0])
+
+
+def _checker_geometry():
+    # Four boxes in a 2x2 grid, one LED each: parities 0, 1, 1, 0.
+    grid = _grid(
+        [
+            Box(x=0, y=0, leds=[0]),
+            Box(x=1, y=0, leds=[1]),
+            Box(x=0, y=1, leds=[2]),
+            Box(x=1, y=1, leds=[3]),
+        ]
+    )
+    geometry = build_geometry(grid, num_pixels=4)
+    assert geometry is not None
+    return geometry
+
+
+RED = [255, 0, 0]
+BLUE = [0, 0, 255]
+
+
+def test_checkerboard_colors_by_box_parity():
+    frame = checkerboard(_checker_geometry(), 0.0, {"color_a": RED, "color_b": BLUE})
+
+    assert frame.shape == (4, 3)
+    assert frame.dtype == np.uint8
+    np.testing.assert_array_equal(frame, [RED, BLUE, BLUE, RED])
+
+
+def test_checkerboard_swaps_colors_every_period():
+    geometry = _checker_geometry()
+    params = {"color_a": RED, "color_b": BLUE, "period_s": 2.0}
+
+    np.testing.assert_array_equal(checkerboard(geometry, 2.5, params), [BLUE, RED, RED, BLUE])
+    np.testing.assert_array_equal(checkerboard(geometry, 4.1, params), [RED, BLUE, BLUE, RED])
+
+
+def test_checkerboard_static_when_period_is_zero():
+    geometry = _checker_geometry()
+    params = {"color_a": RED, "color_b": BLUE, "period_s": 0}
+
+    np.testing.assert_array_equal(checkerboard(geometry, 123.4, params), checkerboard(geometry, 0.0, params))
+
+
+def test_animations_registry_contains_checkerboard():
+    assert ANIMATIONS["checkerboard"] is checkerboard

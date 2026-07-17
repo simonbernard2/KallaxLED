@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Optional
+from typing import Callable, Optional
 
 import numpy as np
 
@@ -40,3 +40,20 @@ def build_geometry(grid: models.Grid, num_pixels: int) -> Optional[StripGeometry
     count = len(led_ids)
     frac = np.arange(count) / (count - 1) if count > 1 else np.zeros(1, dtype=np.float64)
     return StripGeometry(num_pixels=num_pixels, led_ids=led_ids, box_x=box_x, box_y=box_y, pos_x=pos_x, frac=frac)
+
+
+# An animation is a pure function of (geometry, elapsed seconds, params) returning
+# (N, 3) uint8 colors aligned with geometry.led_ids.
+AnimationFn = Callable[[StripGeometry, float, dict], np.ndarray]
+
+
+def checkerboard(geometry: StripGeometry, t: float, params: dict) -> np.ndarray:
+    color_a = np.array(params.get("color_a", (255, 255, 255)), dtype=np.uint8)
+    color_b = np.array(params.get("color_b", (0, 0, 0)), dtype=np.uint8)
+    period_s = float(params.get("period_s", 1.0))
+    phase = int(t // period_s) if period_s > 0 else 0
+    parity = (geometry.box_x + geometry.box_y + phase) % 2
+    return np.where(parity[:, None] == 0, color_a, color_b)
+
+
+ANIMATIONS: dict[str, AnimationFn] = {"checkerboard": checkerboard}
