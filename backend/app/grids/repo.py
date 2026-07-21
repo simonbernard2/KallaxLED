@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Optional
 
 from sqlalchemy.orm import selectinload
-from sqlmodel import Session, delete, select
+from sqlmodel import Session, select
 
 from app.archive.parser import ParsedArchivePublication
 from app.db import create_sqlite_engine, resolve_database_path, run_migrations
@@ -93,14 +93,13 @@ class GridFileRepo:
                 return None
 
             grid.name = name
-            boxes_by_coords = {(box.x, box.y): box for box in grid.boxes}
-            removed_box_ids = {
-                box.id
-                for box in grid.boxes
-                if (box.x >= width or box.y >= height) and box.id is not None
-            }
+            existing_coords = {(box.x, box.y) for box in grid.boxes}
+            removed_boxes = [box for box in grid.boxes if box.x >= width or box.y >= height]
+            removed_box_ids = {box.id for box in removed_boxes if box.id is not None}
 
             if removed_box_ids:
+                # Unassign books from removed boxes (and flush) so deleting the boxes does not
+                # cascade-delete the books — the shelf resize should keep them, just orphaned.
                 removed_books = session.exec(
                     select(models.LibraryBook).where(models.LibraryBook.box_id.in_(removed_box_ids))
                 ).all()
@@ -114,15 +113,20 @@ class GridFileRepo:
                     state.highlight_rgb = None
                     session.add(state)
 
-                session.exec(delete(models.Box).where(models.Box.id.in_(removed_box_ids)))
+                session.flush()
+
+                # Delete through the relationship (delete-orphan) so the loaded grid.boxes
+                # collection stays consistent; a bulk DELETE leaves stale instances behind and
+                # the commit-time cascade then fails with "Instance has been deleted".
+                for box in removed_boxes:
+                    grid.boxes.remove(box)
 
             for y in range(height):
                 for x in range(width):
-                    if (x, y) in boxes_by_coords:
+                    if (x, y) in existing_coords:
                         continue
-                    session.add(models.Box(x=x, y=y, leds=[], grid_id=grid.id))
+                    grid.boxes.append(models.Box(x=x, y=y, leds=[]))
 
-            session.add(grid)
             session.commit()
             return session.exec(self._grid_statement().where(models.Grid.id == grid.id)).one()
 
