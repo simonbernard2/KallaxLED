@@ -78,7 +78,9 @@ def swipe(geometry: StripGeometry, t: float, params: dict) -> np.ndarray:
 def _hsv_to_rgb(hue: np.ndarray) -> np.ndarray:
     """Vectorized hue -> (N, 3) uint8 with full saturation and value."""
     h = (hue % 1.0) * 6.0
-    sector = h.astype(np.int64) % 6
+    # np.choose casts the index to the platform int (intp = int32 on the 32-bit Pi),
+    # so build sector as intp rather than int64 to keep the cast safe everywhere.
+    sector = h.astype(np.intp) % 6
     f = h - np.floor(h)
     rising = (f * 255).astype(np.uint8)
     falling = ((1.0 - f) * 255).astype(np.uint8)
