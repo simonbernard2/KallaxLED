@@ -118,7 +118,7 @@ export interface LightingState {
   scene_params: Record<string, unknown>
 }
 
-export type SceneName = 'off' | 'solid'
+export type SceneName = 'off' | 'solid' | 'checkerboard' | 'rainbow' | 'swipe'
 
 const apiClient = axios.create({
   baseURL: import.meta.env.VITE_BACKEND_URL,

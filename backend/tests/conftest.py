@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Optional, Tuple
 
+import numpy as np
 import pytest
 from fastapi.testclient import TestClient
 
@@ -10,20 +11,26 @@ from app.archive.deps import archive_fetcher
 from app.archive.fetcher import ArchiveFetchError
 from app.grids.deps import grid_repo
 from app.grids.repo import GridFileRepo
+from app.lights.deps import animation_engine
 from app.main import app
 from app.strips.deps import led_strip
 
 
 class StubStrip:
-    def __init__(self) -> None:
+    def __init__(self, number_of_leds: int = 150) -> None:
         self.off_calls = 0
         self.last_update: Optional[Tuple[list[int], Tuple[int, int, int]]] = None
+        self.pixels: list[tuple[int, int, int]] = [(0, 0, 0)] * number_of_leds
+        self.frames: list[np.ndarray] = []
 
     def turn_off(self) -> None:
         self.off_calls += 1
 
     def update_leds_by_ids(self, led_ids: list[int], color: tuple[int, int, int]) -> None:
         self.last_update = (list(led_ids), color)
+
+    def show_frame(self, frame: np.ndarray) -> None:
+        self.frames.append(np.array(frame, copy=True))
 
 
 class StubArchiveFetcher:
@@ -47,6 +54,7 @@ def client_with_stubs(tmp_path, monkeypatch):
     grid_repo.cache_clear()
     led_strip.cache_clear()
     archive_fetcher.cache_clear()
+    animation_engine.cache_clear()
     app.dependency_overrides.clear()
 
     repo = GridFileRepo(Path("db"))
@@ -60,6 +68,7 @@ def client_with_stubs(tmp_path, monkeypatch):
     with TestClient(app) as client:
         yield client, strip_stub, archive_stub
 
+    animation_engine().stop()
     app.dependency_overrides.clear()
 
 

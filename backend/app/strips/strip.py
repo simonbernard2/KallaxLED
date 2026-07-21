@@ -1,5 +1,7 @@
 from typing import Union
 
+import numpy as np
+
 from app.strips.models import LED, Color
 
 try:
@@ -52,4 +54,14 @@ class Strip:
         rgb = color.rgb if isinstance(color, Color) else color
         for led_id in led_ids:
             self.pixels[led_id] = rgb
+        self.pixels.show()
+
+    def show_frame(self, frame: np.ndarray) -> None:
+        """Write an (N, 3) array of per-pixel colors and flush once.
+
+        Values are cast to int because the NeoPixel driver rejects numpy scalars.
+        """
+        for i in range(len(self.pixels)):
+            rgb = frame[i]
+            self.pixels[i] = (int(rgb[0]), int(rgb[1]), int(rgb[2]))
         self.pixels.show()

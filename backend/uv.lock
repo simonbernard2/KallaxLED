@@ -211,17 +211,19 @@ dependencies = [
     { name = "alembic", version = "1.16.5", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10'" },
     { name = "alembic", version = "1.17.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10'" },
     { name = "fastapi", extra = ["standard"] },
-    { name = "neovim" },
     { name = "numpy", version = "2.0.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10'" },
     { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version == '3.10.*'" },
     { name = "numpy", version = "2.3.4", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
     { name = "pydantic" },
-    { name = "pyright" },
-    { name = "ruff" },
     { name = "sqlmodel" },
 ]
 
 [package.optional-dependencies]
+dev = [
+    { name = "neovim" },
+    { name = "pyright" },
+    { name = "ruff" },
+]
 pi = [
     { name = "adafruit-circuitpython-neopixel" },
     { name = "rpi-gpio" },
@@ -236,17 +238,17 @@ requires-dist = [
     { name = "adafruit-circuitpython-neopixel", marker = "extra == 'pi'", specifier = ">=6.3.18" },
     { name = "alembic", specifier = ">=1.16.5" },
     { name = "fastapi", extras = ["standard"], specifier = ">=0.121.3" },
-    { name = "neovim", specifier = ">=0.3.1" },
+    { name = "neovim", marker = "extra == 'dev'", specifier = ">=0.3.1" },
     { name = "numpy", specifier = ">=2.0.2" },
     { name = "pydantic", specifier = ">=2.12.4" },
-    { name = "pyright", specifier = ">=1.1.407" },
+    { name = "pyright", marker = "extra == 'dev'", specifier = ">=1.1.407" },
     { name = "pytest", marker = "extra == 'test'", specifier = ">=8.2.0" },
     { name = "rpi-gpio", marker = "extra == 'pi'", specifier = ">=0.7.1" },
     { name = "rpi-ws281x", marker = "extra == 'pi'", specifier = ">=5.0.0" },
-    { name = "ruff", specifier = ">=0.14.3" },
+    { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.14.3" },
     { name = "sqlmodel", specifier = ">=0.0.27" },
 ]
-provides-extras = ["pi", "test"]
+provides-extras = ["pi", "test", "dev"]
 
 [[package]]
 name = "certifi"

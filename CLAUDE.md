@@ -30,6 +30,8 @@ uv run alembic revision -m "msg"   # create a new migration
 
 On the Pi: `uv sync --extra pi --extra test` to include hardware drivers alongside tests.
 
+The `app` package is imported as a top-level package (e.g. `from app.grids.deps import grid_repo`) but is never installed into the venv (no `[build-system]` in `pyproject.toml`). Tests resolve it via `[tool.pytest.ini_options] pythonpath = ["."]` in `backend/pyproject.toml` — do not remove that, or `uv run pytest` fails with `ModuleNotFoundError: No module named 'app'`. Running pytest by hand outside that config needs `backend/` on `sys.path` (e.g. `python -m pytest`).
+
 ## Frontend Commands
 
 Run from the `frontend/` directory.
