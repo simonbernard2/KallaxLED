@@ -24,7 +24,7 @@ export default function ManageLayout() {
               <NavLink
                 key={section.path}
                 to={section.path}
-                className={({ isActive }) => ['app-nav-link', isActive ? 'app-nav-link-active' : 'bg-white/60'].join(' ')}
+                className={({ isActive }) => ['app-nav-link', isActive ? 'app-nav-link-active' : 'bg-[var(--surface)]'].join(' ')}
               >
                 {section.label}
               </NavLink>

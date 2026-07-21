@@ -49,7 +49,7 @@ def test_grid_resize_shrinks_safely_and_unassigns_removed_boxes(client_with_stub
 
     books_response = client.get("/api/books")
     assert books_response.status_code == 200
-    books = books_response.json()
+    books = books_response.json()["items"]
     assert len(books) == 1
     assert books[0]["title"] == "Misplaced"
     assert books[0]["box"] is None

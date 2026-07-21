@@ -15,7 +15,7 @@ interface ShelfBoxPickerProps {
 
 const selectedButtonClasses =
   'border-[var(--forest)] bg-[var(--forest)] text-white shadow-[0_18px_40px_-24px_rgba(31,74,54,0.85)]'
-const idleButtonClasses = 'border-black/8 bg-white/70 text-[var(--ink)] hover:bg-white'
+const idleButtonClasses = 'border-[var(--surface-border)] bg-[var(--surface)] text-[var(--ink)] hover:bg-[var(--surface-hover)]'
 
 const ShelfBoxPicker = ({
   grid,
@@ -53,7 +53,7 @@ const ShelfBoxPicker = ({
         )}
 
         {hasMissingSelection && missingSelectionLabel && (
-          <div className="rounded-3xl border border-[#7b332c]/15 bg-[#7b332c]/6 p-4 text-sm text-[#7b332c]">
+          <div className="rounded-3xl border border-[var(--danger)]/25 bg-[var(--danger)]/10 p-4 text-sm text-[var(--danger)]">
             Current saved box: {missingSelectionLabel}. Save changes to keep it, choose Unassigned to clear it, or pick a
             box from the current grid.
           </div>
@@ -89,7 +89,7 @@ const ShelfBoxPicker = ({
             }}
           />
         ) : (
-          <div className="rounded-3xl border border-dashed border-black/10 bg-white/50 p-4 text-sm text-[var(--ink-muted)]">
+          <div className="rounded-3xl border border-dashed border-[var(--surface-border)] bg-[var(--surface)] p-4 text-sm text-[var(--ink-muted)]">
             {emptyMessage}
           </div>
         )}

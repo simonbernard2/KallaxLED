@@ -27,6 +27,7 @@ vi.mock('~/utils/api', () => ({
   linkBookArchive: apiMocks.linkBookArchive,
   listBooks: apiMocks.listBooks,
   updateBook: apiMocks.updateBook,
+  PAGE_SIZE: 50,
 }))
 
 const buildBook = (overrides: Record<string, unknown> = {}) => ({
@@ -51,6 +52,12 @@ const buildBook = (overrides: Record<string, unknown> = {}) => ({
   },
   ...overrides,
 })
+
+// Expanding a book row is what opens its editor, so tests reach the form through the toggle.
+const openRow = (user: ReturnType<typeof userEvent.setup>) =>
+  user.click(screen.getByRole('button', { expanded: false }))
+
+const pageOf = (items: unknown[]) => ({ items, total: items.length, limit: 50, offset: 0 })
 
 const buildGrid = () => ({
   id: 1,
@@ -99,7 +106,7 @@ describe('Manage books route', () => {
         archive_publication: null,
       },
     })
-    apiMocks.listBooks.mockResolvedValue([buildBook()])
+    apiMocks.listBooks.mockResolvedValue(pageOf([buildBook()]))
     apiMocks.updateBook.mockResolvedValue({})
   })
 
@@ -140,7 +147,7 @@ describe('Manage books route', () => {
 
     expect((await screen.findAllByText('The Paper Engine')).length).toBeGreaterThan(0)
 
-    await user.click(screen.getByRole('button', { name: 'Edit' }))
+    await openRow(user)
 
     const editPicker = screen.getByRole('group', { name: 'Shelf box for The Paper Engine' })
     expect(within(editPicker).getByRole('button', { name: 'Column 1, Row 1' })).toHaveAttribute('aria-pressed', 'true')
@@ -167,11 +174,7 @@ describe('Manage books route', () => {
     const user = userEvent.setup()
 
     apiMocks.getGrid.mockResolvedValue(null)
-    apiMocks.listBooks.mockResolvedValue([
-      buildBook({
-        box: { id: 99, x: 3, y: 1 },
-      }),
-    ])
+    apiMocks.listBooks.mockResolvedValue(pageOf([buildBook({ box: { id: 99, x: 3, y: 1 } })]))
 
     renderPage()
 
@@ -198,7 +201,7 @@ describe('Manage books route', () => {
       })
     })
 
-    await user.click(screen.getByRole('button', { name: 'Edit' }))
+    await openRow(user)
     expect(screen.getByText(/Current saved box: Column 4, Row 2\./)).toBeInTheDocument()
 
     await user.click(screen.getByRole('button', { name: 'Save changes' }))
@@ -215,7 +218,7 @@ describe('Manage books route', () => {
 
     apiMocks.updateBook.mockClear()
 
-    await user.click(screen.getByRole('button', { name: 'Edit' }))
+    await openRow(user)
     const editPicker = screen.getByRole('group', { name: 'Shelf box for The Paper Engine' })
     await user.click(within(editPicker).getByRole('button', { name: 'Unassigned' }))
     await user.click(screen.getByRole('button', { name: 'Save changes' }))
@@ -238,9 +241,9 @@ describe('Manage books route', () => {
     renderPage()
 
     expect((await screen.findAllByText('The Paper Engine')).length).toBeGreaterThan(0)
-    expect(screen.getByText(/2 indexed entries linked/)).toBeInTheDocument()
 
-    await user.click(screen.getByRole('button', { name: 'Edit' }))
+    await openRow(user)
+    expect(screen.getByText(/2 indexed entries linked/)).toBeInTheDocument()
     await user.clear(screen.getByLabelText('Conjuring Archive URL or medium id'))
     await user.type(screen.getByLabelText('Conjuring Archive URL or medium id'), '140')
     await user.click(screen.getByRole('button', { name: 'Link archive' }))

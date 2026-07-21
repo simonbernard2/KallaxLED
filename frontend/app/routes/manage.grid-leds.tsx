@@ -134,7 +134,7 @@ export default function ManageGridLeds() {
                   type="button"
                   className={[
                     'flex min-h-24 w-full flex-col justify-between rounded-[26px] border p-3 text-left transition',
-                    isActive ? 'border-[var(--accent-strong)] bg-[var(--accent)]/20' : 'border-black/8 bg-white/70 hover:bg-white',
+                    isActive ? 'border-[var(--accent-strong)] bg-[var(--accent)]/20' : 'border-[var(--surface-border)] bg-[var(--surface)] hover:bg-[var(--surface-hover)]',
                   ].join(' ')}
                   disabled={isBusy}
                   onClick={() => void handleBoxToggle(rowIndex, columnIndex)}
@@ -187,8 +187,8 @@ export default function ManageGridLeds() {
       </section>
 
       {isBusy && <div className="panel text-sm text-[var(--ink-muted)]">Working…</div>}
-      {status && <div className="panel text-sm text-[var(--forest)]">{status}</div>}
-      {error && <div className="panel text-sm text-[#7b332c]">{error}</div>}
+      {status && <div className="panel text-sm text-[var(--forest-ink)]">{status}</div>}
+      {error && <div className="panel text-sm text-[var(--danger)]">{error}</div>}
     </div>
   )
 }

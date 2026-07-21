@@ -11,7 +11,7 @@ const GridDisplay = ({ grid, renderBox, className = '' }: GridDisplayProps) => {
   const columns = grid.width || grid.boxes[0]?.length || 0
 
   if (columns === 0) {
-    return <div className="rounded-3xl border border-dashed border-black/10 bg-white/60 p-4 text-sm text-[var(--ink-muted)]">No boxes yet.</div>
+    return <div className="rounded-3xl border border-dashed border-[var(--surface-border)] bg-[var(--surface)] p-4 text-sm text-[var(--ink-muted)]">No boxes yet.</div>
   }
 
   return (
@@ -26,7 +26,7 @@ const GridDisplay = ({ grid, renderBox, className = '' }: GridDisplayProps) => {
           ) : (
             <div
               key={`${rowIndex}-${columnIndex}`}
-              className="rounded-3xl border border-black/8 bg-white/75 p-3 text-center text-xs font-semibold text-[var(--ink-muted)]"
+              className="rounded-3xl border border-[var(--surface-border)] bg-[var(--surface)] p-3 text-center text-xs font-semibold text-[var(--ink-muted)]"
             >
               {formatBoxLabel(box)}
             </div>

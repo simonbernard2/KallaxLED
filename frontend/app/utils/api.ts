@@ -120,6 +120,21 @@ export interface LightingState {
 
 export type SceneName = 'off' | 'solid' | 'checkerboard' | 'rainbow' | 'swipe'
 
+/** One page of results plus the full match count, so callers can render "showing N of M". */
+export interface Paged<T> {
+  items: T[]
+  total: number
+  limit: number
+  offset: number
+}
+
+export interface PageParams {
+  limit?: number
+  offset?: number
+}
+
+export const PAGE_SIZE = 50
+
 const apiClient = axios.create({
   baseURL: import.meta.env.VITE_BACKEND_URL,
 })
@@ -145,13 +160,15 @@ export const toggleLedAssignment = (grid: Grid, ledId: number, rowIndex: number,
   return nextGrid
 }
 
-export const listBooks = async (query = '') => {
-  const response = await apiClient.get<Book[]>('/books', { params: { query } })
+export const listBooks = async (query = '', { limit = PAGE_SIZE, offset = 0 }: PageParams = {}) => {
+  const response = await apiClient.get<Paged<Book>>('/books', { params: { query, limit, offset } })
   return response.data
 }
 
-export const searchBooks = async (query = '') => {
-  const response = await apiClient.get<BookSearchResult[]>('/books/search', { params: { query } })
+export const searchBooks = async (query = '', { limit = PAGE_SIZE, offset = 0 }: PageParams = {}) => {
+  const response = await apiClient.get<Paged<BookSearchResult>>('/books/search', {
+    params: { query, limit, offset },
+  })
   return response.data
 }
 

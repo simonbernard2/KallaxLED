@@ -1,7 +1,8 @@
-import { startTransition, useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
+import { startTransition, useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router'
 import { formatBoxLabel } from '~/grids/box-label'
 import Button from '~/utils/components/button/button'
+import BookRow from '~/utils/components/book-row/book-row'
 import Input from '~/utils/components/input/input'
 import {
   applyScene,
@@ -10,13 +11,14 @@ import {
   highlightBookBox,
   listTopics,
   searchBooks,
+  PAGE_SIZE,
   type BookSearchResult,
   type LightingState,
   type MatchReason,
   type SceneName,
   type Topic,
 } from '~/utils/api'
-import { hexToRgbTuple } from '~/utils/utils'
+import { hexToRgbTuple, useDebouncedCallback } from '~/utils/utils'
 
 const reasonLabels: Record<MatchReason['type'], string> = {
   title: 'Title',
@@ -44,9 +46,14 @@ const formatReason = (reason: MatchReason) => {
   return `${reasonLabels[reason.type]}: ${reason.label} • ${reason.detail}`
 }
 
-const formatLightingSummary = (lightingState: LightingState | null) => {
+const formatLightingSummary = (lightingState: LightingState | null, results: BookSearchResult[]) => {
   if (!lightingState) return 'Ready to search and light a shelf.'
-  if (lightingState.highlight_box_id) return `Highlight active on box #${lightingState.highlight_box_id}.`
+  if (lightingState.highlight_box_id) {
+    // A box id means nothing to a reader — name the shelf spot, and the book if it is on screen.
+    const lit = results.find(book => book.box?.id === lightingState.highlight_box_id)
+    const where = lit?.box ? formatBoxLabel(lit.box) : `box #${lightingState.highlight_box_id}`
+    return lit ? `Lighting ${where} — ${lit.title}.` : `Lighting ${where}.`
+  }
   if (lightingState.active_scene === 'solid') return 'Solid scene is active across the shelf.'
   if (lightingState.active_scene) return `${lightingState.active_scene} scene is active.`
   return 'No scene or highlight is currently active.'
@@ -65,10 +72,13 @@ export default function Home() {
   const [swipeSpeed, setSwipeSpeed] = useState(0.5)
   const [swipeDirection, setSwipeDirection] = useState<'right' | 'left'>('right')
   const [results, setResults] = useState<BookSearchResult[]>([])
+  const [total, setTotal] = useState(0)
+  const [expandedBookId, setExpandedBookId] = useState<number | null>(null)
   const [topics, setTopics] = useState<Topic[]>([])
   const [topicFilter, setTopicFilter] = useState('')
   const [lightingState, setLightingState] = useState<LightingState | null>(null)
   const [isSearching, setIsSearching] = useState(true)
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
   const [busyBookId, setBusyBookId] = useState<number | null>(null)
   const [sceneBusy, setSceneBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -85,16 +95,34 @@ export default function Home() {
     setError(null)
 
     try {
-      const [searchResults, state] = await Promise.all([searchBooks(nextQuery), getLightingState()])
+      const [page, state] = await Promise.all([searchBooks(nextQuery), getLightingState()])
 
       startTransition(() => {
-        setResults(searchResults)
+        setResults(page.items)
+        setTotal(page.total)
+        setExpandedBookId(null)
         setLightingState(state)
       })
     } catch {
       setError('The dashboard could not load. Check the API connection and try again.')
     } finally {
       setIsSearching(false)
+    }
+  }
+
+  const handleShowMore = async () => {
+    setIsLoadingMore(true)
+    setError(null)
+
+    try {
+      const page = await searchBooks(query, { offset: results.length })
+      // Append rather than replace so the rows already on screen do not jump.
+      setResults(previous => [...previous, ...page.items])
+      setTotal(page.total)
+    } catch {
+      setError('More results could not be loaded.')
+    } finally {
+      setIsLoadingMore(false)
     }
   }
 
@@ -116,15 +144,9 @@ export default function Home() {
     return () => clearTimeout(timer)
   }, [query])
 
-  const handleSearch = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    await loadDashboard(query)
-  }
-
-  const handleTopicSearch = async (topicPath: string) => {
-    setQuery(topicPath)
-    await loadDashboard(topicPath)
-  }
+  // The debounced effect above is the only thing that loads results, so setting the query is enough.
+  // Loading here too would fire a second request and reset paging twice.
+  const handleTopicSearch = (topicPath: string) => setQuery(topicPath)
 
   const handleHighlight = async (book: BookSearchResult) => {
     if (!book.box) return
@@ -182,6 +204,20 @@ export default function Home() {
     }
   }
 
+  // Screen swatches never match emitted light, so the shelf itself is the preview: while a picker is
+  // being dragged, re-push the color to whatever is already lit. Both previews are no-ops when
+  // nothing is on, so dragging a picker can never switch the lights on by itself.
+  const previewHighlight = useDebouncedCallback((hex: string) => {
+    const boxId = lightingState?.highlight_box_id
+    if (boxId == null) return
+    highlightBookBox(boxId, hexToRgbTuple(hex)).then(setLightingState).catch(() => {})
+  })
+
+  const previewScene = useDebouncedCallback(() => {
+    if (lightingState?.active_scene !== sceneName) return
+    applyScene(sceneName, buildSceneParams()).then(setLightingState).catch(() => {})
+  })
+
   return (
     <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr),20rem]">
       <div className="flex flex-col gap-6">
@@ -197,11 +233,11 @@ export default function Home() {
             </div>
 
             <div className="rounded-3xl bg-[var(--forest-strong)] px-4 py-3 text-sm text-white shadow-[0_24px_50px_-28px_rgba(31,74,54,0.85)]">
-              {formatLightingSummary(lightingState)}
+              {formatLightingSummary(lightingState, results)}
             </div>
           </div>
 
-          <form className="mt-6 flex flex-col gap-3 sm:flex-row" onSubmit={handleSearch}>
+          <form className="mt-6 flex flex-col gap-3 sm:flex-row" onSubmit={event => event.preventDefault()}>
             <Input
               name="book-search"
               label="Search"
@@ -210,18 +246,8 @@ export default function Home() {
               value={query}
               onChange={event => setQuery(event.target.value)}
             />
-            <div className="flex items-end gap-3 sm:min-w-52">
-              <Button type="submit" className="w-full" disabled={isSearching}>
-                {isSearching ? 'Searching...' : 'Search shelf'}
-              </Button>
-              <Button
-                tone="ghost"
-                className="w-full"
-                onClick={() => {
-                  setQuery('')
-                  void loadDashboard('')
-                }}
-              >
+            <div className="flex items-end sm:min-w-32">
+              <Button tone="ghost" className="w-full" onClick={() => setQuery('')}>
                 Reset
               </Button>
             </div>
@@ -257,95 +283,98 @@ export default function Home() {
             <div>
               <p className="section-kicker">Results</p>
               <h2 className="mt-2 text-xl font-bold text-[var(--ink)]">Books on this shelf</h2>
+              <p className="mt-1 text-sm text-[var(--ink-muted)]">
+                {isSearching
+                  ? 'Searching…'
+                  : total === results.length
+                    ? `${total} ${total === 1 ? 'book' : 'books'}`
+                    : `Showing ${results.length} of ${total} books`}
+              </p>
             </div>
-            <Link to="/manage/books" className="text-sm font-semibold text-[var(--forest)]">
+            <Link to="/manage/books" className="text-sm font-semibold text-[var(--forest-ink)]">
               Manage catalog
             </Link>
           </div>
 
-          <div className="mt-5 flex flex-col gap-4">
+          <div className="mt-5 flex flex-col gap-3">
             {results.map(book => (
-              <article key={book.id} className="rounded-[28px] border border-black/8 bg-white/70 p-4 shadow-[0_18px_40px_-34px_rgba(39,29,23,0.45)]">
-                <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                  <div className="space-y-3">
-                    <div>
-                      <h3 className="text-lg font-bold text-[var(--ink)]">{book.title}</h3>
-                      <p className="text-sm text-[var(--ink-muted)]">{book.author}</p>
-                    </div>
+              <BookRow
+                key={book.id}
+                book={book}
+                expanded={expandedBookId === book.id}
+                onToggle={() => setExpandedBookId(current => (current === book.id ? null : book.id))}
+                badge={
+                  book.match_reasons.length > 0 ? (
+                    <span className="pill bg-[var(--accent)]/20 text-[var(--ink)]">
+                      {book.match_reasons.length} {book.match_reasons.length === 1 ? 'match' : 'matches'}
+                    </span>
+                  ) : null
+                }
+                actions={
+                  <Button onClick={() => void handleHighlight(book)} disabled={!book.box || busyBookId === book.id}>
+                    {busyBookId === book.id ? 'Lighting…' : book.box ? 'Light' : 'No box'}
+                  </Button>
+                }
+              >
+                {(book.match_reasons.length > 0 || book.notes || book.archive_publication) && (
+                <div className="space-y-3">
+                  {book.notes && <p className="text-sm leading-6 text-[var(--ink-muted)]">{book.notes}</p>}
 
-                    <div className="flex flex-wrap gap-2">
-                      {book.box ? (
-                        <span className="pill bg-[var(--forest)]/10 text-[var(--forest)]">
-                          {formatBoxLabel(book.box)}
-                        </span>
-                      ) : (
-                        <span className="pill">No box assigned</span>
-                      )}
-                      {book.user_tags.map(tag => (
-                        <span key={tag} className="pill">
-                          {tag}
-                        </span>
+                  {book.match_reasons.length > 0 && (
+                    <ul className="flex flex-wrap gap-2">
+                      {book.match_reasons.map(reason => (
+                        <li
+                          key={`${reason.type}-${reason.label}-${reason.detail}`}
+                          className="pill bg-[var(--accent)]/20 text-[var(--ink)]"
+                        >
+                          {formatReason(reason)}
+                        </li>
                       ))}
-                    </div>
+                    </ul>
+                  )}
 
-                    {book.match_reasons.length > 0 && (
-                      <ul className="flex flex-wrap gap-2">
-                        {book.match_reasons.map(reason => (
-                          <li key={`${reason.type}-${reason.label}-${reason.detail}`} className="pill bg-[var(--accent)]/20 text-[var(--ink)]">
-                            {formatReason(reason)}
-                          </li>
+                  {book.archive_publication && (
+                    <div className="surface-card p-3 text-sm text-[var(--ink-muted)]">
+                      <p className="font-semibold text-[var(--ink)]">{book.archive_publication.title}</p>
+                      <p className="mt-1">{book.archive_publication.authors.join(', ')}</p>
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {book.archive_publication.topics_preview.slice(0, 4).map(topic => (
+                          <button
+                            key={topic.id}
+                            type="button"
+                            className="pill hover:border-[var(--accent-strong)] hover:text-[var(--ink)]"
+                            onClick={() => handleTopicSearch(topic.path)}
+                          >
+                            {topic.name}
+                          </button>
                         ))}
-                      </ul>
-                    )}
-
-                    {book.archive_publication && (
-                      <div className="rounded-3xl bg-[var(--forest-strong)]/6 p-3 text-sm text-[var(--ink-muted)]">
-                        <p className="font-semibold text-[var(--ink)]">{book.archive_publication.title}</p>
-                        <p className="mt-1">{book.archive_publication.authors.join(', ')}</p>
-                        <div className="mt-3 flex flex-wrap gap-2">
-                          {book.archive_publication.topics_preview.slice(0, 4).map(topic => (
-                            <button
-                              key={topic.id}
-                              type="button"
-                              className="pill hover:border-[var(--accent-strong)] hover:text-[var(--ink)]"
-                              onClick={() => void handleTopicSearch(topic.path)}
-                            >
-                              {topic.name}
-                            </button>
-                          ))}
-                        </div>
                       </div>
-                    )}
-                  </div>
-
-                  <div className="flex min-w-0 flex-col gap-3 lg:w-52">
-                    <label className="field">
-                      <span className="field-label">Highlight color</span>
-                      <input
-                        aria-label={`Highlight color for ${book.title}`}
-                        className="field-input h-12 p-2"
-                        type="color"
-                        value={highlightColor}
-                        onChange={event => setHighlightColor(event.target.value)}
-                      />
-                    </label>
-                    <Button onClick={() => void handleHighlight(book)} disabled={!book.box || busyBookId === book.id}>
-                      {busyBookId === book.id ? 'Lighting...' : book.box ? 'Light this shelf' : 'Assign a box first'}
-                    </Button>
-                  </div>
+                    </div>
+                  )}
                 </div>
-              </article>
+                )}
+              </BookRow>
             ))}
 
+            {results.length < total && (
+              <Button tone="ghost" onClick={() => void handleShowMore()} disabled={isLoadingMore}>
+                {isLoadingMore ? 'Loading…' : `Show ${Math.min(PAGE_SIZE, total - results.length)} more`}
+              </Button>
+            )}
+
             {!isSearching && results.length === 0 && (
-              <div className="rounded-3xl border border-dashed border-black/10 bg-white/50 p-6 text-sm text-[var(--ink-muted)]">
-                No books matched that query yet. Link more archive metadata in <Link to="/manage/books" className="font-semibold text-[var(--forest)]">Manage</Link> to improve topic search.
+              <div className="dashed-note">
+                No books matched that query yet. Link more archive metadata in{' '}
+                <Link to="/manage/books" className="font-semibold text-[var(--forest-ink)]">
+                  Manage
+                </Link>{' '}
+                to improve topic search.
               </div>
             )}
           </div>
         </section>
 
-        {error && <div className="panel border-[#7b332c]/20 text-sm text-[#7b332c]">{error}</div>}
+        {error && <div className="panel border-[var(--danger)]/25 text-sm text-[var(--danger)]">{error}</div>}
       </div>
 
       <aside className="flex flex-col gap-6">
@@ -375,6 +404,29 @@ export default function Home() {
         </section>
 
         <section className="panel">
+          <p className="section-kicker">Highlight</p>
+          <h2 className="mt-2 text-xl font-bold text-[var(--ink)]">Shelf highlight</h2>
+          <label className="field mt-4">
+            <span className="field-label">Highlight color</span>
+            <input
+              aria-label="Highlight color"
+              className="field-input h-12 p-2"
+              type="color"
+              value={highlightColor}
+              onChange={event => {
+                setHighlightColor(event.target.value)
+                previewHighlight(event.target.value)
+              }}
+            />
+          </label>
+          <p className="mt-2 text-xs text-[var(--ink-muted)]">
+            {lightingState?.highlight_box_id
+              ? 'The lit box follows this color as you drag it.'
+              : 'Light a book to preview this color on the shelf.'}
+          </p>
+        </section>
+
+        <section className="panel">
           <p className="section-kicker">Scenes</p>
           <h2 className="mt-2 text-xl font-bold text-[var(--ink)]">Ambient control</h2>
 
@@ -393,7 +445,15 @@ export default function Home() {
             {sceneName === 'solid' && (
               <label className="field">
                 <span className="field-label">Solid color</span>
-                <input className="field-input h-12 p-2" type="color" value={sceneColor} onChange={event => setSceneColor(event.target.value)} />
+                <input
+                  className="field-input h-12 p-2"
+                  type="color"
+                  value={sceneColor}
+                  onChange={event => {
+                    setSceneColor(event.target.value)
+                    previewScene()
+                  }}
+                />
               </label>
             )}
 
@@ -401,11 +461,27 @@ export default function Home() {
               <>
                 <label className="field">
                   <span className="field-label">Color A</span>
-                  <input className="field-input h-12 p-2" type="color" value={checkerColorA} onChange={event => setCheckerColorA(event.target.value)} />
+                  <input
+                    className="field-input h-12 p-2"
+                    type="color"
+                    value={checkerColorA}
+                    onChange={event => {
+                      setCheckerColorA(event.target.value)
+                      previewScene()
+                    }}
+                  />
                 </label>
                 <label className="field">
                   <span className="field-label">Color B</span>
-                  <input className="field-input h-12 p-2" type="color" value={checkerColorB} onChange={event => setCheckerColorB(event.target.value)} />
+                  <input
+                    className="field-input h-12 p-2"
+                    type="color"
+                    value={checkerColorB}
+                    onChange={event => {
+                      setCheckerColorB(event.target.value)
+                      previewScene()
+                    }}
+                  />
                 </label>
               </>
             )}
@@ -441,7 +517,15 @@ export default function Home() {
               <>
                 <label className="field">
                   <span className="field-label">Swipe color</span>
-                  <input className="field-input h-12 p-2" type="color" value={swipeColor} onChange={event => setSwipeColor(event.target.value)} />
+                  <input
+                    className="field-input h-12 p-2"
+                    type="color"
+                    value={swipeColor}
+                    onChange={event => {
+                      setSwipeColor(event.target.value)
+                      previewScene()
+                    }}
+                  />
                 </label>
                 <label className="field">
                   <span className="field-label">Speed (sweeps/s)</span>

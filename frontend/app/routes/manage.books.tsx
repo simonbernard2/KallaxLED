@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { formatBoxLabel } from '~/grids/box-label'
 import ShelfBoxPicker from '~/grids/shelf-box-picker'
+import BookRow from '~/utils/components/book-row/book-row'
 import Button from '~/utils/components/button/button'
 import Input from '~/utils/components/input/input'
 import {
+  PAGE_SIZE,
   createBook,
   deleteBook,
   exportBooksCsv,
@@ -47,6 +49,8 @@ const toDraft = (book: Book): BookDraft => ({
 
 export default function ManageBooks() {
   const [books, setBooks] = useState<Book[]>([])
+  const [total, setTotal] = useState(0)
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
   const [grid, setGrid] = useState<Grid | null>(null)
   const [query, setQuery] = useState('')
   const [createDraft, setCreateDraft] = useState<BookDraft>(emptyDraft)
@@ -71,25 +75,47 @@ export default function ManageBooks() {
     setEditMissingBoxLabel(null)
   }
 
+  const rememberArchiveSources = (loaded: Book[]) => {
+    setArchiveSources(prev => {
+      const next = { ...prev }
+      loaded.forEach(book => {
+        next[book.id] = next[book.id] ?? book.archive_publication?.source_url ?? ''
+      })
+      return next
+    })
+  }
+
   const loadBooksPage = async (nextQuery = query) => {
     setIsLoading(true)
     setError(null)
 
     try {
-      const [booksResult, gridResult] = await Promise.all([listBooks(nextQuery), getGrid()])
-      setBooks(booksResult)
+      const [page, gridResult] = await Promise.all([listBooks(nextQuery), getGrid()])
+      setBooks(page.items)
+      setTotal(page.total)
       setGrid(gridResult)
-      setArchiveSources(prev => {
-        const next = { ...prev }
-        booksResult.forEach(book => {
-          next[book.id] = next[book.id] ?? book.archive_publication?.source_url ?? ''
-        })
-        return next
-      })
+      rememberArchiveSources(page.items)
     } catch {
       setError('Books could not be loaded.')
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const handleShowMore = async () => {
+    setIsLoadingMore(true)
+    setError(null)
+
+    try {
+      const page = await listBooks(query, { offset: books.length })
+      // Append rather than replace so rows already on screen do not jump.
+      setBooks(previous => [...previous, ...page.items])
+      setTotal(page.total)
+      rememberArchiveSources(page.items)
+    } catch {
+      setError('More books could not be loaded.')
+    } finally {
+      setIsLoadingMore(false)
     }
   }
 
@@ -273,7 +299,7 @@ export default function ManageBooks() {
           <Button tone="secondary" onClick={() => void handleCsvExport()}>
             Export CSV
           </Button>
-          <label className="button-base cursor-pointer rounded-full bg-white/70 text-[var(--ink-muted)] ring-1 ring-black/10 hover:bg-white">
+          <label className="button-base cursor-pointer rounded-full bg-[var(--surface)] text-[var(--ink-muted)] ring-1 ring-[var(--surface-border)] hover:bg-[var(--surface-hover)]">
             Import CSV
             <input
               className="hidden"
@@ -345,72 +371,56 @@ export default function ManageBooks() {
         </form>
       </section>
 
-      <section className="flex flex-col gap-4">
+      <section className="flex flex-col gap-3">
+        <p className="text-sm text-[var(--ink-muted)]">
+          {isLoading
+            ? 'Loading…'
+            : total === books.length
+              ? `${total} ${total === 1 ? 'book' : 'books'} in the catalog`
+              : `Showing ${books.length} of ${total} books`}
+        </p>
+
         {books.map(book => (
-          <article key={book.id} className="panel">
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-              <div className="space-y-3">
-                <div>
-                  <h3 className="text-lg font-bold text-[var(--ink)]">{book.title}</h3>
-                  <p className="text-sm text-[var(--ink-muted)]">{book.author}</p>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {book.box ? (
-                    <span className="pill bg-[var(--forest)]/10 text-[var(--forest)]">
-                      {formatBoxLabel(book.box)}
-                    </span>
-                  ) : (
-                    <span className="pill">Unassigned</span>
-                  )}
-                  {book.user_tags.map(tag => (
-                    <span key={tag} className="pill">
-                      {tag}
+          // Expanding a row is how you edit it — one affordance instead of a separate Edit button.
+          <BookRow
+            key={book.id}
+            book={book}
+            expanded={editingId === book.id}
+            onToggle={() => (editingId === book.id ? stopEditing() : startEditing(book))}
+            actions={
+              confirmDeleteId === book.id ? (
+                <>
+                  <span className="text-sm text-[var(--danger)]">Really delete?</span>
+                  <Button tone="danger" onClick={() => { void handleDelete(book.id); setConfirmDeleteId(null) }}>
+                    Confirm
+                  </Button>
+                  <Button tone="ghost" onClick={() => setConfirmDeleteId(null)}>
+                    Cancel
+                  </Button>
+                </>
+              ) : (
+                <Button tone="danger" onClick={() => setConfirmDeleteId(book.id)}>
+                  Delete
+                </Button>
+              )
+            }
+          >
+            {book.archive_publication && (
+              <div className="surface-card mb-4 p-4 text-sm text-[var(--ink-muted)]">
+                <p className="font-semibold text-[var(--ink)]">{book.archive_publication.title}</p>
+                <p className="mt-1">{book.archive_publication.authors.join(', ')}</p>
+                <p className="mt-2">{book.archive_publication.entry_count} indexed entries linked to this shelf book.</p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {book.archive_publication.topics_preview.map(topic => (
+                    <span key={topic.id} className="pill">
+                      {topic.name}
                     </span>
                   ))}
                 </div>
-                {book.notes && <p className="text-sm leading-6 text-[var(--ink-muted)]">{book.notes}</p>}
-                {book.archive_publication && (
-                  <div className="rounded-3xl bg-[var(--forest-strong)]/6 p-4 text-sm text-[var(--ink-muted)]">
-                    <p className="font-semibold text-[var(--ink)]">{book.archive_publication.title}</p>
-                    <p className="mt-1">{book.archive_publication.authors.join(', ')}</p>
-                    <p className="mt-2">
-                      {book.archive_publication.entry_count} indexed entries linked to this shelf book.
-                    </p>
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      {book.archive_publication.topics_preview.map(topic => (
-                        <span key={topic.id} className="pill">
-                          {topic.name}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
               </div>
+            )}
 
-              <div className="flex flex-wrap items-center gap-2">
-                <Button tone="ghost" onClick={() => startEditing(book)}>
-                  Edit
-                </Button>
-                {confirmDeleteId === book.id ? (
-                  <>
-                    <span className="text-sm text-[#7b332c]">Really delete?</span>
-                    <Button tone="danger" onClick={() => { void handleDelete(book.id); setConfirmDeleteId(null) }}>
-                      Confirm
-                    </Button>
-                    <Button tone="ghost" onClick={() => setConfirmDeleteId(null)}>
-                      Cancel
-                    </Button>
-                  </>
-                ) : (
-                  <Button tone="danger" onClick={() => setConfirmDeleteId(book.id)}>
-                    Delete
-                  </Button>
-                )}
-              </div>
-            </div>
-
-            {editingId === book.id && (
-              <div className="mt-5 grid gap-4 rounded-[28px] border border-black/8 bg-white/60 p-4 lg:grid-cols-2">
+            <div className="grid gap-4 lg:grid-cols-2">
                 <Input
                   name={`edit-title-${book.id}`}
                   label="Title"
@@ -483,18 +493,23 @@ export default function ManageBooks() {
                     Cancel
                   </Button>
                 </div>
-              </div>
-            )}
-          </article>
+            </div>
+          </BookRow>
         ))}
+
+        {books.length < total && (
+          <Button tone="ghost" onClick={() => void handleShowMore()} disabled={isLoadingMore}>
+            {isLoadingMore ? 'Loading…' : `Show ${Math.min(PAGE_SIZE, total - books.length)} more`}
+          </Button>
+        )}
 
         {!isLoading && books.length === 0 && (
           <div className="panel text-sm text-[var(--ink-muted)]">No books yet. Add your first shelf title above.</div>
         )}
       </section>
 
-      {status && <div className="panel text-sm text-[var(--forest)]">{status}</div>}
-      {error && <div className="panel text-sm text-[#7b332c]">{error}</div>}
+      {status && <div className="panel text-sm text-[var(--forest-ink)]">{status}</div>}
+      {error && <div className="panel text-sm text-[var(--danger)]">{error}</div>}
     </div>
   )
 }

@@ -176,7 +176,7 @@ export default function ManageGrid() {
                       'flex min-h-24 flex-col justify-between rounded-[26px] border p-3 text-left',
                       box.leds.length > 0
                         ? 'border-[var(--forest)]/20 bg-[var(--forest)]/8'
-                        : 'border-black/8 bg-white/70',
+                        : 'border-[var(--surface-border)] bg-[var(--surface)]',
                     ].join(' ')}
                   >
                     <span className="text-sm font-semibold text-[var(--ink)]">
@@ -194,8 +194,8 @@ export default function ManageGrid() {
       )}
 
       {isLoading && <div className="panel text-sm text-[var(--ink-muted)]">Loading grid…</div>}
-      {status && <div className="panel text-sm text-[var(--forest)]">{status}</div>}
-      {error && <div className="panel text-sm text-[#7b332c]">{error}</div>}
+      {status && <div className="panel text-sm text-[var(--forest-ink)]">{status}</div>}
+      {error && <div className="panel text-sm text-[var(--danger)]">{error}</div>}
     </div>
   )
 }

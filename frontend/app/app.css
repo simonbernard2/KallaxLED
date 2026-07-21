@@ -8,7 +8,11 @@
 }
 
 :root {
+  color-scheme: light dark;
+
   --page-bg: #efe5d6;
+  --page-bg-top: #f6efe5;
+  --page-bg-bottom: #eadfcd;
   --page-glow: rgba(216, 190, 143, 0.45);
   --ink: #271d17;
   --ink-muted: #5f5348;
@@ -17,9 +21,45 @@
   --accent: #d8b271;
   --accent-strong: #b07b37;
   --accent-ink: #24170e;
+  /* --forest is a solid fill that always carries white text; --forest-ink is the readable
+     text/border variant on a panel. They diverge in dark mode, so never swap one for the other. */
   --forest: #294a3a;
+  --forest-ink: #294a3a;
   --forest-strong: #1d3429;
   --border-soft: rgba(39, 29, 23, 0.08);
+  --surface: rgba(255, 255, 255, 0.7);
+  --surface-hover: rgba(255, 255, 255, 0.95);
+  --surface-border: rgba(39, 29, 23, 0.1);
+  --danger: #7b332c;
+  /* App chrome sits over scrolling content, so these stay translucent rather than using --panel. */
+  --chrome-bg: rgba(246, 239, 229, 0.78);
+  --chrome-bg-strong: rgba(255, 251, 246, 0.92);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --page-bg: #14110d;
+    --page-bg-top: #191510;
+    --page-bg-bottom: #100d0a;
+    --page-glow: rgba(176, 123, 55, 0.18);
+    --ink: #f2e9dc;
+    --ink-muted: #a89a89;
+    --panel: rgba(38, 32, 26, 0.82);
+    --panel-strong: rgba(46, 39, 31, 0.92);
+    --accent: #d8b271;
+    --accent-strong: #e0a862;
+    --accent-ink: #24170e;
+    --forest: #2f6b4f;
+    --forest-ink: #7cbb99;
+    --forest-strong: #22503b;
+    --border-soft: rgba(255, 255, 255, 0.1);
+    --surface: rgba(255, 255, 255, 0.05);
+    --surface-hover: rgba(255, 255, 255, 0.09);
+    --surface-border: rgba(255, 255, 255, 0.1);
+    --danger: #f0a49a;
+    --chrome-bg: rgba(25, 21, 16, 0.82);
+    --chrome-bg-strong: rgba(40, 34, 27, 0.94);
+  }
 }
 
 html,
@@ -31,7 +71,7 @@ body {
   @apply text-[var(--ink)] antialiased;
   background:
     radial-gradient(circle at top, var(--page-glow), transparent 42%),
-    linear-gradient(180deg, #f6efe5 0%, var(--page-bg) 60%, #eadfcd 100%);
+    linear-gradient(180deg, var(--page-bg-top) 0%, var(--page-bg) 60%, var(--page-bg-bottom) 100%);
 }
 
 a {
@@ -73,11 +113,20 @@ a {
   }
 
   .field-input {
-    @apply min-h-11 rounded-2xl border border-black/10 bg-white/80 px-4 py-3 text-sm text-[var(--ink)] outline-none transition placeholder:text-[var(--ink-muted)]/70 focus:border-[var(--accent-strong)] focus:bg-white;
+    @apply min-h-11 rounded-2xl border border-[var(--surface-border)] bg-[var(--surface)] px-4 py-3 text-sm text-[var(--ink)] outline-none transition placeholder:text-[var(--ink-muted)] focus:border-[var(--accent-strong)] focus:bg-[var(--surface-hover)];
   }
 
   .pill {
-    @apply inline-flex items-center rounded-full border border-black/8 bg-white/70 px-3 py-1 text-xs font-semibold text-[var(--ink-muted)];
+    @apply inline-flex items-center rounded-full border border-[var(--surface-border)] bg-[var(--surface)] px-3 py-1 text-xs font-semibold text-[var(--ink-muted)];
+  }
+
+  /* Inset card used for rows and nested blocks inside a .panel. */
+  .surface-card {
+    @apply rounded-[28px] border border-[var(--surface-border)] bg-[var(--surface)];
+  }
+
+  .dashed-note {
+    @apply rounded-3xl border border-dashed border-[var(--surface-border)] bg-[var(--surface)] p-6 text-sm text-[var(--ink-muted)];
   }
 
   .app-nav-link {
