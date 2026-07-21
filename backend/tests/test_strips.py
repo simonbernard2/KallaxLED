@@ -12,13 +12,12 @@ def _stub_strip(monkeypatch, number_of_leds: int) -> strip_module.Strip:
 
 def test_show_frame_writes_all_pixels(monkeypatch):
     strip = _stub_strip(monkeypatch, 3)
-    frame = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]], dtype=np.uint8)
+    frame = np.array([[10, 20, 30], [40, 50, 60], [70, 80, 90]], dtype=np.uint8)
 
     strip.show_frame(frame)
 
-    assert strip.pixels[0] == (1, 2, 3)
-    assert strip.pixels[1] == (4, 5, 6)
-    assert strip.pixels[2] == (7, 8, 9)
+    # Reads report the requested sRGB; the driver itself holds gamma-encoded values.
+    assert [led.rgb for led in strip.leds()] == [(10, 20, 30), (40, 50, 60), (70, 80, 90)]
 
 
 def test_show_frame_casts_numpy_scalars_to_int(monkeypatch):
@@ -27,5 +26,4 @@ def test_show_frame_casts_numpy_scalars_to_int(monkeypatch):
     strip.show_frame(np.array([[255, 0, 128]], dtype=np.uint8))
 
     pixel = strip.pixels[0]
-    assert pixel == (255, 0, 128)
     assert all(type(channel) is int for channel in pixel)

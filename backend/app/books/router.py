@@ -2,7 +2,7 @@ import csv
 import io
 from typing import Optional
 
-from fastapi import APIRouter, HTTPException, UploadFile, File, Response
+from fastapi import APIRouter, HTTPException, Query, UploadFile, File, Response
 
 from app.archive import (
     ConjuringArchiveParseError,
@@ -18,6 +18,9 @@ import app.grids.models as models
 
 router = APIRouter()
 
+DEFAULT_PAGE_LIMIT = 50
+MAX_PAGE_LIMIT = 200
+
 
 @router.post("/books")
 async def create_book(book_data: dtos.BookCreate, grid_repo: deps.GridsRepoDep) -> dtos.BookResponse:
@@ -31,18 +34,34 @@ async def create_book(book_data: dtos.BookCreate, grid_repo: deps.GridsRepoDep) 
 async def search_books(
     grid_repo: deps.GridsRepoDep,
     query: Optional[str] = None,
-) -> list[dtos.BookResponse]:
+    limit: int = Query(DEFAULT_PAGE_LIMIT, ge=1, le=MAX_PAGE_LIMIT),
+    offset: int = Query(0, ge=0),
+) -> dtos.PagedBooksResponse:
     books = grid_repo.search_books(query)
-    return [dtos.BookResponse.from_book(book) for book in books]
+    page = books[offset : offset + limit]
+    return dtos.PagedBooksResponse(
+        items=[dtos.BookResponse.from_book(book) for book in page],
+        total=len(books),
+        limit=limit,
+        offset=offset,
+    )
 
 
 @router.get("/books/search")
 async def search_books_with_context(
     grid_repo: deps.GridsRepoDep,
     query: Optional[str] = None,
-) -> list[dtos.BookSearchResponse]:
+    limit: int = Query(DEFAULT_PAGE_LIMIT, ge=1, le=MAX_PAGE_LIMIT),
+    offset: int = Query(0, ge=0),
+) -> dtos.PagedBookSearchResponse:
     matches = grid_repo.search_book_matches(query)
-    return [dtos.BookSearchResponse.from_match(match) for match in matches]
+    page = matches[offset : offset + limit]
+    return dtos.PagedBookSearchResponse(
+        items=[dtos.BookSearchResponse.from_match(match) for match in page],
+        total=len(matches),
+        limit=limit,
+        offset=offset,
+    )
 
 
 @router.put("/books/{book_id}")

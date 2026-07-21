@@ -173,6 +173,22 @@ class BookSearchResponse(BookResponse):
         )
 
 
+class PagedBooksResponse(BaseModel):
+    """One page of books plus the total match count, so callers can render "showing N of M"."""
+
+    items: list[BookResponse]
+    total: int
+    limit: int
+    offset: int
+
+
+class PagedBookSearchResponse(BaseModel):
+    items: list[BookSearchResponse]
+    total: int
+    limit: int
+    offset: int
+
+
 class ArchiveLinkRequest(BaseModel):
     source: str
 
