@@ -117,6 +117,6 @@ describe('Home route', () => {
     expect(await screen.findByText('Card College')).toBeInTheDocument()
     // The first page stays on screen rather than being replaced.
     expect(screen.getAllByText('The Paper Engine').length).toBeGreaterThan(0)
-    expect(apiMocks.searchBooks).toHaveBeenLastCalledWith('', { offset: 1 })
+    expect(apiMocks.searchBooks).toHaveBeenLastCalledWith('', { limit: 50, offset: 1 })
   })
 })

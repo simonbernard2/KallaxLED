@@ -18,7 +18,7 @@ import app.grids.models as models
 
 router = APIRouter()
 
-DEFAULT_PAGE_LIMIT = 50
+DEFAULT_PAGE_LIMIT = 15
 MAX_PAGE_LIMIT = 200
 
 

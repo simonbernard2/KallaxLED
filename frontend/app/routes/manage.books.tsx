@@ -5,7 +5,6 @@ import BookRow from '~/utils/components/book-row/book-row'
 import Button from '~/utils/components/button/button'
 import Input from '~/utils/components/input/input'
 import {
-  PAGE_SIZE,
   createBook,
   deleteBook,
   exportBooksCsv,
@@ -18,6 +17,7 @@ import {
   type Book,
   type Grid,
 } from '~/utils/api'
+import { usePagedList } from '~/utils/use-paged-list'
 import { joinCommaList, splitCommaList } from '~/utils/utils'
 
 interface BookDraft {
@@ -48,9 +48,6 @@ const toDraft = (book: Book): BookDraft => ({
 })
 
 export default function ManageBooks() {
-  const [books, setBooks] = useState<Book[]>([])
-  const [total, setTotal] = useState(0)
-  const [isLoadingMore, setIsLoadingMore] = useState(false)
   const [grid, setGrid] = useState<Grid | null>(null)
   const [query, setQuery] = useState('')
   const [createDraft, setCreateDraft] = useState<BookDraft>(emptyDraft)
@@ -59,9 +56,25 @@ export default function ManageBooks() {
   const [editMissingBoxLabel, setEditMissingBoxLabel] = useState<string | null>(null)
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null)
   const [archiveSources, setArchiveSources] = useState<Record<number, string>>({})
-  const [isLoading, setIsLoading] = useState(true)
   const [status, setStatus] = useState<string | null>(null)
-  const [error, setError] = useState<string | null>(null)
+
+  const rememberArchiveSources = (loaded: Book[]) => {
+    setArchiveSources(prev => {
+      const next = { ...prev }
+      loaded.forEach(book => {
+        next[book.id] = next[book.id] ?? book.archive_publication?.source_url ?? ''
+      })
+      return next
+    })
+  }
+
+  const books = usePagedList<Book>({
+    fetchPage: listBooks,
+    loadErrorMessage: 'Books could not be loaded.',
+    moreErrorMessage: 'More books could not be loaded.',
+    onPageLoaded: rememberArchiveSources,
+  })
+  const { error, setError } = books
 
   const boxes = useMemo(
     () => (grid ? grid.boxes.flat().filter((box): box is typeof box & { id: number } => box.id != null) : []),
@@ -75,48 +88,14 @@ export default function ManageBooks() {
     setEditMissingBoxLabel(null)
   }
 
-  const rememberArchiveSources = (loaded: Book[]) => {
-    setArchiveSources(prev => {
-      const next = { ...prev }
-      loaded.forEach(book => {
-        next[book.id] = next[book.id] ?? book.archive_publication?.source_url ?? ''
-      })
-      return next
-    })
-  }
-
   const loadBooksPage = async (nextQuery = query) => {
-    setIsLoading(true)
-    setError(null)
-
-    try {
-      const [page, gridResult] = await Promise.all([listBooks(nextQuery), getGrid()])
-      setBooks(page.items)
-      setTotal(page.total)
-      setGrid(gridResult)
-      rememberArchiveSources(page.items)
-    } catch {
-      setError('Books could not be loaded.')
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const handleShowMore = async () => {
-    setIsLoadingMore(true)
-    setError(null)
-
-    try {
-      const page = await listBooks(query, { offset: books.length })
-      // Append rather than replace so rows already on screen do not jump.
-      setBooks(previous => [...previous, ...page.items])
-      setTotal(page.total)
-      rememberArchiveSources(page.items)
-    } catch {
-      setError('More books could not be loaded.')
-    } finally {
-      setIsLoadingMore(false)
-    }
+    // The grid rides along with the first page so the box picker always matches the rows on screen.
+    await Promise.all([
+      books.load(nextQuery),
+      getGrid()
+        .then(setGrid)
+        .catch(() => setError('Books could not be loaded.')),
+    ])
   }
 
   useEffect(() => {
@@ -278,8 +257,8 @@ export default function ManageBooks() {
               onChange={event => setQuery(event.target.value)}
             />
             <div className="flex items-end gap-3 sm:min-w-56">
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? 'Loading...' : 'Search'}
+              <Button type="submit" className="w-full" disabled={books.isLoading}>
+                {books.isLoading ? 'Loading...' : 'Search'}
               </Button>
               <Button
                 tone="ghost"
@@ -373,14 +352,14 @@ export default function ManageBooks() {
 
       <section className="flex flex-col gap-3">
         <p className="text-sm text-[var(--ink-muted)]">
-          {isLoading
+          {books.isLoading
             ? 'Loading…'
-            : total === books.length
-              ? `${total} ${total === 1 ? 'book' : 'books'} in the catalog`
-              : `Showing ${books.length} of ${total} books`}
+            : books.total === books.items.length
+              ? `${books.total} ${books.total === 1 ? 'book' : 'books'} in the catalog`
+              : `Showing ${books.items.length} of ${books.total} books`}
         </p>
 
-        {books.map(book => (
+        {books.items.map(book => (
           // Expanding a row is how you edit it — one affordance instead of a separate Edit button.
           <BookRow
             key={book.id}
@@ -497,13 +476,13 @@ export default function ManageBooks() {
           </BookRow>
         ))}
 
-        {books.length < total && (
-          <Button tone="ghost" onClick={() => void handleShowMore()} disabled={isLoadingMore}>
-            {isLoadingMore ? 'Loading…' : `Show ${Math.min(PAGE_SIZE, total - books.length)} more`}
+        {books.hasMore && (
+          <Button tone="ghost" onClick={() => void books.showMore()} disabled={books.isLoadingMore}>
+            {books.isLoadingMore ? 'Loading…' : `Show ${books.nextPageCount} more`}
           </Button>
         )}
 
-        {!isLoading && books.length === 0 && (
+        {!books.isLoading && books.items.length === 0 && (
           <div className="panel text-sm text-[var(--ink-muted)]">No books yet. Add your first shelf title above.</div>
         )}
       </section>

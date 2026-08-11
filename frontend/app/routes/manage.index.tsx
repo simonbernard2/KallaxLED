@@ -16,6 +16,11 @@ const overviewCards = [
     description: 'Walk through LED ids one by one and map them to the correct boxes without leaving mobile.',
     href: '/manage/grid/leds',
   },
+  {
+    title: 'Settings',
+    description: 'Tune how this device displays the shelf, including how many results each page holds.',
+    href: '/manage/settings',
+  },
 ]
 
 export default function ManageHome() {

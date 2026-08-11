@@ -7,6 +7,7 @@ export default [
     route('books', 'routes/manage.books.tsx'),
     route('grid', 'routes/manage.grid.tsx'),
     route('grid/leds', 'routes/manage.grid-leds.tsx'),
+    route('settings', 'routes/manage.settings.tsx'),
   ]),
   route('books', 'routes/redirect.books.tsx', { id: 'legacy-books' }),
   route('grid', 'routes/redirect.grid.tsx', { id: 'legacy-grid' }),

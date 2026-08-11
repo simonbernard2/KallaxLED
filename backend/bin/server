@@ -7,7 +7,7 @@ function mac_server {
 }
 
 function pi_server {
-  sudo uv run fastapi dev main.py --reload --host 0.0.0.0 --port 5000
+  sudo env "PATH=$PATH" uv run fastapi dev main.py --reload --host 0.0.0.0 --port 5000
 }
 
 os_exec mac_server pi_server

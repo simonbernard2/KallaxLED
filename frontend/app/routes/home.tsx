@@ -1,4 +1,4 @@
-import { startTransition, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router'
 import { formatBoxLabel } from '~/grids/box-label'
 import Button from '~/utils/components/button/button'
@@ -11,13 +11,13 @@ import {
   highlightBookBox,
   listTopics,
   searchBooks,
-  PAGE_SIZE,
   type BookSearchResult,
   type LightingState,
   type MatchReason,
   type SceneName,
   type Topic,
 } from '~/utils/api'
+import { usePagedList } from '~/utils/use-paged-list'
 import { hexToRgbTuple, useDebouncedCallback } from '~/utils/utils'
 
 const reasonLabels: Record<MatchReason['type'], string> = {
@@ -71,18 +71,20 @@ export default function Home() {
   const [swipeColor, setSwipeColor] = useState('#c79745')
   const [swipeSpeed, setSwipeSpeed] = useState(0.5)
   const [swipeDirection, setSwipeDirection] = useState<'right' | 'left'>('right')
-  const [results, setResults] = useState<BookSearchResult[]>([])
-  const [total, setTotal] = useState(0)
   const [expandedBookId, setExpandedBookId] = useState<number | null>(null)
   const [topics, setTopics] = useState<Topic[]>([])
   const [topicFilter, setTopicFilter] = useState('')
   const [lightingState, setLightingState] = useState<LightingState | null>(null)
-  const [isSearching, setIsSearching] = useState(true)
-  const [isLoadingMore, setIsLoadingMore] = useState(false)
   const [busyBookId, setBusyBookId] = useState<number | null>(null)
   const [sceneBusy, setSceneBusy] = useState(false)
-  const [error, setError] = useState<string | null>(null)
   const isFirstRender = useRef(true)
+
+  const books = usePagedList<BookSearchResult>({
+    fetchPage: searchBooks,
+    loadErrorMessage: 'The dashboard could not load. Check the API connection and try again.',
+    moreErrorMessage: 'More results could not be loaded.',
+  })
+  const { setError } = books
 
   const filteredTopics = useMemo(() => {
     if (!topicFilter) return topics
@@ -90,41 +92,20 @@ export default function Home() {
     return topics.filter(t => t.name.toLowerCase().includes(lower) || t.path.toLowerCase().includes(lower))
   }, [topics, topicFilter])
 
-  const loadDashboard = async (nextQuery = '') => {
-    setIsSearching(true)
-    setError(null)
-
-    try {
-      const [page, state] = await Promise.all([searchBooks(nextQuery), getLightingState()])
-
-      startTransition(() => {
-        setResults(page.items)
-        setTotal(page.total)
-        setExpandedBookId(null)
-        setLightingState(state)
-      })
-    } catch {
-      setError('The dashboard could not load. Check the API connection and try again.')
-    } finally {
-      setIsSearching(false)
-    }
-  }
-
-  const handleShowMore = async () => {
-    setIsLoadingMore(true)
-    setError(null)
-
-    try {
-      const page = await searchBooks(query, { offset: results.length })
-      // Append rather than replace so the rows already on screen do not jump.
-      setResults(previous => [...previous, ...page.items])
-      setTotal(page.total)
-    } catch {
-      setError('More results could not be loaded.')
-    } finally {
-      setIsLoadingMore(false)
-    }
-  }
+  const loadDashboard = useCallback(
+    async (nextQuery = '') => {
+      setExpandedBookId(null)
+      // Both halves of the dashboard load at once; a lighting failure reuses the list's error slot
+      // so the page still has exactly one place to report trouble.
+      await Promise.all([
+        books.load(nextQuery),
+        getLightingState()
+          .then(setLightingState)
+          .catch(() => setError('The dashboard could not load. Check the API connection and try again.')),
+      ])
+    },
+    [books.load, setError]
+  )
 
   useEffect(() => {
     void loadDashboard('')
@@ -233,7 +214,7 @@ export default function Home() {
             </div>
 
             <div className="rounded-3xl bg-[var(--forest-strong)] px-4 py-3 text-sm text-white shadow-[0_24px_50px_-28px_rgba(31,74,54,0.85)]">
-              {formatLightingSummary(lightingState, results)}
+              {formatLightingSummary(lightingState, books.items)}
             </div>
           </div>
 
@@ -284,11 +265,11 @@ export default function Home() {
               <p className="section-kicker">Results</p>
               <h2 className="mt-2 text-xl font-bold text-[var(--ink)]">Books on this shelf</h2>
               <p className="mt-1 text-sm text-[var(--ink-muted)]">
-                {isSearching
+                {books.isLoading
                   ? 'Searching…'
-                  : total === results.length
-                    ? `${total} ${total === 1 ? 'book' : 'books'}`
-                    : `Showing ${results.length} of ${total} books`}
+                  : books.total === books.items.length
+                    ? `${books.total} ${books.total === 1 ? 'book' : 'books'}`
+                    : `Showing ${books.items.length} of ${books.total} books`}
               </p>
             </div>
             <Link to="/manage/books" className="text-sm font-semibold text-[var(--forest-ink)]">
@@ -297,7 +278,7 @@ export default function Home() {
           </div>
 
           <div className="mt-5 flex flex-col gap-3">
-            {results.map(book => (
+            {books.items.map(book => (
               <BookRow
                 key={book.id}
                 book={book}
@@ -356,13 +337,13 @@ export default function Home() {
               </BookRow>
             ))}
 
-            {results.length < total && (
-              <Button tone="ghost" onClick={() => void handleShowMore()} disabled={isLoadingMore}>
-                {isLoadingMore ? 'Loading…' : `Show ${Math.min(PAGE_SIZE, total - results.length)} more`}
+            {books.hasMore && (
+              <Button tone="ghost" onClick={() => void books.showMore()} disabled={books.isLoadingMore}>
+                {books.isLoadingMore ? 'Loading…' : `Show ${books.nextPageCount} more`}
               </Button>
             )}
 
-            {!isSearching && results.length === 0 && (
+            {!books.isLoading && books.items.length === 0 && (
               <div className="dashed-note">
                 No books matched that query yet. Link more archive metadata in{' '}
                 <Link to="/manage/books" className="font-semibold text-[var(--forest-ink)]">
@@ -374,7 +355,9 @@ export default function Home() {
           </div>
         </section>
 
-        {error && <div className="panel border-[var(--danger)]/25 text-sm text-[var(--danger)]">{error}</div>}
+        {books.error && (
+          <div className="panel border-[var(--danger)]/25 text-sm text-[var(--danger)]">{books.error}</div>
+        )}
       </div>
 
       <aside className="flex flex-col gap-6">

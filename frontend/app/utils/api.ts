@@ -1,5 +1,7 @@
 import axios from 'axios'
 
+import { DEFAULT_PAGE_SIZE } from '~/utils/settings'
+
 export interface ColorPayload {
   rgb: [number, number, number]
 }
@@ -133,8 +135,6 @@ export interface PageParams {
   offset?: number
 }
 
-export const PAGE_SIZE = 50
-
 const apiClient = axios.create({
   baseURL: import.meta.env.VITE_BACKEND_URL,
 })
@@ -160,12 +160,12 @@ export const toggleLedAssignment = (grid: Grid, ledId: number, rowIndex: number,
   return nextGrid
 }
 
-export const listBooks = async (query = '', { limit = PAGE_SIZE, offset = 0 }: PageParams = {}) => {
+export const listBooks = async (query = '', { limit = DEFAULT_PAGE_SIZE, offset = 0 }: PageParams = {}) => {
   const response = await apiClient.get<Paged<Book>>('/books', { params: { query, limit, offset } })
   return response.data
 }
 
-export const searchBooks = async (query = '', { limit = PAGE_SIZE, offset = 0 }: PageParams = {}) => {
+export const searchBooks = async (query = '', { limit = DEFAULT_PAGE_SIZE, offset = 0 }: PageParams = {}) => {
   const response = await apiClient.get<Paged<BookSearchResult>>('/books/search', {
     params: { query, limit, offset },
   })
