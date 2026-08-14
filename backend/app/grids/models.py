@@ -3,9 +3,13 @@ from datetime import datetime
 from sqlalchemy.dialects.sqlite import JSON
 from sqlmodel import Column, Field, Relationship, SQLModel
 
+# SQLModel inherits SQLAlchemy's `__tablename__: declared_attr[Any]`, so assigning a plain
+# str is flagged by pyright on every table below. Annotating it `ClassVar[str]` only trades
+# the error for reportIncompatibleVariableOverride, so each assignment is suppressed instead.
+
 
 class Box(SQLModel, table=True):
-    __tablename__ = "box"
+    __tablename__ = "box"  # pyright: ignore[reportAssignmentType]
 
     id: int | None = Field(default=None, primary_key=True)
     x: int
@@ -18,7 +22,7 @@ class Box(SQLModel, table=True):
 
 
 class Grid(SQLModel, table=True):
-    __tablename__ = "grid"
+    __tablename__ = "grid"  # pyright: ignore[reportAssignmentType]
 
     id: int | None = Field(default=None, primary_key=True)
     name: str
@@ -27,7 +31,7 @@ class Grid(SQLModel, table=True):
 
 
 class ArchivePublication(SQLModel, table=True):
-    __tablename__ = "archive_publications"
+    __tablename__ = "archive_publications"  # pyright: ignore[reportAssignmentType]
 
     id: int | None = Field(default=None, primary_key=True)
     external_id: str = Field(index=True, unique=True)
@@ -45,7 +49,7 @@ class ArchivePublication(SQLModel, table=True):
 
 
 class LibraryBook(SQLModel, table=True):
-    __tablename__ = "library_books"
+    __tablename__ = "library_books"  # pyright: ignore[reportAssignmentType]
 
     id: int | None = Field(default=None, primary_key=True)
     title: str
@@ -62,7 +66,7 @@ class LibraryBook(SQLModel, table=True):
 
 
 class ArchiveEntry(SQLModel, table=True):
-    __tablename__ = "archive_entries"
+    __tablename__ = "archive_entries"  # pyright: ignore[reportAssignmentType]
 
     id: int | None = Field(default=None, primary_key=True)
     publication_id: int = Field(foreign_key="archive_publications.id", index=True)
@@ -80,7 +84,7 @@ class ArchiveEntry(SQLModel, table=True):
 
 
 class MagicTopic(SQLModel, table=True):
-    __tablename__ = "magic_topics"
+    __tablename__ = "magic_topics"  # pyright: ignore[reportAssignmentType]
 
     id: int | None = Field(default=None, primary_key=True)
     name: str = Field(index=True)
@@ -91,7 +95,7 @@ class MagicTopic(SQLModel, table=True):
 
 
 class ArchiveEntryTopicLink(SQLModel, table=True):
-    __tablename__ = "archive_entry_topic_links"
+    __tablename__ = "archive_entry_topic_links"  # pyright: ignore[reportAssignmentType]
 
     id: int | None = Field(default=None, primary_key=True)
     entry_id: int = Field(foreign_key="archive_entries.id", index=True)
@@ -102,7 +106,7 @@ class ArchiveEntryTopicLink(SQLModel, table=True):
 
 
 class LightingState(SQLModel, table=True):
-    __tablename__ = "lightingstate"
+    __tablename__ = "lightingstate"  # pyright: ignore[reportAssignmentType]
 
     id: int | None = Field(default=None, primary_key=True)
     highlight_box_id: int | None = Field(default=None, foreign_key="box.id")

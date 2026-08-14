@@ -5,7 +5,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from sqlalchemy.orm import selectinload
-from sqlmodel import Session, select
+from sqlmodel import Session, col, select
 
 import app.grids.models as models
 from app.archive.parser import ParsedArchivePublication
@@ -34,16 +34,18 @@ class GridFileRepo:
         self.engine = create_sqlite_engine(self.db_path)
 
     def _grid_statement(self):
-        return select(models.Grid).options(selectinload(models.Grid.boxes))  # type: ignore[arg-type]
+        return select(models.Grid).options(selectinload(models.Grid.boxes))  # pyright: ignore[reportArgumentType]
 
     def _book_statement(self):
+        # Class-level access to a SQLModel Relationship reads as the *instance* type to a
+        # type checker, not the InstrumentedAttribute selectinload actually receives.
         publication_loader = (
-            selectinload(models.LibraryBook.archive_publication)
-            .selectinload(models.ArchivePublication.entries)
-            .selectinload(models.ArchiveEntry.topic_links)
-            .selectinload(models.ArchiveEntryTopicLink.topic)
+            selectinload(models.LibraryBook.archive_publication)  # pyright: ignore[reportArgumentType]
+            .selectinload(models.ArchivePublication.entries)  # pyright: ignore[reportArgumentType]
+            .selectinload(models.ArchiveEntry.topic_links)  # pyright: ignore[reportArgumentType]
+            .selectinload(models.ArchiveEntryTopicLink.topic)  # pyright: ignore[reportArgumentType]
         )
-        return select(models.LibraryBook).options(selectinload(models.LibraryBook.box), publication_loader)  # type: ignore[arg-type]
+        return select(models.LibraryBook).options(selectinload(models.LibraryBook.box), publication_loader)  # pyright: ignore[reportArgumentType]
 
     def get_grid(self) -> models.Grid | None:
         with Session(self.engine) as session:
@@ -100,7 +102,7 @@ class GridFileRepo:
                 # Unassign books from removed boxes (and flush) so deleting the boxes does not
                 # cascade-delete the books — the shelf resize should keep them, just orphaned.
                 removed_books = session.exec(
-                    select(models.LibraryBook).where(models.LibraryBook.box_id.in_(removed_box_ids))
+                    select(models.LibraryBook).where(col(models.LibraryBook.box_id).in_(removed_box_ids))
                 ).all()
                 for book in removed_books:
                     book.box_id = None
@@ -327,12 +329,16 @@ class GridFileRepo:
             session.commit()
             session.refresh(record)
 
-            book.archive_publication_id = record.id
+            publication_id = record.id
+            if publication_id is None:
+                raise RuntimeError("archive publication has no id after commit")
+
+            book.archive_publication_id = publication_id
             session.add(book)
             session.commit()
 
             existing_entries = list(
-                session.exec(select(models.ArchiveEntry).where(models.ArchiveEntry.publication_id == record.id)).all()
+                session.exec(select(models.ArchiveEntry).where(models.ArchiveEntry.publication_id == publication_id)).all()
             )
             for entry in existing_entries:
                 session.delete(entry)
@@ -342,7 +348,7 @@ class GridFileRepo:
 
             for parsed_entry in publication.entries:
                 entry = models.ArchiveEntry(
-                    publication_id=record.id,
+                    publication_id=publication_id,
                     external_id=parsed_entry.external_id,
                     title=parsed_entry.title,
                     page=parsed_entry.page,
@@ -365,7 +371,10 @@ class GridFileRepo:
                         session.flush()
                         topic_cache[topic.path] = topic
 
-                    session.add(models.ArchiveEntryTopicLink(entry_id=entry.id, topic_id=topic.id))
+                    entry_id, topic_id = entry.id, topic.id
+                    if entry_id is None or topic_id is None:
+                        raise RuntimeError("archive entry or topic has no id after flush")
+                    session.add(models.ArchiveEntryTopicLink(entry_id=entry_id, topic_id=topic_id))
 
             session.commit()
             return session.exec(self._book_statement().where(models.LibraryBook.id == book_id)).one()

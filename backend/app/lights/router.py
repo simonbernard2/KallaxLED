@@ -94,7 +94,7 @@ async def highlight_box(
         raise HTTPException(status_code=404, detail="box not found")
 
     engine.stop()
-    state = grid_repo.set_highlight(box.id, list(request.rgb))
+    state = grid_repo.set_highlight(request.box_id, list(request.rgb))
     led_strip.turn_off()
     if box.leds:
         led_strip.update_leds_by_ids(box.leds, request.rgb)
