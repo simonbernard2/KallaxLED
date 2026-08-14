@@ -1,5 +1,3 @@
-from typing import Union
-
 import numpy as np
 
 from app.strips.models import LED, Color
@@ -60,7 +58,7 @@ class Strip:
             self._set(led.id, led.rgb)
         self.pixels.show()
 
-    def update_leds_by_ids(self, led_ids: list[int], color: Union[Color, tuple[int, int, int]]) -> None:
+    def update_leds_by_ids(self, led_ids: list[int], color: Color | tuple[int, int, int]) -> None:
         rgb = color.rgb if isinstance(color, Color) else color
         for led_id in led_ids:
             self._set(led_id, rgb)

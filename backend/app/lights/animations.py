@@ -1,5 +1,5 @@
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Callable, Optional
 
 import numpy as np
 
@@ -18,7 +18,7 @@ class StripGeometry:
     frac: np.ndarray  # (N,) float — position along the sorted LED order in [0, 1]
 
 
-def build_geometry(grid: models.Grid, num_pixels: int) -> Optional[StripGeometry]:
+def build_geometry(grid: models.Grid, num_pixels: int) -> StripGeometry | None:
     """Map every assigned LED to its box coordinates.
 
     Duplicate LED ids keep the first box encountered; ids outside the strip are dropped.

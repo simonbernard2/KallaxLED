@@ -1,5 +1,3 @@
-from typing import Optional
-
 from fastapi import APIRouter, HTTPException
 from pydantic import ValidationError
 
@@ -32,7 +30,7 @@ def _collect_led_ids(grid) -> list[int]:
 
 
 def apply_scene(
-    name: Optional[str],
+    name: str | None,
     params: dict,
     grid_repo: GridFileRepo,
     led_strip: Strip,

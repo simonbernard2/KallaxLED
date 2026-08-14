@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Optional, Tuple
 
 import numpy as np
 import pytest
@@ -19,7 +18,7 @@ from app.strips.deps import led_strip
 class StubStrip:
     def __init__(self, number_of_leds: int = 150) -> None:
         self.off_calls = 0
-        self.last_update: Optional[Tuple[list[int], Tuple[int, int, int]]] = None
+        self.last_update: tuple[list[int], tuple[int, int, int]] | None = None
         self.pixels: list[tuple[int, int, int]] = [(0, 0, 0)] * number_of_leds
         self.frames: list[np.ndarray] = []
 

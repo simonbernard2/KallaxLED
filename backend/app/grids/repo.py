@@ -3,7 +3,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Optional
 
 from sqlalchemy.orm import selectinload
 from sqlmodel import Session, select
@@ -17,7 +16,7 @@ import app.grids.models as models
 class BookMatchReason:
     type: str
     label: str
-    detail: Optional[str] = None
+    detail: str | None = None
 
 
 @dataclass
@@ -46,11 +45,11 @@ class GridFileRepo:
         )
         return select(models.LibraryBook).options(selectinload(models.LibraryBook.box), publication_loader)  # type: ignore[arg-type]
 
-    def get_grid(self) -> Optional[models.Grid]:
+    def get_grid(self) -> models.Grid | None:
         with Session(self.engine) as session:
             return session.exec(self._grid_statement()).first()
 
-    def delete_grid(self) -> Optional[models.Grid]:
+    def delete_grid(self) -> models.Grid | None:
         with Session(self.engine) as session:
             grid = session.exec(select(models.Grid)).first()
             if grid is None:
@@ -77,16 +76,16 @@ class GridFileRepo:
             session.refresh(grid)
             return session.exec(self._grid_statement().where(models.Grid.id == grid.id)).one()
 
-    def get_box_by_id(self, box_id: int) -> Optional[models.Box]:
+    def get_box_by_id(self, box_id: int) -> models.Box | None:
         with Session(self.engine) as session:
             return session.get(models.Box, box_id)
 
-    def get_box_by_coords(self, x: int, y: int) -> Optional[models.Box]:
+    def get_box_by_coords(self, x: int, y: int) -> models.Box | None:
         with Session(self.engine) as session:
             statement = select(models.Box).where(models.Box.x == x, models.Box.y == y)
             return session.exec(statement).first()
 
-    def update_grid(self, name: str, width: int, height: int) -> Optional[models.Grid]:
+    def update_grid(self, name: str, width: int, height: int) -> models.Grid | None:
         with Session(self.engine) as session:
             grid = session.exec(self._grid_statement()).first()
             if grid is None:
@@ -142,7 +141,7 @@ class GridFileRepo:
                 session.add(box)
             session.commit()
 
-    def get_book(self, book_id: int) -> Optional[models.LibraryBook]:
+    def get_book(self, book_id: int) -> models.LibraryBook | None:
         with Session(self.engine) as session:
             return session.exec(self._book_statement().where(models.LibraryBook.id == book_id)).first()
 
@@ -154,7 +153,7 @@ class GridFileRepo:
             session.commit()
             return session.exec(self._book_statement().where(models.LibraryBook.id == book.id)).one()
 
-    def update_book(self, book_id: int, updates: dict) -> Optional[models.LibraryBook]:
+    def update_book(self, book_id: int, updates: dict) -> models.LibraryBook | None:
         with Session(self.engine) as session:
             book = session.get(models.LibraryBook, book_id)
             if book is None:
@@ -165,7 +164,7 @@ class GridFileRepo:
             session.commit()
             return session.exec(self._book_statement().where(models.LibraryBook.id == book.id)).one()
 
-    def delete_book(self, book_id: int) -> Optional[models.LibraryBook]:
+    def delete_book(self, book_id: int) -> models.LibraryBook | None:
         with Session(self.engine) as session:
             book = session.exec(self._book_statement().where(models.LibraryBook.id == book_id)).first()
             if book is None:
@@ -180,7 +179,7 @@ class GridFileRepo:
             books = list(session.exec(statement).all())
             return sorted(books, key=lambda book: (book.title.lower(), book.author.lower()))
 
-    def list_topics(self, query: Optional[str] = None) -> list[models.MagicTopic]:
+    def list_topics(self, query: str | None = None) -> list[models.MagicTopic]:
         topics: list[models.MagicTopic]
         with Session(self.engine) as session:
             topics = list(session.exec(select(models.MagicTopic)).all())
@@ -197,10 +196,10 @@ class GridFileRepo:
             key=lambda topic: topic.path.lower(),
         )
 
-    def search_books(self, query: Optional[str]) -> list[models.LibraryBook]:
+    def search_books(self, query: str | None) -> list[models.LibraryBook]:
         return [result.book for result in self.search_book_matches(query)]
 
-    def search_book_matches(self, query: Optional[str]) -> list[BookSearchMatch]:
+    def search_book_matches(self, query: str | None) -> list[BookSearchMatch]:
         books = self.list_books()
         if query is None or query.strip() == "":
             return [BookSearchMatch(book=book, reasons=[]) for book in books]
@@ -217,9 +216,9 @@ class GridFileRepo:
 
     def _collect_book_match_reasons(self, book: models.LibraryBook, needle: str) -> list[BookMatchReason]:
         reasons: list[BookMatchReason] = []
-        seen: set[tuple[str, str, Optional[str]]] = set()
+        seen: set[tuple[str, str, str | None]] = set()
 
-        def add_reason(reason_type: str, label: str, detail: Optional[str] = None) -> None:
+        def add_reason(reason_type: str, label: str, detail: str | None = None) -> None:
             normalized = (reason_type, label, detail)
             if normalized in seen:
                 return
@@ -264,7 +263,7 @@ class GridFileRepo:
 
         return reasons[:8]
 
-    def link_book_to_archive(self, book_id: int, publication: ParsedArchivePublication) -> Optional[models.LibraryBook]:
+    def link_book_to_archive(self, book_id: int, publication: ParsedArchivePublication) -> models.LibraryBook | None:
         with Session(self.engine) as session:
             book = session.get(models.LibraryBook, book_id)
             if book is None:
@@ -301,7 +300,7 @@ class GridFileRepo:
         self,
         book_id: int,
         publication: ParsedArchivePublication,
-    ) -> Optional[models.LibraryBook]:
+    ) -> models.LibraryBook | None:
         with Session(self.engine) as session:
             book = session.get(models.LibraryBook, book_id)
             if book is None:
@@ -407,7 +406,7 @@ class GridFileRepo:
             session.refresh(state)
             return state
 
-    def set_scene(self, name: Optional[str], params: dict) -> models.LightingState:
+    def set_scene(self, name: str | None, params: dict) -> models.LightingState:
         with Session(self.engine) as session:
             state = self._get_or_create_lighting_state(session)
             state.active_scene = name

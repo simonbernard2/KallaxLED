@@ -1,7 +1,6 @@
 import logging
 import threading
 import time
-from typing import Optional
 
 import numpy as np
 
@@ -18,7 +17,7 @@ class AnimationEngine:
     """
 
     def __init__(self) -> None:
-        self._thread: Optional[threading.Thread] = None
+        self._thread: threading.Thread | None = None
         self._stop = threading.Event()
 
     def start(self, strip, geometry: StripGeometry, render: AnimationFn, params: dict, fps: float = 24.0) -> None:

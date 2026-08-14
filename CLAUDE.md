@@ -102,7 +102,9 @@ uv run alembic revision -m "short description"
 
 ## Python Style
 
-- Target Python 3.9+: use `list[T]`, `dict[K, V]`; use `Optional[T]` (not `X | None` union syntax)
+- Target Python 3.13: use `list[T]`, `dict[K, V]`, and `T | None` (not `Optional[T]`/`Union[A, B]` from `typing`)
+- Import ABCs from `collections.abc` (`Iterable`, `Callable`), not `typing`. `Annotated` and `Literal` still come from `typing`
+- Ruff's `UP` (pyupgrade) rule set enforces both of the above — `uv run ruff check --fix app main.py` will rewrite violations
 - Line length: 120 (ruff)
 - `snake_case` for modules/functions, `CapWords` for classes
 - Import order: stdlib → third-party → local, blank line between groups

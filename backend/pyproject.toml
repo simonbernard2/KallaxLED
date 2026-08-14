@@ -3,7 +3,7 @@ name = "bookshelf"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.13"
 dependencies = [
     "alembic>=1.16.5",
     "fastapi[standard]>=0.121.3",
@@ -30,8 +30,14 @@ dev = [
 [tool.pytest.ini_options]
 pythonpath = ["."]
 
+[tool.pyright]
+pythonVersion = "3.13"
+
 [tool.ruff]
 line-length = 120
+target-version = "py313"
 
 [tool.ruff.lint]
-extend-select = ["I"]
+# "UP" (pyupgrade) keeps type hints on modern syntax: `T | None` over `Optional[T]`,
+# builtin generics over `typing.List`, and ABCs imported from `collections.abc`.
+extend-select = ["I", "UP"]

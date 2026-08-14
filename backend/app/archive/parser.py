@@ -1,8 +1,8 @@
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import dataclass, field
 from html.parser import HTMLParser
-from typing import Iterable, Optional, Union
 from urllib.parse import parse_qs, urljoin, urlparse
 import re
 
@@ -21,11 +21,11 @@ class ConjuringArchiveParseError(ValueError):
 @dataclass
 class ParsedArchiveEntry:
     title: str
-    page: Optional[str]
+    page: str | None
     creators: list[str] = field(default_factory=list)
     topic_paths: list[str] = field(default_factory=list)
-    external_id: Optional[str] = None
-    summary: Optional[str] = None
+    external_id: str | None = None
+    summary: str | None = None
 
 
 @dataclass
@@ -33,7 +33,7 @@ class ParsedArchivePublication:
     external_id: str
     source_url: str
     title: str
-    subtitle: Optional[str] = None
+    subtitle: str | None = None
     authors: list[str] = field(default_factory=list)
     entries: list[ParsedArchiveEntry] = field(default_factory=list)
 
@@ -42,7 +42,7 @@ class ParsedArchivePublication:
 class HtmlNode:
     tag: str
     attrs: dict[str, str]
-    children: list[Union["HtmlNode", str]] = field(default_factory=list)
+    children: list[HtmlNode | str] = field(default_factory=list)
 
 
 class HtmlTreeBuilder(HTMLParser):
@@ -53,7 +53,7 @@ class HtmlTreeBuilder(HTMLParser):
         self.root = HtmlNode("document", {})
         self.stack = [self.root]
 
-    def handle_starttag(self, tag: str, attrs: list[tuple[str, Optional[str]]]) -> None:
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         node = HtmlNode(tag, {key: value or "" for key, value in attrs})
         self.stack[-1].children.append(node)
         if tag not in self.VOID_TAGS:
@@ -120,7 +120,7 @@ def _normalize_text(text: str) -> str:
     return " ".join(text.replace("\xa0", " ").split())
 
 
-def _node_text(node: Union[HtmlNode, str]) -> str:
+def _node_text(node: HtmlNode | str) -> str:
     if isinstance(node, str):
         return _normalize_text(node)
     parts: list[str] = []
@@ -131,7 +131,7 @@ def _node_text(node: Union[HtmlNode, str]) -> str:
     return _normalize_text(" ".join(parts))
 
 
-def _iter_nodes(node: HtmlNode, tag: Optional[str] = None) -> Iterable[HtmlNode]:
+def _iter_nodes(node: HtmlNode, tag: str | None = None) -> Iterable[HtmlNode]:
     for child in node.children:
         if isinstance(child, str):
             continue
@@ -140,7 +140,7 @@ def _iter_nodes(node: HtmlNode, tag: Optional[str] = None) -> Iterable[HtmlNode]
         yield from _iter_nodes(child, tag)
 
 
-def _find_first(node: HtmlNode, *tags: str) -> Optional[HtmlNode]:
+def _find_first(node: HtmlNode, *tags: str) -> HtmlNode | None:
     tag_set = set(tags)
     for candidate in _iter_nodes(node):
         if candidate.tag in tag_set:
@@ -176,7 +176,7 @@ def _extract_title(document: HtmlNode) -> str:
     return title
 
 
-def _extract_subtitle(document: HtmlNode) -> Optional[str]:
+def _extract_subtitle(document: HtmlNode) -> str | None:
     for candidate in _iter_nodes(document):
         class_name = candidate.attrs.get("class", "")
         if "subtitle" not in class_name:
@@ -262,7 +262,7 @@ def _split_creators(text: str) -> list[str]:
     return [part.strip() for part in text.split(separators) if part.strip()]
 
 
-def _extract_entry_id(node: HtmlNode) -> Optional[str]:
+def _extract_entry_id(node: HtmlNode) -> str | None:
     for link in _iter_nodes(node, "a"):
         href = link.attrs.get("href", "")
         for pattern in ENTRY_ID_PATTERNS:

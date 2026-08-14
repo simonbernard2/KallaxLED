@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -37,7 +36,7 @@ class TopicResponse(BaseModel):
 class ArchiveEntryPreview(BaseModel):
     id: int
     title: str
-    page: Optional[str] = None
+    page: str | None = None
 
     @staticmethod
     def from_entry(entry: ArchiveEntry) -> "ArchiveEntryPreview":
@@ -51,9 +50,9 @@ class ArchivePublicationSummary(BaseModel):
     external_id: str
     source_url: str
     title: str
-    subtitle: Optional[str] = None
+    subtitle: str | None = None
     authors: list[str]
-    imported_at: Optional[datetime] = None
+    imported_at: datetime | None = None
     entry_count: int
     topics_preview: list[TopicResponse]
     entries_preview: list[ArchiveEntryPreview]
@@ -93,10 +92,10 @@ class BookCreate(BaseModel):
 
     title: str
     author: str
-    isbn: Optional[str] = None
+    isbn: str | None = None
     user_tags: list[str] = Field(default_factory=list, alias="tags")
-    notes: Optional[str] = None
-    box_id: Optional[int] = None
+    notes: str | None = None
+    box_id: int | None = None
 
     def to_model(self) -> Book:
         return Book(
@@ -112,23 +111,23 @@ class BookCreate(BaseModel):
 class BookUpdate(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
-    title: Optional[str] = None
-    author: Optional[str] = None
-    isbn: Optional[str] = None
-    user_tags: Optional[list[str]] = Field(default=None, alias="tags")
-    notes: Optional[str] = None
-    box_id: Optional[int] = None
+    title: str | None = None
+    author: str | None = None
+    isbn: str | None = None
+    user_tags: list[str] | None = Field(default=None, alias="tags")
+    notes: str | None = None
+    box_id: int | None = None
 
 
 class BookResponse(BaseModel):
     id: int
     title: str
     author: str
-    isbn: Optional[str] = None
+    isbn: str | None = None
     user_tags: list[str]
-    notes: Optional[str] = None
-    box: Optional[BoxRef] = None
-    archive_publication: Optional[ArchivePublicationSummary] = None
+    notes: str | None = None
+    box: BoxRef | None = None
+    archive_publication: ArchivePublicationSummary | None = None
 
     @staticmethod
     def from_book(book: Book) -> "BookResponse":
@@ -155,7 +154,7 @@ class BookResponse(BaseModel):
 class MatchReasonResponse(BaseModel):
     type: str
     label: str
-    detail: Optional[str] = None
+    detail: str | None = None
 
     @staticmethod
     def from_reason(reason: BookMatchReason) -> "MatchReasonResponse":
@@ -197,7 +196,7 @@ class ArchiveLinkPreview(BaseModel):
     external_id: str
     source_url: str
     title: str
-    subtitle: Optional[str] = None
+    subtitle: str | None = None
     authors: list[str]
 
     @staticmethod

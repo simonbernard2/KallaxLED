@@ -1,6 +1,5 @@
 import csv
 import io
-from typing import Optional
 
 from fastapi import APIRouter, HTTPException, Query, UploadFile, File, Response
 
@@ -33,7 +32,7 @@ async def create_book(book_data: dtos.BookCreate, grid_repo: deps.GridsRepoDep) 
 @router.get("/books")
 async def search_books(
     grid_repo: deps.GridsRepoDep,
-    query: Optional[str] = None,
+    query: str | None = None,
     limit: int = Query(DEFAULT_PAGE_LIMIT, ge=1, le=MAX_PAGE_LIMIT),
     offset: int = Query(0, ge=0),
 ) -> dtos.PagedBooksResponse:
@@ -50,7 +49,7 @@ async def search_books(
 @router.get("/books/search")
 async def search_books_with_context(
     grid_repo: deps.GridsRepoDep,
-    query: Optional[str] = None,
+    query: str | None = None,
     limit: int = Query(DEFAULT_PAGE_LIMIT, ge=1, le=MAX_PAGE_LIMIT),
     offset: int = Query(0, ge=0),
 ) -> dtos.PagedBookSearchResponse:
@@ -224,6 +223,6 @@ async def export_books(grid_repo: deps.GridsRepoDep) -> Response:
 
 
 @router.get("/topics")
-async def list_topics(grid_repo: deps.GridsRepoDep, query: Optional[str] = None) -> list[dtos.TopicResponse]:
+async def list_topics(grid_repo: deps.GridsRepoDep, query: str | None = None) -> list[dtos.TopicResponse]:
     topics = grid_repo.list_topics(query)
     return [dtos.TopicResponse.from_topic(topic) for topic in topics]

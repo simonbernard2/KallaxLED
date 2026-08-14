@@ -1,4 +1,4 @@
-from typing import Literal, Optional
+from typing import Literal
 
 from pydantic import BaseModel, Field
 
@@ -40,7 +40,7 @@ ANIMATION_PARAM_MODELS: dict[str, type[BaseModel]] = {
 
 
 class LightingStateResponse(BaseModel):
-    highlight_box_id: Optional[int]
-    highlight_rgb: Optional[list[int]]
-    active_scene: Optional[str]
+    highlight_box_id: int | None
+    highlight_rgb: list[int] | None
+    active_scene: str | None
     scene_params: dict

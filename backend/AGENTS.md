@@ -29,7 +29,10 @@ uv run ruff format app main.py      # enforce consistent formatting
 
 ## Python Version and Style
 
-- Target **Python 3.9+**: use `list[T]`, `dict[K, V]`, `tuple[...]` for type hints (not `list | None` union syntax — use `Optional[T]` from `typing` instead).
+- Target **Python 3.13** (pinned in `.python-version`; the Pi runs 64-bit Raspberry Pi OS Trixie with system Python 3.13).
+- Use `list[T]`, `dict[K, V]`, `tuple[...]` and PEP 604 unions (`T | None`, `A | B`) — not `Optional[T]` or `Union[A, B]` from `typing`.
+- Import ABCs from `collections.abc` (`Iterable`, `Callable`); `Annotated` and `Literal` still come from `typing`.
+- Ruff's `UP` (pyupgrade) rule set enforces the two points above, so `uv run ruff check --fix app main.py` rewrites violations automatically.
 - 4-space indentation. `snake_case` for modules and functions, `CapWords` for classes.
 - Group imports: standard library, third-party, local; blank line between groups.
 
