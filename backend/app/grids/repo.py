@@ -52,15 +52,6 @@ class GridFileRepo:
         with Session(self.engine) as session:
             return session.exec(self._grid_statement()).first()
 
-    def delete_grid(self) -> models.Grid | None:
-        with Session(self.engine) as session:
-            grid = session.exec(select(models.Grid)).first()
-            if grid is None:
-                return None
-            session.delete(grid)
-            session.commit()
-            return grid
-
     def get_boxes(self) -> list[models.Box]:
         with Session(self.engine) as session:
             statement = select(models.Box)
@@ -100,8 +91,10 @@ class GridFileRepo:
             removed_box_ids = {box.id for box in removed_boxes if box.id is not None}
 
             if removed_box_ids:
-                # Unassign books from removed boxes (and flush) so deleting the boxes does not
-                # cascade-delete the books — the shelf resize should keep them, just orphaned.
+                # Orphan the books explicitly before the boxes go. `Box.books` carries no delete
+                # cascade, so SQLAlchemy would null `box_id` anyway — but that relies on the
+                # collection being loaded at flush time. Saying it outright costs one UPDATE and
+                # keeps the resize correct regardless of how the relationship is configured later.
                 removed_books = session.exec(
                     select(models.LibraryBook).where(col(models.LibraryBook.box_id).in_(removed_box_ids))
                 ).all()

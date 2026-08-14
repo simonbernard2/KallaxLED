@@ -1,7 +1,35 @@
+from sqlmodel import Session, select
+
+import app.grids.models as models
+from app.grids.repo import GridFileRepo
+
+
 def create_grid(client, width=2, height=2):
     response = client.post("/api/grid", json={"name": "Main", "width": width, "height": height})
     assert response.status_code == 200
     return response.json()
+
+
+def test_deleting_a_box_orphans_its_books_instead_of_deleting_them(tmp_path):
+    # Asserted at the ORM level on purpose. The resize test below passes even with a delete
+    # cascade on Box.books, because update_grid unassigns the books first — so only a direct
+    # box delete proves the relationship itself is safe.
+    repo = GridFileRepo(tmp_path / "db")
+    grid = repo.create_grid(models.Grid(name="Main", boxes=[models.Box(x=0, y=0, leds=[])]))
+    box_id = grid.boxes[0].id
+    assert box_id is not None
+    repo.create_book(models.LibraryBook(title="Keeper", author="Test", box_id=box_id))
+
+    with Session(repo.engine) as session:
+        session.delete(session.get(models.Box, box_id))
+        session.commit()
+
+    with Session(repo.engine) as session:
+        books = list(session.exec(select(models.LibraryBook)).all())
+
+    assert len(books) == 1
+    assert books[0].title == "Keeper"
+    assert books[0].box_id is None
 
 
 def test_creating_a_second_grid_conflicts(client_with_stub):

@@ -18,7 +18,9 @@ class Box(SQLModel, table=True):
 
     grid_id: int | None = Field(default=None, foreign_key="grid.id")
     grid: "Grid" = Relationship(back_populates="boxes")
-    books: list["LibraryBook"] = Relationship(back_populates="box", sa_relationship_kwargs={"cascade": "all, delete"})
+    # No delete cascade: a box is furniture, a book is data. Removing a shelf slot orphans the
+    # books that were in it (box_id -> NULL) and must never delete them.
+    books: list["LibraryBook"] = Relationship(back_populates="box")
 
 
 class Grid(SQLModel, table=True):
