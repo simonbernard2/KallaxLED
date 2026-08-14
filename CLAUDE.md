@@ -21,6 +21,7 @@ uv run pytest tests/test_foo.py    # run a single test file
 uv run fastapi dev main.py         # dev server with auto-reload (local)
 bin/server                         # start server (auto-selects Mac vs Pi)
 bin/up                             # sync runtime deps on Pi after a pull
+bin/verify                         # full gate: ruff format + check, pyright, pytest
 uv sync --extra dev                # install ruff + pyright
 uv run ruff check app main.py      # lint
 uv run ruff check --fix app main.py

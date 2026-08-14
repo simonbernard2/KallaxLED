@@ -1,7 +1,36 @@
 #! /bin/bash
 
-uv run ruff format app
-uv run ruff format main.py
+# Single gate for the backend: format, lint, type-check, test.
+#
+# Every step runs even if an earlier one fails, so one pass surfaces every problem rather than
+# only the first. The script exits non-zero if any step failed — without that, a green exit
+# would mean nothing more than "pytest happened to run last".
+#
+# Note `ruff format` writes; the other three only read. A dirty tree afterwards means something
+# was unformatted and has now been fixed for you.
 
-uv run pyright app
-uv run pyright main.py
+TARGETS=(app main.py tests)
+
+failed=()
+
+function step {
+  local name="$1"
+  shift
+  echo
+  echo "==> $name"
+  "$@" || failed+=("$name")
+}
+
+step "ruff format" uv run ruff format "${TARGETS[@]}"
+step "ruff check" uv run ruff check "${TARGETS[@]}"
+step "pyright" uv run pyright "${TARGETS[@]}"
+step "pytest" uv run pytest -q
+
+echo
+if [ ${#failed[@]} -eq 0 ]; then
+  echo "✅ all checks passed"
+  exit 0
+fi
+
+echo "❌ failed: ${failed[*]}"
+exit 1

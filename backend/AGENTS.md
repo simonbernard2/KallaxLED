@@ -59,7 +59,7 @@ Migrations run automatically when `GridFileRepo` is instantiated (via `run_migra
 ## Commit & PR Guidelines
 
 - Concise, imperative commit messages (e.g. `Add archive_url to CSV export`).
-- Ensure `uv run pytest` passes and `uv run ruff check` is clean before pushing.
+- Run `bin/verify` before pushing — it is the single gate (ruff format, ruff check, pyright, pytest over `app main.py tests`), runs every step even if one fails, and exits non-zero if any did.
 - PR descriptions should list what was changed and how it was tested (automated + manual where hardware is involved).
 - For changes that touch LED behaviour, note whether the change was validated on the Pi or only against the stub.
 
