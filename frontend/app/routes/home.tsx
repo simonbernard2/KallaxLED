@@ -112,7 +112,9 @@ export default function Home() {
   }, [])
 
   useEffect(() => {
-    listTopics('').then(setTopics).catch(() => {})
+    listTopics('')
+      .then(setTopics)
+      .catch(() => {})
   }, [])
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -121,7 +123,9 @@ export default function Home() {
       isFirstRender.current = false
       return
     }
-    const timer = setTimeout(() => { void loadDashboard(query) }, 300)
+    const timer = setTimeout(() => {
+      void loadDashboard(query)
+    }, 300)
     return () => clearTimeout(timer)
   }, [query])
 
@@ -191,12 +195,16 @@ export default function Home() {
   const previewHighlight = useDebouncedCallback((hex: string) => {
     const boxId = lightingState?.highlight_box_id
     if (boxId == null) return
-    highlightBookBox(boxId, hexToRgbTuple(hex)).then(setLightingState).catch(() => {})
+    highlightBookBox(boxId, hexToRgbTuple(hex))
+      .then(setLightingState)
+      .catch(() => {})
   })
 
   const previewScene = useDebouncedCallback(() => {
     if (lightingState?.active_scene !== sceneName) return
-    applyScene(sceneName, buildSceneParams()).then(setLightingState).catch(() => {})
+    applyScene(sceneName, buildSceneParams())
+      .then(setLightingState)
+      .catch(() => {})
   })
 
   return (
@@ -235,7 +243,9 @@ export default function Home() {
           </form>
 
           <details className="panel mt-4 md:hidden">
-            <summary className="cursor-pointer list-none text-sm font-semibold text-[var(--ink)]">Quick topic filters</summary>
+            <summary className="cursor-pointer list-none text-sm font-semibold text-[var(--ink)]">
+              Quick topic filters
+            </summary>
             <Input
               name="topic-filter-mobile"
               label="Filter topics"
@@ -298,41 +308,41 @@ export default function Home() {
                 }
               >
                 {(book.match_reasons.length > 0 || book.notes || book.archive_publication) && (
-                <div className="space-y-3">
-                  {book.notes && <p className="text-sm leading-6 text-[var(--ink-muted)]">{book.notes}</p>}
+                  <div className="space-y-3">
+                    {book.notes && <p className="text-sm leading-6 text-[var(--ink-muted)]">{book.notes}</p>}
 
-                  {book.match_reasons.length > 0 && (
-                    <ul className="flex flex-wrap gap-2">
-                      {book.match_reasons.map(reason => (
-                        <li
-                          key={`${reason.type}-${reason.label}-${reason.detail}`}
-                          className="pill bg-[var(--accent)]/20 text-[var(--ink)]"
-                        >
-                          {formatReason(reason)}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-
-                  {book.archive_publication && (
-                    <div className="surface-card p-3 text-sm text-[var(--ink-muted)]">
-                      <p className="font-semibold text-[var(--ink)]">{book.archive_publication.title}</p>
-                      <p className="mt-1">{book.archive_publication.authors.join(', ')}</p>
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        {book.archive_publication.topics_preview.slice(0, 4).map(topic => (
-                          <button
-                            key={topic.id}
-                            type="button"
-                            className="pill hover:border-[var(--accent-strong)] hover:text-[var(--ink)]"
-                            onClick={() => handleTopicSearch(topic.path)}
+                    {book.match_reasons.length > 0 && (
+                      <ul className="flex flex-wrap gap-2">
+                        {book.match_reasons.map(reason => (
+                          <li
+                            key={`${reason.type}-${reason.label}-${reason.detail}`}
+                            className="pill bg-[var(--accent)]/20 text-[var(--ink)]"
                           >
-                            {topic.name}
-                          </button>
+                            {formatReason(reason)}
+                          </li>
                         ))}
+                      </ul>
+                    )}
+
+                    {book.archive_publication && (
+                      <div className="surface-card p-3 text-sm text-[var(--ink-muted)]">
+                        <p className="font-semibold text-[var(--ink)]">{book.archive_publication.title}</p>
+                        <p className="mt-1">{book.archive_publication.authors.join(', ')}</p>
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          {book.archive_publication.topics_preview.slice(0, 4).map(topic => (
+                            <button
+                              key={topic.id}
+                              type="button"
+                              className="pill hover:border-[var(--accent-strong)] hover:text-[var(--ink)]"
+                              onClick={() => handleTopicSearch(topic.path)}
+                            >
+                              {topic.name}
+                            </button>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  )}
-                </div>
+                    )}
+                  </div>
                 )}
               </BookRow>
             ))}
@@ -416,7 +426,11 @@ export default function Home() {
           <div className="mt-4 flex flex-col gap-4">
             <label className="field">
               <span className="field-label">Scene</span>
-              <select className="field-input" value={sceneName} onChange={event => setSceneName(event.target.value as SceneName)}>
+              <select
+                className="field-input"
+                value={sceneName}
+                onChange={event => setSceneName(event.target.value as SceneName)}
+              >
                 {sceneOptions.map(option => (
                   <option key={option.value} value={option.value}>
                     {option.label}

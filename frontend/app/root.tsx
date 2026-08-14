@@ -48,7 +48,8 @@ export function ErrorBoundary({ error }: { error: unknown }) {
 
   if (isRouteErrorResponse(error)) {
     message = error.status === 404 ? 'Page not found' : 'Route error'
-    details = error.status === 404 ? 'That page no longer exists in the new app structure.' : error.statusText || details
+    details =
+      error.status === 404 ? 'That page no longer exists in the new app structure.' : error.statusText || details
   } else if (error instanceof Error) {
     details = error.message
     stack = error.stack

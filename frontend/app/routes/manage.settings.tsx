@@ -14,11 +14,7 @@ export default function ManageSettings() {
 
         <label className="field mt-5 max-w-xs">
           <span className="field-label">Results per page</span>
-          <select
-            className="field-input"
-            value={pageSize}
-            onChange={event => setPageSize(Number(event.target.value))}
-          >
+          <select className="field-input" value={pageSize} onChange={event => setPageSize(Number(event.target.value))}>
             {PAGE_SIZE_OPTIONS.map(option => (
               <option key={option} value={option}>
                 {option} books{option === DEFAULT_PAGE_SIZE ? ' (default)' : ''}

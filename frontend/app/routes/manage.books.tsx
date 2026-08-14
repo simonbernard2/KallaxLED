@@ -370,7 +370,13 @@ export default function ManageBooks() {
               confirmDeleteId === book.id ? (
                 <>
                   <span className="text-sm text-[var(--danger)]">Really delete?</span>
-                  <Button tone="danger" onClick={() => { void handleDelete(book.id); setConfirmDeleteId(null) }}>
+                  <Button
+                    tone="danger"
+                    onClick={() => {
+                      void handleDelete(book.id)
+                      setConfirmDeleteId(null)
+                    }}
+                  >
                     Confirm
                   </Button>
                   <Button tone="ghost" onClick={() => setConfirmDeleteId(null)}>
@@ -388,7 +394,9 @@ export default function ManageBooks() {
               <div className="surface-card mb-4 p-4 text-sm text-[var(--ink-muted)]">
                 <p className="font-semibold text-[var(--ink)]">{book.archive_publication.title}</p>
                 <p className="mt-1">{book.archive_publication.authors.join(', ')}</p>
-                <p className="mt-2">{book.archive_publication.entry_count} indexed entries linked to this shelf book.</p>
+                <p className="mt-2">
+                  {book.archive_publication.entry_count} indexed entries linked to this shelf book.
+                </p>
                 <div className="mt-3 flex flex-wrap gap-2">
                   {book.archive_publication.topics_preview.map(topic => (
                     <span key={topic.id} className="pill">
@@ -400,78 +408,78 @@ export default function ManageBooks() {
             )}
 
             <div className="grid gap-4 lg:grid-cols-2">
-                <Input
-                  name={`edit-title-${book.id}`}
-                  label="Title"
-                  value={editDraft.title}
-                  onChange={event => setEditDraft(prev => ({ ...prev, title: event.target.value }))}
-                />
-                <Input
-                  name={`edit-author-${book.id}`}
-                  label="Author"
-                  value={editDraft.author}
-                  onChange={event => setEditDraft(prev => ({ ...prev, author: event.target.value }))}
-                />
-                <Input
-                  name={`edit-isbn-${book.id}`}
-                  label="ISBN"
-                  value={editDraft.isbn}
-                  onChange={event => setEditDraft(prev => ({ ...prev, isbn: event.target.value }))}
-                />
-                <Input
-                  name={`edit-tags-${book.id}`}
-                  label="Personal tags"
-                  value={editDraft.userTags}
-                  onChange={event => setEditDraft(prev => ({ ...prev, userTags: event.target.value }))}
-                />
+              <Input
+                name={`edit-title-${book.id}`}
+                label="Title"
+                value={editDraft.title}
+                onChange={event => setEditDraft(prev => ({ ...prev, title: event.target.value }))}
+              />
+              <Input
+                name={`edit-author-${book.id}`}
+                label="Author"
+                value={editDraft.author}
+                onChange={event => setEditDraft(prev => ({ ...prev, author: event.target.value }))}
+              />
+              <Input
+                name={`edit-isbn-${book.id}`}
+                label="ISBN"
+                value={editDraft.isbn}
+                onChange={event => setEditDraft(prev => ({ ...prev, isbn: event.target.value }))}
+              />
+              <Input
+                name={`edit-tags-${book.id}`}
+                label="Personal tags"
+                value={editDraft.userTags}
+                onChange={event => setEditDraft(prev => ({ ...prev, userTags: event.target.value }))}
+              />
 
-                <div className="field">
-                  <span className="field-label">Shelf box</span>
-                  <ShelfBoxPicker
-                    grid={grid}
-                    selectedBoxId={editDraft.boxId}
-                    onSelect={handleEditBoxSelect}
-                    missingSelectionLabel={editMissingBoxLabel}
-                    ariaLabel={`Shelf box for ${book.title}`}
+              <div className="field">
+                <span className="field-label">Shelf box</span>
+                <ShelfBoxPicker
+                  grid={grid}
+                  selectedBoxId={editDraft.boxId}
+                  onSelect={handleEditBoxSelect}
+                  missingSelectionLabel={editMissingBoxLabel}
+                  ariaLabel={`Shelf box for ${book.title}`}
+                />
+              </div>
+
+              <label className="field lg:col-span-2">
+                <span className="field-label">Notes</span>
+                <textarea
+                  className="field-input min-h-28 resize-y"
+                  value={editDraft.notes}
+                  onChange={event => setEditDraft(prev => ({ ...prev, notes: event.target.value }))}
+                />
+              </label>
+
+              <label className="field lg:col-span-2">
+                <span className="field-label">Conjuring Archive URL or medium id</span>
+                <div className="flex flex-col gap-3 sm:flex-row">
+                  <input
+                    className="field-input flex-1"
+                    type="text"
+                    value={archiveSources[book.id] ?? ''}
+                    onChange={event => setArchiveSources(prev => ({ ...prev, [book.id]: event.target.value }))}
+                    placeholder="https://www.conjuringarchive.com/list/medium/140"
                   />
-                </div>
-
-                <label className="field lg:col-span-2">
-                  <span className="field-label">Notes</span>
-                  <textarea
-                    className="field-input min-h-28 resize-y"
-                    value={editDraft.notes}
-                    onChange={event => setEditDraft(prev => ({ ...prev, notes: event.target.value }))}
-                  />
-                </label>
-
-                <label className="field lg:col-span-2">
-                  <span className="field-label">Conjuring Archive URL or medium id</span>
-                  <div className="flex flex-col gap-3 sm:flex-row">
-                    <input
-                      className="field-input flex-1"
-                      type="text"
-                      value={archiveSources[book.id] ?? ''}
-                      onChange={event => setArchiveSources(prev => ({ ...prev, [book.id]: event.target.value }))}
-                      placeholder="https://www.conjuringarchive.com/list/medium/140"
-                    />
-                    <Button tone="ghost" onClick={() => void handleArchiveLink(book.id)}>
-                      Link archive
-                    </Button>
-                    <Button tone="secondary" onClick={() => void handleArchiveImport(book.id)}>
-                      Import metadata
-                    </Button>
-                  </div>
-                </label>
-
-                <div className="flex flex-wrap gap-2 lg:col-span-2">
-                  <Button tone="secondary" onClick={() => void handleSave(book.id)}>
-                    Save changes
+                  <Button tone="ghost" onClick={() => void handleArchiveLink(book.id)}>
+                    Link archive
                   </Button>
-                  <Button tone="ghost" onClick={stopEditing}>
-                    Cancel
+                  <Button tone="secondary" onClick={() => void handleArchiveImport(book.id)}>
+                    Import metadata
                   </Button>
                 </div>
+              </label>
+
+              <div className="flex flex-wrap gap-2 lg:col-span-2">
+                <Button tone="secondary" onClick={() => void handleSave(book.id)}>
+                  Save changes
+                </Button>
+                <Button tone="ghost" onClick={stopEditing}>
+                  Cancel
+                </Button>
+              </div>
             </div>
           </BookRow>
         ))}

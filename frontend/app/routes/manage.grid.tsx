@@ -88,7 +88,12 @@ export default function ManageGrid() {
           <p className="section-kicker">Create grid</p>
           <h2 className="mt-2 text-xl font-bold text-[var(--ink)]">Define the shelf layout</h2>
           <form className="mt-5 grid gap-4 lg:grid-cols-3" onSubmit={handleCreate}>
-            <Input name="grid-name" label="Name" value={draftName} onChange={event => setDraftName(event.target.value)} />
+            <Input
+              name="grid-name"
+              label="Name"
+              value={draftName}
+              onChange={event => setDraftName(event.target.value)}
+            />
             <Input
               name="grid-width"
               label="Columns"
@@ -134,7 +139,12 @@ export default function ManageGrid() {
             </div>
 
             <form className="mt-5 grid gap-4 lg:grid-cols-3" onSubmit={event => void handleUpdate(event)}>
-              <Input name="rename-grid" label="Grid name" value={draftName} onChange={event => setDraftName(event.target.value)} />
+              <Input
+                name="rename-grid"
+                label="Grid name"
+                value={draftName}
+                onChange={event => setDraftName(event.target.value)}
+              />
               <Input
                 name="edit-grid-width"
                 label="Columns"
@@ -179,9 +189,7 @@ export default function ManageGrid() {
                         : 'border-[var(--surface-border)] bg-[var(--surface)]',
                     ].join(' ')}
                   >
-                    <span className="text-sm font-semibold text-[var(--ink)]">
-                      {formatBoxLabel(box)}
-                    </span>
+                    <span className="text-sm font-semibold text-[var(--ink)]">{formatBoxLabel(box)}</span>
                     <span className="text-xs text-[var(--ink-muted)]">
                       {box.leds.length > 0 ? `${box.leds.length} LEDs assigned` : 'No LEDs assigned'}
                     </span>

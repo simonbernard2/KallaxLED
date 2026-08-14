@@ -72,9 +72,7 @@ const BookRow = ({ book, expanded, onToggle, badge, actions, children }: Props) 
         {actions && <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div>}
       </div>
 
-      {expanded && collapsible && (
-        <div className="mt-4 border-t border-[var(--surface-border)] pt-4">{children}</div>
-      )}
+      {expanded && collapsible && <div className="mt-4 border-t border-[var(--surface-border)] pt-4">{children}</div>}
     </article>
   )
 }

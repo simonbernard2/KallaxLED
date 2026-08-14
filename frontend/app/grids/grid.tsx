@@ -11,7 +11,11 @@ const GridDisplay = ({ grid, renderBox, className = '' }: GridDisplayProps) => {
   const columns = grid.width || grid.boxes[0]?.length || 0
 
   if (columns === 0) {
-    return <div className="rounded-3xl border border-dashed border-[var(--surface-border)] bg-[var(--surface)] p-4 text-sm text-[var(--ink-muted)]">No boxes yet.</div>
+    return (
+      <div className="rounded-3xl border border-dashed border-[var(--surface-border)] bg-[var(--surface)] p-4 text-sm text-[var(--ink-muted)]">
+        No boxes yet.
+      </div>
+    )
   }
 
   return (

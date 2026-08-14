@@ -54,26 +54,29 @@ export const usePagedList = <T>({
   const latest = useRef({ fetchPage, onPageLoaded, pageSize })
   latest.current = { fetchPage, onPageLoaded, pageSize }
 
-  const load = useCallback(async (query = '') => {
-    setIsLoading(true)
-    setError(null)
-    loadedQuery.current = query
+  const load = useCallback(
+    async (query = '') => {
+      setIsLoading(true)
+      setError(null)
+      loadedQuery.current = query
 
-    try {
-      const { fetchPage: fetch, onPageLoaded: onLoaded, pageSize: limit } = latest.current
-      const page = await fetch(query, { limit, offset: 0 })
+      try {
+        const { fetchPage: fetch, onPageLoaded: onLoaded, pageSize: limit } = latest.current
+        const page = await fetch(query, { limit, offset: 0 })
 
-      startTransition(() => {
-        setItems(page.items)
-        setTotal(page.total)
-      })
-      onLoaded?.(page.items)
-    } catch {
-      setError(loadErrorMessage)
-    } finally {
-      setIsLoading(false)
-    }
-  }, [loadErrorMessage])
+        startTransition(() => {
+          setItems(page.items)
+          setTotal(page.total)
+        })
+        onLoaded?.(page.items)
+      } catch {
+        setError(loadErrorMessage)
+      } finally {
+        setIsLoading(false)
+      }
+    },
+    [loadErrorMessage]
+  )
 
   const showMore = useCallback(async () => {
     setIsLoadingMore(true)

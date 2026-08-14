@@ -69,7 +69,17 @@ export interface Book {
 }
 
 export interface MatchReason {
-  type: 'title' | 'author' | 'isbn' | 'tag' | 'note' | 'publication' | 'publication_author' | 'entry' | 'entry_creator' | 'topic'
+  type:
+    | 'title'
+    | 'author'
+    | 'isbn'
+    | 'tag'
+    | 'note'
+    | 'publication'
+    | 'publication_author'
+    | 'entry'
+    | 'entry_creator'
+    | 'topic'
   label: string
   detail?: string | null
 }

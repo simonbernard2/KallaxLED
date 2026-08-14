@@ -16,8 +16,8 @@ export default function ManageLayout() {
           <div className="max-w-2xl">
             <h1 className="section-heading">Catalog and hardware setup</h1>
             <p className="mt-3 text-sm leading-6 text-[var(--ink-muted)]">
-              Keep the reader-facing experience simple. Use this area to curate the shelf library, link Conjuring Archive
-              references, manage the grid, and map physical LEDs.
+              Keep the reader-facing experience simple. Use this area to curate the shelf library, link Conjuring
+              Archive references, manage the grid, and map physical LEDs.
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -25,7 +25,9 @@ export default function ManageLayout() {
               <NavLink
                 key={section.path}
                 to={section.path}
-                className={({ isActive }) => ['app-nav-link', isActive ? 'app-nav-link-active' : 'bg-[var(--surface)]'].join(' ')}
+                className={({ isActive }) =>
+                  ['app-nav-link', isActive ? 'app-nav-link-active' : 'bg-[var(--surface)]'].join(' ')
+                }
               >
                 {section.label}
               </NavLink>

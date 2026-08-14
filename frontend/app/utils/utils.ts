@@ -6,7 +6,13 @@ export const isTurnedOff = (rgb: [number, number, number]): boolean => rgb.every
 
 export const hexToRgbTuple = (hex: string): [number, number, number] => {
   const sanitized = hex.replace('#', '')
-  const value = sanitized.length === 3 ? sanitized.split('').map(char => `${char}${char}`).join('') : sanitized
+  const value =
+    sanitized.length === 3
+      ? sanitized
+          .split('')
+          .map(char => `${char}${char}`)
+          .join('')
+      : sanitized
 
   return [
     Number.parseInt(value.slice(0, 2), 16),
@@ -37,9 +43,12 @@ export const useDebouncedCallback = <A extends unknown[]>(callback: (...args: A)
     latest.current = callback
   })
 
-  useEffect(() => () => {
-    if (timer.current) clearTimeout(timer.current)
-  }, [])
+  useEffect(
+    () => () => {
+      if (timer.current) clearTimeout(timer.current)
+    },
+    []
+  )
 
   return useMemo(
     () =>
