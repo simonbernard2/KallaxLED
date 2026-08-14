@@ -5,7 +5,7 @@ from datetime import datetime
 from pydantic import BaseModel, ConfigDict, Field
 
 from app.archive.parser import ParsedArchivePublication
-from app.grids.models import ArchivePublication, ArchiveEntry, Book, Box, MagicTopic
+from app.grids.models import ArchiveEntry, ArchivePublication, Book, Box, MagicTopic
 from app.grids.repo import BookMatchReason, BookSearchMatch
 
 
@@ -15,7 +15,7 @@ class BoxRef(BaseModel):
     y: int
 
     @staticmethod
-    def from_box(box: Box) -> "BoxRef":
+    def from_box(box: Box) -> BoxRef:
         if box.id is None:
             raise Exception("no box id")
         return BoxRef(id=box.id, x=box.x, y=box.y)
@@ -27,7 +27,7 @@ class TopicResponse(BaseModel):
     path: str
 
     @staticmethod
-    def from_topic(topic: MagicTopic) -> "TopicResponse":
+    def from_topic(topic: MagicTopic) -> TopicResponse:
         if topic.id is None:
             raise Exception("no topic id")
         return TopicResponse(id=topic.id, name=topic.name, path=topic.path)
@@ -39,7 +39,7 @@ class ArchiveEntryPreview(BaseModel):
     page: str | None = None
 
     @staticmethod
-    def from_entry(entry: ArchiveEntry) -> "ArchiveEntryPreview":
+    def from_entry(entry: ArchiveEntry) -> ArchiveEntryPreview:
         if entry.id is None:
             raise Exception("no entry id")
         return ArchiveEntryPreview(id=entry.id, title=entry.title, page=entry.page)
@@ -58,7 +58,7 @@ class ArchivePublicationSummary(BaseModel):
     entries_preview: list[ArchiveEntryPreview]
 
     @staticmethod
-    def from_publication(publication: ArchivePublication) -> "ArchivePublicationSummary":
+    def from_publication(publication: ArchivePublication) -> ArchivePublicationSummary:
         if publication.id is None:
             raise Exception("no publication id")
 
@@ -130,7 +130,7 @@ class BookResponse(BaseModel):
     archive_publication: ArchivePublicationSummary | None = None
 
     @staticmethod
-    def from_book(book: Book) -> "BookResponse":
+    def from_book(book: Book) -> BookResponse:
         if book.id is None:
             raise Exception("no book id")
         box_ref = BoxRef.from_box(book.box) if book.box is not None else None
@@ -157,7 +157,7 @@ class MatchReasonResponse(BaseModel):
     detail: str | None = None
 
     @staticmethod
-    def from_reason(reason: BookMatchReason) -> "MatchReasonResponse":
+    def from_reason(reason: BookMatchReason) -> MatchReasonResponse:
         return MatchReasonResponse(type=reason.type, label=reason.label, detail=reason.detail)
 
 
@@ -165,7 +165,7 @@ class BookSearchResponse(BookResponse):
     match_reasons: list[MatchReasonResponse]
 
     @staticmethod
-    def from_match(match: BookSearchMatch) -> "BookSearchResponse":
+    def from_match(match: BookSearchMatch) -> BookSearchResponse:
         return BookSearchResponse(
             **BookResponse.from_book(match.book).model_dump(),
             match_reasons=[MatchReasonResponse.from_reason(reason) for reason in match.reasons],
@@ -200,7 +200,7 @@ class ArchiveLinkPreview(BaseModel):
     authors: list[str]
 
     @staticmethod
-    def from_publication(publication: ParsedArchivePublication) -> "ArchiveLinkPreview":
+    def from_publication(publication: ParsedArchivePublication) -> ArchiveLinkPreview:
         return ArchiveLinkPreview(
             external_id=publication.external_id,
             source_url=publication.source_url,

@@ -1,10 +1,10 @@
 from __future__ import annotations
 
+import re
 from collections.abc import Iterable
 from dataclasses import dataclass, field
 from html.parser import HTMLParser
 from urllib.parse import parse_qs, urljoin, urlparse
-import re
 
 ARCHIVE_BASE_URL = "https://www.conjuringarchive.com"
 ENTRY_ID_PATTERNS = (

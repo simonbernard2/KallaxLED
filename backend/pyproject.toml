@@ -29,6 +29,9 @@ dev = [
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
+# `bin/gpio_test.py` matches pytest's default `*_test.py` glob, and it drives real hardware at
+# import time. Confine collection to `tests/` so `uv run pytest` from the backend root is safe.
+testpaths = ["tests"]
 
 [tool.pyright]
 pythonVersion = "3.13"

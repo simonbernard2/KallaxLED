@@ -1,15 +1,15 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 from sqlalchemy.orm import selectinload
 from sqlmodel import Session, select
 
+import app.grids.models as models
 from app.archive.parser import ParsedArchivePublication
 from app.db import create_sqlite_engine, resolve_database_path, run_migrations
-import app.grids.models as models
 
 
 @dataclass
@@ -322,7 +322,7 @@ class GridFileRepo:
             record.title = publication.title
             record.subtitle = publication.subtitle
             record.authors = publication.authors
-            record.imported_at = datetime.now(timezone.utc)
+            record.imported_at = datetime.now(UTC)
             session.add(record)
             session.commit()
             session.refresh(record)
