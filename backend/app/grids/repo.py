@@ -188,11 +188,7 @@ class GridFileRepo:
 
         needle = query.strip().lower()
         return sorted(
-            [
-                topic
-                for topic in topics
-                if needle in topic.name.lower() or needle in topic.path.lower()
-            ],
+            [topic for topic in topics if needle in topic.name.lower() or needle in topic.path.lower()],
             key=lambda topic: topic.path.lower(),
         )
 
@@ -270,7 +266,9 @@ class GridFileRepo:
                 return None
 
             record = session.exec(
-                select(models.ArchivePublication).where(models.ArchivePublication.external_id == publication.external_id)
+                select(models.ArchivePublication).where(
+                    models.ArchivePublication.external_id == publication.external_id
+                )
             ).first()
             if record is None:
                 record = models.ArchivePublication(
@@ -307,7 +305,9 @@ class GridFileRepo:
                 return None
 
             record = session.exec(
-                select(models.ArchivePublication).where(models.ArchivePublication.external_id == publication.external_id)
+                select(models.ArchivePublication).where(
+                    models.ArchivePublication.external_id == publication.external_id
+                )
             ).first()
             if record is None:
                 record = models.ArchivePublication(
@@ -338,10 +338,7 @@ class GridFileRepo:
                 session.delete(entry)
             session.commit()
 
-            topic_cache = {
-                topic.path: topic
-                for topic in session.exec(select(models.MagicTopic)).all()
-            }
+            topic_cache = {topic.path: topic for topic in session.exec(select(models.MagicTopic)).all()}
 
             for parsed_entry in publication.entries:
                 entry = models.ArchiveEntry(

@@ -5,7 +5,9 @@ from app.archive.parser import normalize_archive_source, parse_archive_publicati
 
 def test_parse_archive_publication_fixture():
     html = (Path(__file__).parent / "fixtures" / "conjuring_archive_medium_140.html").read_text()
-    external_id, source_url = normalize_archive_source("https://www.conjuringarchive.com/list/medium/140?highlight=8774")
+    external_id, source_url = normalize_archive_source(
+        "https://www.conjuringarchive.com/list/medium/140?highlight=8774"
+    )
 
     preview = parse_archive_publication_preview(html, external_id, source_url)
     assert preview.title == "The Paper Engine"

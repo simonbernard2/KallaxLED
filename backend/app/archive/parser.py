@@ -279,7 +279,9 @@ def _extract_entry_id(node: HtmlNode) -> str | None:
 
 
 def _extract_entries(document: HtmlNode) -> list[ParsedArchiveEntry]:
-    table = next((candidate for candidate in _iter_nodes(document, "table") if _table_has_entry_headers(candidate)), None)
+    table = next(
+        (candidate for candidate in _iter_nodes(document, "table") if _table_has_entry_headers(candidate)), None
+    )
     if table is None:
         return []
 
