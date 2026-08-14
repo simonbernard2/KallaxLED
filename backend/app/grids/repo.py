@@ -338,7 +338,9 @@ class GridFileRepo:
             session.commit()
 
             existing_entries = list(
-                session.exec(select(models.ArchiveEntry).where(models.ArchiveEntry.publication_id == publication_id)).all()
+                session.exec(
+                    select(models.ArchiveEntry).where(models.ArchiveEntry.publication_id == publication_id)
+                ).all()
             )
             for entry in existing_entries:
                 session.delete(entry)
