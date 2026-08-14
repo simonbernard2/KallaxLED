@@ -7,7 +7,7 @@ import Input from '~/utils/components/input/input'
 import { getGrid, saveGridAssignments, toggleLedAssignment, updateLed, type Grid } from '~/utils/api'
 
 const MAX_LED_ID = 149
-const ACTIVE_LED_COLOR: [number, number, number] = [15, 0, 0]
+const ACTIVE_LED_COLOR: [number, number, number] = [60, 0, 0]
 
 export default function ManageGridLeds() {
   const navigate = useNavigate()
@@ -18,7 +18,10 @@ export default function ManageGridLeds() {
   const [status, setStatus] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  const totalAssigned = useMemo(() => grid?.boxes.flat().reduce((count, box) => count + box.leds.length, 0) ?? 0, [grid])
+  const totalAssigned = useMemo(
+    () => grid?.boxes.flat().reduce((count, box) => count + box.leds.length, 0) ?? 0,
+    [grid]
+  )
 
   const activateLed = async (nextId: number) => {
     if (nextId < 0 || nextId > MAX_LED_ID || nextId === ledId) return
@@ -134,14 +137,14 @@ export default function ManageGridLeds() {
                   type="button"
                   className={[
                     'flex min-h-24 w-full flex-col justify-between rounded-[26px] border p-3 text-left transition',
-                    isActive ? 'border-[var(--accent-strong)] bg-[var(--accent)]/20' : 'border-[var(--surface-border)] bg-[var(--surface)] hover:bg-[var(--surface-hover)]',
+                    isActive
+                      ? 'border-[var(--accent-strong)] bg-[var(--accent)]/20'
+                      : 'border-[var(--surface-border)] bg-[var(--surface)] hover:bg-[var(--surface-hover)]',
                   ].join(' ')}
                   disabled={isBusy}
                   onClick={() => void handleBoxToggle(rowIndex, columnIndex)}
                 >
-                  <span className="text-sm font-semibold text-[var(--ink)]">
-                    {formatBoxLabel(box)}
-                  </span>
+                  <span className="text-sm font-semibold text-[var(--ink)]">{formatBoxLabel(box)}</span>
                   <span className="text-xs text-[var(--ink-muted)]">
                     {box.leds.length > 0 ? `${box.leds.length} LEDs assigned` : 'No LEDs assigned'}
                   </span>
