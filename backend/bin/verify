@@ -6,8 +6,10 @@
 # only the first. The script exits non-zero if any step failed — without that, a green exit
 # would mean nothing more than "pytest happened to run last".
 #
-# Note `ruff format` writes; the other three only read. A dirty tree afterwards means something
-# was unformatted and has now been fixed for you.
+# Every step is read-only — verifying never rewrites your working tree. If the format step
+# fails, apply it yourself with:
+#
+#     uv run ruff format app main.py tests
 
 TARGETS=(app main.py tests)
 
@@ -21,7 +23,7 @@ function step {
   "$@" || failed+=("$name")
 }
 
-step "ruff format" uv run ruff format "${TARGETS[@]}"
+step "ruff format --check" uv run ruff format --check "${TARGETS[@]}"
 step "ruff check" uv run ruff check "${TARGETS[@]}"
 step "pyright" uv run pyright "${TARGETS[@]}"
 step "pytest" uv run pytest -q
