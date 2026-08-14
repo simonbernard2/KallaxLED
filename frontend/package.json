@@ -13,17 +13,17 @@
     "format:check": "prettier --check ."
   },
   "dependencies": {
-    "@react-router/node": "^7.9.2",
-    "@react-router/serve": "^7.9.2",
+    "@react-router/node": "^7.18.2",
+    "@react-router/serve": "^7.18.2",
     "axios": "^1.13.2",
     "axios-hooks": "^5.1.1",
     "isbot": "^5.1.31",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
-    "react-router": "^7.9.2"
+    "react-router": "^7.18.2"
   },
   "devDependencies": {
-    "@react-router/dev": "^7.9.2",
+    "@react-router/dev": "^7.18.2",
     "@tailwindcss/vite": "^4.1.13",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.0",
