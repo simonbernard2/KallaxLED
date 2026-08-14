@@ -4,6 +4,24 @@ def create_grid(client, width=2, height=2):
     return response.json()
 
 
+def test_creating_a_second_grid_conflicts(client_with_stub):
+    client, _ = client_with_stub
+    create_grid(client)
+
+    response = client.post("/api/grid", json={"name": "Another", "width": 2, "height": 2})
+    assert response.status_code == 409
+    assert response.json()["detail"] == "grid already exists"
+
+
+def test_assigning_leds_to_a_missing_box_is_rejected(client_with_stub):
+    client, _ = client_with_stub
+    create_grid(client)
+
+    response = client.put("/api/grid/leds", json={"9999": [0, 1]})
+    assert response.status_code == 400
+    assert "9999" in response.json()["detail"]
+
+
 def test_grid_resize_preserves_existing_boxes_and_adds_new_ones(client_with_stub):
     client, _ = client_with_stub
     grid = create_grid(client, width=2, height=1)

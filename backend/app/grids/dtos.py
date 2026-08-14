@@ -46,7 +46,7 @@ class BoxResponse(BaseModel):
     @staticmethod
     def from_box(box: Box) -> "BoxResponse":
         if box.id is None:
-            raise Exception("no id")
+            raise RuntimeError("box has no id after commit")
         return BoxResponse(id=box.id, x=box.x, y=box.y, leds=box.leds)
 
 
@@ -80,7 +80,7 @@ class GridResponse(BaseModel):
     @staticmethod
     def from_grid(grid: Grid) -> "GridResponse":
         if grid.id is None:
-            raise Exception("no id")
+            raise RuntimeError("grid has no id after commit")
 
         width, height = _calculate_dimensions(grid.boxes)
         return GridResponse(

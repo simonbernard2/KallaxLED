@@ -10,6 +10,7 @@ from sqlmodel import Session, col, select
 import app.grids.models as models
 from app.archive.parser import ParsedArchivePublication
 from app.db import create_sqlite_engine, resolve_database_path, run_migrations
+from app.errors import ConflictError, InvalidRequestError
 
 
 @dataclass
@@ -67,12 +68,12 @@ class GridFileRepo:
 
     def create_grid(self, grid: models.Grid) -> models.Grid:
         if grid.id is not None:
-            raise Exception("can't create a grid with an existing id")
+            raise InvalidRequestError("can't create a grid with an existing id")
 
         with Session(self.engine) as session:
             existing = session.exec(select(models.Grid)).first()
             if existing is not None:
-                raise Exception("grid already exists")
+                raise ConflictError("grid already exists")
             session.add(grid)
             session.commit()
             session.refresh(grid)
@@ -138,7 +139,7 @@ class GridFileRepo:
             for box_id, leds in assignments.items():
                 box = session.get(models.Box, box_id)
                 if box is None:
-                    raise Exception(f"missing box id={box_id}")
+                    raise InvalidRequestError(f"missing box id={box_id}")
                 box.leds = leds
                 session.add(box)
             session.commit()
@@ -149,7 +150,7 @@ class GridFileRepo:
 
     def create_book(self, book: models.LibraryBook) -> models.LibraryBook:
         if book.id is not None:
-            raise Exception("can't create a book with an existing id")
+            raise InvalidRequestError("can't create a book with an existing id")
         with Session(self.engine) as session:
             session.add(book)
             session.commit()

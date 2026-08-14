@@ -17,7 +17,7 @@ class BoxRef(BaseModel):
     @staticmethod
     def from_box(box: Box) -> BoxRef:
         if box.id is None:
-            raise Exception("no box id")
+            raise RuntimeError("box has no id after commit")
         return BoxRef(id=box.id, x=box.x, y=box.y)
 
 
@@ -29,7 +29,7 @@ class TopicResponse(BaseModel):
     @staticmethod
     def from_topic(topic: MagicTopic) -> TopicResponse:
         if topic.id is None:
-            raise Exception("no topic id")
+            raise RuntimeError("topic has no id after commit")
         return TopicResponse(id=topic.id, name=topic.name, path=topic.path)
 
 
@@ -41,7 +41,7 @@ class ArchiveEntryPreview(BaseModel):
     @staticmethod
     def from_entry(entry: ArchiveEntry) -> ArchiveEntryPreview:
         if entry.id is None:
-            raise Exception("no entry id")
+            raise RuntimeError("archive entry has no id after commit")
         return ArchiveEntryPreview(id=entry.id, title=entry.title, page=entry.page)
 
 
@@ -60,7 +60,7 @@ class ArchivePublicationSummary(BaseModel):
     @staticmethod
     def from_publication(publication: ArchivePublication) -> ArchivePublicationSummary:
         if publication.id is None:
-            raise Exception("no publication id")
+            raise RuntimeError("archive publication has no id after commit")
 
         topics_by_path: dict[str, MagicTopic] = {}
         for entry in publication.entries:
@@ -132,7 +132,7 @@ class BookResponse(BaseModel):
     @staticmethod
     def from_book(book: Book) -> BookResponse:
         if book.id is None:
-            raise Exception("no book id")
+            raise RuntimeError("book has no id after commit")
         box_ref = BoxRef.from_box(book.box) if book.box is not None else None
         publication = (
             ArchivePublicationSummary.from_publication(book.archive_publication)

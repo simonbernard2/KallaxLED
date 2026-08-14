@@ -9,10 +9,7 @@ router = APIRouter()
 
 @router.post("/grid")
 async def create_grid(grid_data: dtos.GridCreate, grid_repo: deps.GridsRepoDep) -> dtos.GridResponse:
-    try:
-        grid = grid_repo.create_grid(grid_data.to_model())
-    except Exception as exc:
-        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    grid = grid_repo.create_grid(grid_data.to_model())
     return dtos.GridResponse.from_grid(grid)
 
 
@@ -37,10 +34,7 @@ async def update_grid_leds(
     assignments: dict[int, list[int]],
     grid_repo: deps.GridsRepoDep,
 ) -> dtos.GridResponse:
-    try:
-        grid_repo.update_led_assignments(assignments)
-    except Exception as exc:
-        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    grid_repo.update_led_assignments(assignments)
     grid = grid_repo.get_grid()
     if grid is None:
         raise HTTPException(status_code=404, detail="grid not found")
