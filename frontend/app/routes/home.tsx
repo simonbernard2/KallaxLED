@@ -1,9 +1,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router'
 import { formatBoxLabel } from '~/grids/box-label'
+import SceneControls from '~/lights/scene-controls'
+import { buildSceneParams, initialSceneValues, type SceneValues } from '~/lights/scene-definitions'
 import Button from '~/utils/components/button/button'
 import BookRow from '~/utils/components/book-row/book-row'
 import Input from '~/utils/components/input/input'
+import { PagedListShowMore, PagedListSummary } from '~/utils/components/paged-list-footer/paged-list-footer'
+import StatusBanner from '~/utils/components/status-banner/status-banner'
+import TopicFilters from '~/utils/components/topic-filters/topic-filters'
 import {
   applyScene,
   clearHighlight as clearHighlightRequest,
@@ -33,14 +38,6 @@ const reasonLabels: Record<MatchReason['type'], string> = {
   topic: 'Topic',
 }
 
-const sceneOptions: Array<{ value: SceneName; label: string }> = [
-  { value: 'off', label: 'Off' },
-  { value: 'solid', label: 'Solid' },
-  { value: 'checkerboard', label: 'Checkerboard' },
-  { value: 'rainbow', label: 'Rainbow' },
-  { value: 'swipe', label: 'Color swipe' },
-]
-
 const formatReason = (reason: MatchReason) => {
   if (!reason.detail) return `${reasonLabels[reason.type]}: ${reason.label}`
   return `${reasonLabels[reason.type]}: ${reason.label} • ${reason.detail}`
@@ -63,14 +60,7 @@ export default function Home() {
   const [query, setQuery] = useState('')
   const [highlightColor, setHighlightColor] = useState('#ffcf7d')
   const [sceneName, setSceneName] = useState<SceneName>('off')
-  const [sceneColor, setSceneColor] = useState('#c79745')
-  const [checkerColorA, setCheckerColorA] = useState('#c79745')
-  const [checkerColorB, setCheckerColorB] = useState('#1d3557')
-  const [rainbowSpeed, setRainbowSpeed] = useState(0.1)
-  const [rainbowScale, setRainbowScale] = useState(1)
-  const [swipeColor, setSwipeColor] = useState('#c79745')
-  const [swipeSpeed, setSwipeSpeed] = useState(0.5)
-  const [swipeDirection, setSwipeDirection] = useState<'right' | 'left'>('right')
+  const [sceneValues, setSceneValues] = useState<Record<SceneName, SceneValues>>(initialSceneValues)
   const [expandedBookId, setExpandedBookId] = useState<number | null>(null)
   const [topics, setTopics] = useState<Topic[]>([])
   const [topicFilter, setTopicFilter] = useState('')
@@ -161,26 +151,17 @@ export default function Home() {
     }
   }
 
-  const buildSceneParams = (): Record<string, unknown> => {
-    switch (sceneName) {
-      case 'solid':
-        return { rgb: hexToRgbTuple(sceneColor) }
-      case 'checkerboard':
-        return { color_a: hexToRgbTuple(checkerColorA), color_b: hexToRgbTuple(checkerColorB) }
-      case 'rainbow':
-        return { speed: rainbowSpeed, scale: rainbowScale }
-      case 'swipe':
-        return { rgb: hexToRgbTuple(swipeColor), speed: swipeSpeed, direction: swipeDirection }
-      default:
-        return {}
-    }
+  const currentSceneParams = () => buildSceneParams(sceneName, sceneValues[sceneName])
+
+  const handleSceneValueChange = (key: string, value: string | number) => {
+    setSceneValues(prev => ({ ...prev, [sceneName]: { ...prev[sceneName], [key]: value } }))
   }
 
   const handleApplyScene = async () => {
     setSceneBusy(true)
     setError(null)
     try {
-      const state = await applyScene(sceneName, buildSceneParams())
+      const state = await applyScene(sceneName, currentSceneParams())
       setLightingState(state)
     } catch {
       setError('The scene could not be updated.')
@@ -202,7 +183,7 @@ export default function Home() {
 
   const previewScene = useDebouncedCallback(() => {
     if (lightingState?.active_scene !== sceneName) return
-    applyScene(sceneName, buildSceneParams())
+    applyScene(sceneName, currentSceneParams())
       .then(setLightingState)
       .catch(() => {})
   })
@@ -246,26 +227,13 @@ export default function Home() {
             <summary className="cursor-pointer list-none text-sm font-semibold text-[var(--ink)]">
               Quick topic filters
             </summary>
-            <Input
+            <TopicFilters
               name="topic-filter-mobile"
-              label="Filter topics"
-              type="search"
-              placeholder="e.g. cards"
-              value={topicFilter}
-              onChange={event => setTopicFilter(event.target.value)}
+              topics={filteredTopics}
+              filter={topicFilter}
+              onFilterChange={setTopicFilter}
+              onSelect={handleTopicSearch}
             />
-            <div className="mt-4 flex flex-wrap gap-2">
-              {filteredTopics.map(topic => (
-                <button
-                  key={topic.id}
-                  type="button"
-                  className="pill hover:border-[var(--accent-strong)] hover:text-[var(--ink)]"
-                  onClick={() => void handleTopicSearch(topic.path)}
-                >
-                  {topic.name}
-                </button>
-              ))}
-            </div>
           </details>
         </section>
 
@@ -275,11 +243,7 @@ export default function Home() {
               <p className="section-kicker">Results</p>
               <h2 className="mt-2 text-xl font-bold text-[var(--ink)]">Books on this shelf</h2>
               <p className="mt-1 text-sm text-[var(--ink-muted)]">
-                {books.isLoading
-                  ? 'Searching…'
-                  : books.total === books.items.length
-                    ? `${books.total} ${books.total === 1 ? 'book' : 'books'}`
-                    : `Showing ${books.items.length} of ${books.total} books`}
+                <PagedListSummary isLoading={books.isLoading} total={books.total} loadedCount={books.items.length} />
               </p>
             </div>
             <Link to="/manage/books" className="text-sm font-semibold text-[var(--forest-ink)]">
@@ -347,11 +311,12 @@ export default function Home() {
               </BookRow>
             ))}
 
-            {books.hasMore && (
-              <Button tone="ghost" onClick={() => void books.showMore()} disabled={books.isLoadingMore}>
-                {books.isLoadingMore ? 'Loading…' : `Show ${books.nextPageCount} more`}
-              </Button>
-            )}
+            <PagedListShowMore
+              hasMore={books.hasMore}
+              isLoadingMore={books.isLoadingMore}
+              nextPageCount={books.nextPageCount}
+              showMore={() => void books.showMore()}
+            />
 
             {!books.isLoading && books.items.length === 0 && (
               <div className="dashed-note">
@@ -365,35 +330,20 @@ export default function Home() {
           </div>
         </section>
 
-        {books.error && (
-          <div className="panel border-[var(--danger)]/25 text-sm text-[var(--danger)]">{books.error}</div>
-        )}
+        <StatusBanner message={books.error} tone="error" />
       </div>
 
       <aside className="flex flex-col gap-6">
         <section className="panel hidden md:block">
           <p className="section-kicker">Topics</p>
           <h2 className="mt-2 text-xl font-bold text-[var(--ink)]">Quick filters</h2>
-          <Input
+          <TopicFilters
             name="topic-filter"
-            label="Filter topics"
-            type="search"
-            placeholder="e.g. cards"
-            value={topicFilter}
-            onChange={event => setTopicFilter(event.target.value)}
+            topics={filteredTopics}
+            filter={topicFilter}
+            onFilterChange={setTopicFilter}
+            onSelect={handleTopicSearch}
           />
-          <div className="mt-4 flex flex-wrap gap-2">
-            {filteredTopics.map(topic => (
-              <button
-                key={topic.id}
-                type="button"
-                className="pill hover:border-[var(--accent-strong)] hover:text-[var(--ink)]"
-                onClick={() => void handleTopicSearch(topic.path)}
-              >
-                {topic.name}
-              </button>
-            ))}
-          </div>
         </section>
 
         <section className="panel">
@@ -423,132 +373,15 @@ export default function Home() {
           <p className="section-kicker">Scenes</p>
           <h2 className="mt-2 text-xl font-bold text-[var(--ink)]">Ambient control</h2>
 
+          <SceneControls
+            scene={sceneName}
+            onSceneChange={setSceneName}
+            values={sceneValues[sceneName]}
+            onValueChange={handleSceneValueChange}
+            onColorPreview={previewScene}
+          />
+
           <div className="mt-4 flex flex-col gap-4">
-            <label className="field">
-              <span className="field-label">Scene</span>
-              <select
-                className="field-input"
-                value={sceneName}
-                onChange={event => setSceneName(event.target.value as SceneName)}
-              >
-                {sceneOptions.map(option => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            {sceneName === 'solid' && (
-              <label className="field">
-                <span className="field-label">Solid color</span>
-                <input
-                  className="field-input h-12 p-2"
-                  type="color"
-                  value={sceneColor}
-                  onChange={event => {
-                    setSceneColor(event.target.value)
-                    previewScene()
-                  }}
-                />
-              </label>
-            )}
-
-            {sceneName === 'checkerboard' && (
-              <>
-                <label className="field">
-                  <span className="field-label">Color A</span>
-                  <input
-                    className="field-input h-12 p-2"
-                    type="color"
-                    value={checkerColorA}
-                    onChange={event => {
-                      setCheckerColorA(event.target.value)
-                      previewScene()
-                    }}
-                  />
-                </label>
-                <label className="field">
-                  <span className="field-label">Color B</span>
-                  <input
-                    className="field-input h-12 p-2"
-                    type="color"
-                    value={checkerColorB}
-                    onChange={event => {
-                      setCheckerColorB(event.target.value)
-                      previewScene()
-                    }}
-                  />
-                </label>
-              </>
-            )}
-
-            {sceneName === 'rainbow' && (
-              <>
-                <label className="field">
-                  <span className="field-label">Speed (cycles/s)</span>
-                  <input
-                    className="field-input"
-                    type="number"
-                    step="0.05"
-                    min="0"
-                    value={rainbowSpeed}
-                    onChange={event => setRainbowSpeed(Number(event.target.value) || 0)}
-                  />
-                </label>
-                <label className="field">
-                  <span className="field-label">Spread (cycles across shelf)</span>
-                  <input
-                    className="field-input"
-                    type="number"
-                    step="0.5"
-                    min="0"
-                    value={rainbowScale}
-                    onChange={event => setRainbowScale(Number(event.target.value) || 0)}
-                  />
-                </label>
-              </>
-            )}
-
-            {sceneName === 'swipe' && (
-              <>
-                <label className="field">
-                  <span className="field-label">Swipe color</span>
-                  <input
-                    className="field-input h-12 p-2"
-                    type="color"
-                    value={swipeColor}
-                    onChange={event => {
-                      setSwipeColor(event.target.value)
-                      previewScene()
-                    }}
-                  />
-                </label>
-                <label className="field">
-                  <span className="field-label">Speed (sweeps/s)</span>
-                  <input
-                    className="field-input"
-                    type="number"
-                    step="0.1"
-                    min="0"
-                    value={swipeSpeed}
-                    onChange={event => setSwipeSpeed(Number(event.target.value) || 0)}
-                  />
-                </label>
-                <label className="field">
-                  <span className="field-label">Direction</span>
-                  <select
-                    className="field-input"
-                    value={swipeDirection}
-                    onChange={event => setSwipeDirection(event.target.value as 'right' | 'left')}
-                  >
-                    <option value="right">Left to right</option>
-                    <option value="left">Right to left</option>
-                  </select>
-                </label>
-              </>
-            )}
-
             <Button tone="secondary" onClick={() => void handleApplyScene()} disabled={sceneBusy}>
               {sceneBusy ? 'Updating...' : 'Apply scene'}
             </Button>

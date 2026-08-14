@@ -96,6 +96,61 @@ describe('Home route', () => {
     expect(await screen.findByText(/Topic: Packet Tricks/)).toBeInTheDocument()
   })
 
+  it('renders only the selected scene’s fields and sends them as API params', async () => {
+    const user = userEvent.setup()
+
+    render(
+      <MemoryRouter>
+        <Home />
+      </MemoryRouter>
+    )
+
+    // "off" declares no fields, so nothing scene-specific is on screen yet.
+    await screen.findByLabelText('Scene')
+    expect(screen.queryByLabelText('Solid color')).not.toBeInTheDocument()
+
+    await user.selectOptions(screen.getByLabelText('Scene'), 'swipe')
+
+    // Swipe's three fields appear; the other scenes' fields stay out of the DOM.
+    expect(screen.getByLabelText('Swipe color')).toBeInTheDocument()
+    expect(screen.getByLabelText('Speed (sweeps/s)')).toBeInTheDocument()
+    expect(screen.getByLabelText('Direction')).toBeInTheDocument()
+    expect(screen.queryByLabelText('Color A')).not.toBeInTheDocument()
+
+    await user.selectOptions(screen.getByLabelText('Direction'), 'left')
+    await user.click(screen.getByRole('button', { name: 'Apply scene' }))
+
+    await waitFor(() => {
+      // Colors convert to RGB tuples, numbers and selects pass through under the API param names.
+      expect(apiMocks.applyScene).toHaveBeenCalledWith('swipe', {
+        rgb: [199, 151, 69],
+        speed: 0.5,
+        direction: 'left',
+      })
+    })
+  })
+
+  it('keeps each scene’s field values separate when switching between them', async () => {
+    const user = userEvent.setup()
+
+    render(
+      <MemoryRouter>
+        <Home />
+      </MemoryRouter>
+    )
+
+    await screen.findByLabelText('Scene')
+    await user.selectOptions(screen.getByLabelText('Scene'), 'rainbow')
+    await user.clear(screen.getByLabelText('Speed (cycles/s)'))
+    await user.type(screen.getByLabelText('Speed (cycles/s)'), '2')
+
+    await user.selectOptions(screen.getByLabelText('Scene'), 'swipe')
+    expect(screen.getByLabelText('Speed (sweeps/s)')).toHaveValue(0.5)
+
+    await user.selectOptions(screen.getByLabelText('Scene'), 'rainbow')
+    expect(screen.getByLabelText('Speed (cycles/s)')).toHaveValue(2)
+  })
+
   it('appends the next page when showing more', async () => {
     const user = userEvent.setup()
     const second = { ...paperEngine, id: 2, title: 'Card College' }
