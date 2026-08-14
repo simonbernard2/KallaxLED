@@ -1,9 +1,5 @@
 import { useEffect, useMemo, useRef } from 'react'
 
-export const rgbToCSS = (rgb: [number, number, number]): string => `rgb(${rgb[0]},${rgb[1]},${rgb[2]})`
-
-export const isTurnedOff = (rgb: [number, number, number]): boolean => rgb.every(v => v === 0)
-
 export const hexToRgbTuple = (hex: string): [number, number, number] => {
   const sanitized = hex.replace('#', '')
   const value =

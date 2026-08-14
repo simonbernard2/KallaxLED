@@ -13,7 +13,7 @@ interface Options<T> {
   onPageLoaded?: (items: T[]) => void
 }
 
-export interface PagedList<T> {
+interface PagedList<T> {
   items: T[]
   total: number
   isLoading: boolean

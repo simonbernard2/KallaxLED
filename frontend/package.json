@@ -1,5 +1,5 @@
 {
-  "name": "",
+  "name": "kallaxled-frontend",
   "private": true,
   "type": "module",
   "scripts": {
@@ -14,13 +14,11 @@
   },
   "dependencies": {
     "@react-router/node": "^7.18.2",
-    "@react-router/serve": "^7.18.2",
     "axios": "^1.13.2",
-    "axios-hooks": "^5.1.1",
-    "isbot": "^5.1.31",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
-    "react-router": "^7.18.2"
+    "react-router": "^7.18.2",
+    "isbot": "^5"
   },
   "devDependencies": {
     "@react-router/dev": "^7.18.2",
@@ -31,7 +29,6 @@
     "@types/node": "^22",
     "@types/react": "^19.1.13",
     "@types/react-dom": "^19.1.9",
-    "baseline-browser-mapping": "^2.9.19",
     "jsdom": "^27.2.0",
     "prettier": "^3.6.2",
     "tailwindcss": "^4.1.13",

@@ -21,7 +21,6 @@ vi.mock('~/utils/api', () => ({
   highlightBookBox: apiMocks.highlightBookBox,
   listTopics: apiMocks.listTopics,
   searchBooks: apiMocks.searchBooks,
-  PAGE_SIZE: 50,
 }))
 
 const paperEngine = {

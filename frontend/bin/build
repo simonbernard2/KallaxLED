@@ -1,5 +1,12 @@
 #! /bin/bash -e
 
+# Builds the SPA and stages it where a single-origin deployment would serve it from.
+#
+# NOTE: this half is aspirational. `backend/main.py` does not mount StaticFiles, so nothing
+# actually serves `backend/public/client` yet — today the frontend runs as its own dev server and
+# talks to the Pi cross-origin (which is why CORS is wide open). Either wire the mount or drop
+# the copy; don't assume `bin/build` alone deploys anything.
+
 npm run build
 
 rm -rf ../backend/public/client
