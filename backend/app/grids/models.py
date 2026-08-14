@@ -72,6 +72,8 @@ class ArchiveEntry(SQLModel, table=True):
 
     id: int | None = Field(default=None, primary_key=True)
     publication_id: int = Field(foreign_key="archive_publications.id", index=True)
+    # Reserved, not live: the parser fills external_id but nothing reads it back yet (it is the
+    # hook for deep-linking to an archive entry), and summary is never written at all.
     external_id: str | None = Field(default=None, index=True)
     title: str
     page: str | None = None
@@ -91,6 +93,8 @@ class MagicTopic(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     name: str = Field(index=True)
     path: str = Field(index=True, unique=True)
+    # Reserved, not live: written on import, but nothing walks the hierarchy — topic search matches
+    # against the flat `path` string.
     parent_path: str | None = None
 
     entry_links: list["ArchiveEntryTopicLink"] = Relationship(back_populates="topic")

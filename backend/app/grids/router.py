@@ -2,7 +2,6 @@ from fastapi import APIRouter, HTTPException
 
 import app.grids.deps as deps
 import app.grids.dtos as dtos
-import app.grids.models as models
 
 router = APIRouter()
 
@@ -40,9 +39,3 @@ async def update_grid_leds(
         raise HTTPException(status_code=404, detail="grid not found")
     return dtos.GridResponse.from_grid(grid)
 
-
-@router.get("/boxes")
-async def get_boxes(grid_repo: deps.GridsRepoDep) -> list[models.Box]:
-    boxes = grid_repo.get_boxes()
-
-    return boxes

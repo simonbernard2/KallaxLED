@@ -52,11 +52,6 @@ class GridFileRepo:
         with Session(self.engine) as session:
             return session.exec(self._grid_statement()).first()
 
-    def get_boxes(self) -> list[models.Box]:
-        with Session(self.engine) as session:
-            statement = select(models.Box)
-            return list(session.exec(statement).all())
-
     def create_grid(self, grid: models.Grid) -> models.Grid:
         if grid.id is not None:
             raise InvalidRequestError("can't create a grid with an existing id")
@@ -349,7 +344,6 @@ class GridFileRepo:
                     title=parsed_entry.title,
                     page=parsed_entry.page,
                     creators=parsed_entry.creators,
-                    summary=parsed_entry.summary,
                 )
                 session.add(entry)
                 session.flush()

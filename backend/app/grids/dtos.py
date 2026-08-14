@@ -33,9 +33,6 @@ class GridUpdate(BaseModel):
     width: int = Field(ge=1, le=12)
     height: int = Field(ge=1, le=12)
 
-    def to_model(self, id: int) -> Grid:
-        return Grid(id=id, name=self.name)
-
 
 class BoxResponse(BaseModel):
     id: int
