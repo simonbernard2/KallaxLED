@@ -4,6 +4,7 @@ import { formatBoxLabel } from '~/grids/box-label'
 import GridDisplay from '~/grids/grid'
 import Button from '~/utils/components/button/button'
 import Input from '~/utils/components/input/input'
+import StatusBanner from '~/utils/components/status-banner/status-banner'
 import { getGrid, saveGridAssignments, toggleLedAssignment, updateLed, type Grid } from '~/utils/api'
 
 const MAX_LED_ID = 149
@@ -189,9 +190,9 @@ export default function ManageGridLeds() {
         </div>
       </section>
 
-      {isBusy && <div className="panel text-sm text-[var(--ink-muted)]">Working…</div>}
-      {status && <div className="panel text-sm text-[var(--forest-ink)]">{status}</div>}
-      {error && <div className="panel text-sm text-[var(--danger)]">{error}</div>}
+      <StatusBanner message={isBusy ? 'Working…' : null} tone="info" />
+      <StatusBanner message={status} />
+      <StatusBanner message={error} tone="error" />
     </div>
   )
 }

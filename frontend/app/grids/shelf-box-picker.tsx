@@ -1,5 +1,6 @@
 import GridDisplay from '~/grids/grid'
 import { formatBoxLabel } from '~/grids/box-label'
+import { assignableBoxes } from '~/grids/boxes'
 import type { Grid } from '~/utils/api'
 
 interface ShelfBoxPickerProps {
@@ -28,7 +29,7 @@ const ShelfBoxPicker = ({
   missingSelectionLabel = null,
   ariaLabel = 'Shelf box picker',
 }: ShelfBoxPickerProps) => {
-  const availableBoxes = grid?.boxes.flat().filter((box): box is typeof box & { id: number } => box.id != null) ?? []
+  const availableBoxes = assignableBoxes(grid)
   const hasAvailableBoxes = availableBoxes.length > 0
   const hasMissingSelection = selectedBoxId != null && !availableBoxes.some(box => box.id === selectedBoxId)
 

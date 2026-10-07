@@ -18,7 +18,9 @@ class Box(SQLModel, table=True):
 
     grid_id: int | None = Field(default=None, foreign_key="grid.id")
     grid: "Grid" = Relationship(back_populates="boxes")
-    books: list["LibraryBook"] = Relationship(back_populates="box", sa_relationship_kwargs={"cascade": "all, delete"})
+    # No delete cascade: a box is furniture, a book is data. Removing a shelf slot orphans the
+    # books that were in it (box_id -> NULL) and must never delete them.
+    books: list["LibraryBook"] = Relationship(back_populates="box")
 
 
 class Grid(SQLModel, table=True):
@@ -70,6 +72,8 @@ class ArchiveEntry(SQLModel, table=True):
 
     id: int | None = Field(default=None, primary_key=True)
     publication_id: int = Field(foreign_key="archive_publications.id", index=True)
+    # Reserved, not live: the parser fills external_id but nothing reads it back yet (it is the
+    # hook for deep-linking to an archive entry), and summary is never written at all.
     external_id: str | None = Field(default=None, index=True)
     title: str
     page: str | None = None
@@ -89,6 +93,8 @@ class MagicTopic(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     name: str = Field(index=True)
     path: str = Field(index=True, unique=True)
+    # Reserved, not live: written on import, but nothing walks the hierarchy — topic search matches
+    # against the flat `path` string.
     parent_path: str | None = None
 
     entry_links: list["ArchiveEntryTopicLink"] = Relationship(back_populates="topic")

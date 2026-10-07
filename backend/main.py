@@ -1,11 +1,12 @@
 import logging
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app.books.router import router as books_router
+from app.errors import DomainError
 from app.grids.deps import grid_repo
 from app.grids.router import router as grids_router
 from app.lights.deps import animation_engine
@@ -42,6 +43,14 @@ app.include_router(strips_router, prefix=api_prefix)
 app.include_router(grids_router, prefix=api_prefix)
 app.include_router(books_router, prefix=api_prefix)
 app.include_router(lights_router, prefix=api_prefix)
+
+
+@app.exception_handler(DomainError)
+async def handle_domain_error(_request: Request, exc: DomainError) -> JSONResponse:
+    # Starlette matches handlers along the exception's MRO, so this one registration covers every
+    # DomainError subclass. It runs inside ExceptionMiddleware — i.e. inside the HTTP middleware
+    # below — so the blanket 500 there only ever sees genuinely unhandled errors.
+    return JSONResponse(status_code=exc.status_code, content={"detail": str(exc)})
 
 
 app.add_middleware(

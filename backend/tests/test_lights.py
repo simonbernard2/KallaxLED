@@ -73,6 +73,45 @@ def test_unknown_scene_and_bad_params_are_rejected(client_with_stub):
     assert not animation_engine().is_running()
 
 
+def test_out_of_range_rgb_is_rejected_rather_than_crashing_the_lut(client_with_stub):
+    client, _ = client_with_stub
+    grid = create_checker_grid(client)
+    box_id = grid["boxes"][0][0]["id"]
+
+    # The gamma LUT has 256 entries, so an unbounded channel used to be an IndexError -> 500.
+    assert client.post("/api/lights/highlight", json={"box_id": box_id, "rgb": [0, 0, 300]}).status_code == 422
+    assert client.post("/api/lights/highlight", json={"box_id": box_id, "rgb": [-1, 0, 0]}).status_code == 422
+    assert client.put("/api/leds/0", json={"rgb": [300, 0, 0]}).status_code == 422
+
+    solid = client.post("/api/lights/scene", json={"name": "solid", "params": {"rgb": [300, 0, 0]}})
+    assert solid.status_code == 400
+
+    checker = client.post(
+        "/api/lights/scene",
+        json={"name": "checkerboard", "params": {"color_a": [0, 0, 0], "color_b": [0, 0, 999]}},
+    )
+    assert checker.status_code == 400
+
+
+def test_solid_scene_lights_every_assigned_led(client_with_stub):
+    client, stub = client_with_stub
+    create_checker_grid(client)
+
+    response = client.post("/api/lights/scene", json={"name": "solid", "params": {"rgb": [10, 20, 30]}})
+
+    assert response.status_code == 200
+    assert response.json()["active_scene"] == "solid"
+    assert not animation_engine().is_running()
+    assert stub.last_update == ([0, 1, 2, 3], (10, 20, 30))
+
+
+def test_solid_scene_without_rgb_is_rejected(client_with_stub):
+    client, _ = client_with_stub
+    create_checker_grid(client)
+
+    assert client.post("/api/lights/scene", json={"name": "solid", "params": {}}).status_code == 400
+
+
 def test_animated_scene_without_grid_is_404(client_with_stub):
     client, _ = client_with_stub
 

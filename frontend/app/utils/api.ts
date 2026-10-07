@@ -2,10 +2,6 @@ import axios from 'axios'
 
 import { DEFAULT_PAGE_SIZE } from '~/utils/settings'
 
-export interface ColorPayload {
-  rgb: [number, number, number]
-}
-
 export interface LED {
   id: number
   rgb: [number, number, number]
@@ -148,18 +144,6 @@ export interface PageParams {
 const apiClient = axios.create({
   baseURL: import.meta.env.VITE_BACKEND_URL,
 })
-
-export const createBoxes = (width: number, height: number): Box[][] => {
-  const boxes: Box[][] = []
-  for (let y = 0; y < height; y += 1) {
-    const row: Box[] = []
-    for (let x = 0; x < width; x += 1) {
-      row.push({ x, y, leds: [] })
-    }
-    boxes.push(row)
-  }
-  return boxes
-}
 
 export const toggleLedAssignment = (grid: Grid, ledId: number, rowIndex: number, columnIndex: number): Grid => {
   const nextGrid = structuredClone(grid)

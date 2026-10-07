@@ -10,6 +10,7 @@ from sqlmodel import Session, col, select
 import app.grids.models as models
 from app.archive.parser import ParsedArchivePublication
 from app.db import create_sqlite_engine, resolve_database_path, run_migrations
+from app.errors import ConflictError, InvalidRequestError
 
 
 @dataclass
@@ -51,28 +52,14 @@ class GridFileRepo:
         with Session(self.engine) as session:
             return session.exec(self._grid_statement()).first()
 
-    def delete_grid(self) -> models.Grid | None:
-        with Session(self.engine) as session:
-            grid = session.exec(select(models.Grid)).first()
-            if grid is None:
-                return None
-            session.delete(grid)
-            session.commit()
-            return grid
-
-    def get_boxes(self) -> list[models.Box]:
-        with Session(self.engine) as session:
-            statement = select(models.Box)
-            return list(session.exec(statement).all())
-
     def create_grid(self, grid: models.Grid) -> models.Grid:
         if grid.id is not None:
-            raise Exception("can't create a grid with an existing id")
+            raise InvalidRequestError("can't create a grid with an existing id")
 
         with Session(self.engine) as session:
             existing = session.exec(select(models.Grid)).first()
             if existing is not None:
-                raise Exception("grid already exists")
+                raise ConflictError("grid already exists")
             session.add(grid)
             session.commit()
             session.refresh(grid)
@@ -99,8 +86,10 @@ class GridFileRepo:
             removed_box_ids = {box.id for box in removed_boxes if box.id is not None}
 
             if removed_box_ids:
-                # Unassign books from removed boxes (and flush) so deleting the boxes does not
-                # cascade-delete the books — the shelf resize should keep them, just orphaned.
+                # Orphan the books explicitly before the boxes go. `Box.books` carries no delete
+                # cascade, so SQLAlchemy would null `box_id` anyway — but that relies on the
+                # collection being loaded at flush time. Saying it outright costs one UPDATE and
+                # keeps the resize correct regardless of how the relationship is configured later.
                 removed_books = session.exec(
                     select(models.LibraryBook).where(col(models.LibraryBook.box_id).in_(removed_box_ids))
                 ).all()
@@ -138,7 +127,7 @@ class GridFileRepo:
             for box_id, leds in assignments.items():
                 box = session.get(models.Box, box_id)
                 if box is None:
-                    raise Exception(f"missing box id={box_id}")
+                    raise InvalidRequestError(f"missing box id={box_id}")
                 box.leds = leds
                 session.add(box)
             session.commit()
@@ -149,7 +138,7 @@ class GridFileRepo:
 
     def create_book(self, book: models.LibraryBook) -> models.LibraryBook:
         if book.id is not None:
-            raise Exception("can't create a book with an existing id")
+            raise InvalidRequestError("can't create a book with an existing id")
         with Session(self.engine) as session:
             session.add(book)
             session.commit()
@@ -355,7 +344,6 @@ class GridFileRepo:
                     title=parsed_entry.title,
                     page=parsed_entry.page,
                     creators=parsed_entry.creators,
-                    summary=parsed_entry.summary,
                 )
                 session.add(entry)
                 session.flush()

@@ -1,9 +1,12 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { formatBoxLabel } from '~/grids/box-label'
+import { assignableBoxes } from '~/grids/boxes'
 import ShelfBoxPicker from '~/grids/shelf-box-picker'
 import BookRow from '~/utils/components/book-row/book-row'
 import Button from '~/utils/components/button/button'
 import Input from '~/utils/components/input/input'
+import { PagedListShowMore, PagedListSummary } from '~/utils/components/paged-list-footer/paged-list-footer'
+import StatusBanner from '~/utils/components/status-banner/status-banner'
 import {
   createBook,
   deleteBook,
@@ -76,10 +79,7 @@ export default function ManageBooks() {
   })
   const { error, setError } = books
 
-  const boxes = useMemo(
-    () => (grid ? grid.boxes.flat().filter((box): box is typeof box & { id: number } => box.id != null) : []),
-    [grid]
-  )
+  const boxes = useMemo(() => assignableBoxes(grid), [grid])
 
   const hasCurrentBox = (boxId: number | null) => boxId != null && boxes.some(box => box.id === boxId)
 
@@ -352,11 +352,13 @@ export default function ManageBooks() {
 
       <section className="flex flex-col gap-3">
         <p className="text-sm text-[var(--ink-muted)]">
-          {books.isLoading
-            ? 'Loading…'
-            : books.total === books.items.length
-              ? `${books.total} ${books.total === 1 ? 'book' : 'books'} in the catalog`
-              : `Showing ${books.items.length} of ${books.total} books`}
+          <PagedListSummary
+            isLoading={books.isLoading}
+            total={books.total}
+            loadedCount={books.items.length}
+            loadingLabel="Loading…"
+            totalSuffix="in the catalog"
+          />
         </p>
 
         {books.items.map(book => (
@@ -484,19 +486,20 @@ export default function ManageBooks() {
           </BookRow>
         ))}
 
-        {books.hasMore && (
-          <Button tone="ghost" onClick={() => void books.showMore()} disabled={books.isLoadingMore}>
-            {books.isLoadingMore ? 'Loading…' : `Show ${books.nextPageCount} more`}
-          </Button>
-        )}
+        <PagedListShowMore
+          hasMore={books.hasMore}
+          isLoadingMore={books.isLoadingMore}
+          nextPageCount={books.nextPageCount}
+          showMore={() => void books.showMore()}
+        />
 
         {!books.isLoading && books.items.length === 0 && (
           <div className="panel text-sm text-[var(--ink-muted)]">No books yet. Add your first shelf title above.</div>
         )}
       </section>
 
-      {status && <div className="panel text-sm text-[var(--forest-ink)]">{status}</div>}
-      {error && <div className="panel text-sm text-[var(--danger)]">{error}</div>}
+      <StatusBanner message={status} />
+      <StatusBanner message={error} tone="error" />
     </div>
   )
 }

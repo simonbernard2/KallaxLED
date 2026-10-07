@@ -1,7 +1,53 @@
+from sqlmodel import Session, select
+
+import app.grids.models as models
+from app.grids.repo import GridFileRepo
+
+
 def create_grid(client, width=2, height=2):
     response = client.post("/api/grid", json={"name": "Main", "width": width, "height": height})
     assert response.status_code == 200
     return response.json()
+
+
+def test_deleting_a_box_orphans_its_books_instead_of_deleting_them(tmp_path):
+    # Asserted at the ORM level on purpose. The resize test below passes even with a delete
+    # cascade on Box.books, because update_grid unassigns the books first — so only a direct
+    # box delete proves the relationship itself is safe.
+    repo = GridFileRepo(tmp_path / "db")
+    grid = repo.create_grid(models.Grid(name="Main", boxes=[models.Box(x=0, y=0, leds=[])]))
+    box_id = grid.boxes[0].id
+    assert box_id is not None
+    repo.create_book(models.LibraryBook(title="Keeper", author="Test", box_id=box_id))
+
+    with Session(repo.engine) as session:
+        session.delete(session.get(models.Box, box_id))
+        session.commit()
+
+    with Session(repo.engine) as session:
+        books = list(session.exec(select(models.LibraryBook)).all())
+
+    assert len(books) == 1
+    assert books[0].title == "Keeper"
+    assert books[0].box_id is None
+
+
+def test_creating_a_second_grid_conflicts(client_with_stub):
+    client, _ = client_with_stub
+    create_grid(client)
+
+    response = client.post("/api/grid", json={"name": "Another", "width": 2, "height": 2})
+    assert response.status_code == 409
+    assert response.json()["detail"] == "grid already exists"
+
+
+def test_assigning_leds_to_a_missing_box_is_rejected(client_with_stub):
+    client, _ = client_with_stub
+    create_grid(client)
+
+    response = client.put("/api/grid/leds", json={"9999": [0, 1]})
+    assert response.status_code == 400
+    assert "9999" in response.json()["detail"]
 
 
 def test_grid_resize_preserves_existing_boxes_and_adds_new_ones(client_with_stub):

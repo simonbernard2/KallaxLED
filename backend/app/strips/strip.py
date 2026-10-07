@@ -53,11 +53,6 @@ class Strip:
         self._set(index, color.rgb)
         self.pixels.show()
 
-    def update_leds(self, leds: list[LED]) -> None:
-        for led in leds:
-            self._set(led.id, led.rgb)
-        self.pixels.show()
-
     def update_leds_by_ids(self, led_ids: list[int], color: Color | tuple[int, int, int]) -> None:
         rgb = color.rgb if isinstance(color, Color) else color
         for led_id in led_ids:

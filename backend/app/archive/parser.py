@@ -25,7 +25,6 @@ class ParsedArchiveEntry:
     creators: list[str] = field(default_factory=list)
     topic_paths: list[str] = field(default_factory=list)
     external_id: str | None = None
-    summary: str | None = None
 
 
 @dataclass

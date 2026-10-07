@@ -52,11 +52,14 @@ def apply_scene(
         return
 
     if name == "solid":
-        rgb = params.get("rgb")
-        led_ids = _collect_led_ids(grid)
         led_strip.turn_off()
-        if led_ids and isinstance(rgb, (list, tuple)) and len(rgb) == 3:
-            led_strip.update_leds_by_ids(led_ids, (rgb[0], rgb[1], rgb[2]))
+        try:
+            solid = dtos.SolidParams(**params)
+        except ValidationError:
+            return
+        led_ids = _collect_led_ids(grid)
+        if led_ids:
+            led_strip.update_leds_by_ids(led_ids, solid.rgb)
         return
 
     render = ANIMATIONS.get(name)
@@ -119,7 +122,9 @@ async def set_scene(
     led_strip: strips_deps.LedStripDep,
     engine: lights_deps.AnimationEngineDep,
 ) -> dtos.LightingStateResponse:
-    allowed = {"off", "solid"} | set(ANIMATIONS)
+    # Derived from the param-model map rather than listed again, so the accept check and the
+    # validation lookup below can never disagree about which scenes exist.
+    allowed = {"off"} | set(dtos.SCENE_PARAM_MODELS)
     if request.name not in allowed:
         raise HTTPException(status_code=400, detail="unknown scene")
 
@@ -129,15 +134,10 @@ async def set_scene(
         led_strip.turn_off()
         return _state_to_response(state)
 
-    if request.name == "solid":
-        rgb = request.params.get("rgb")
-        if not isinstance(rgb, (list, tuple)) or len(rgb) != 3:
-            raise HTTPException(status_code=400, detail="solid scene requires params.rgb")
-    else:
-        try:
-            dtos.ANIMATION_PARAM_MODELS[request.name](**request.params)
-        except ValidationError as exc:
-            raise HTTPException(status_code=400, detail=f"invalid {request.name} params: {exc}")
+    try:
+        dtos.SCENE_PARAM_MODELS[request.name](**request.params)
+    except ValidationError as exc:
+        raise HTTPException(status_code=400, detail=f"invalid {request.name} params: {exc}") from exc
 
     grid = grid_repo.get_grid()
     if grid is None:

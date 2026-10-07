@@ -27,7 +27,6 @@ vi.mock('~/utils/api', () => ({
   linkBookArchive: apiMocks.linkBookArchive,
   listBooks: apiMocks.listBooks,
   updateBook: apiMocks.updateBook,
-  PAGE_SIZE: 50,
 }))
 
 const buildBook = (overrides: Record<string, unknown> = {}) => ({
