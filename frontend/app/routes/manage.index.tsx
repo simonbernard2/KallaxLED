@@ -18,6 +18,11 @@ const overviewCards = [
     href: '/manage/grid/leds',
   },
   {
+    title: 'Install',
+    description: 'A beginner-friendly, step-by-step guide to fitting the LED strip on the real shelf.',
+    href: '/manage/install',
+  },
+  {
     title: 'Settings',
     description: 'Tune how this device displays the shelf, including how many results each page holds.',
     href: '/manage/settings',
