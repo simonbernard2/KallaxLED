@@ -2,11 +2,6 @@
 
 KallaxLED is a reader-first bookshelf app for finding a book or magic topic fast and lighting the correct shelf box.
 
-## Hardware & Installation
-
-Installing the LED strip, power supply and wiring on a Kallax shelf (no drilling, no electronics
-experience assumed) is covered step by step in the [installation guide](./installation_guide/README.md).
-
 ## Product Direction
 
 - Primary audience: the person standing in front of the shelf who wants to find a book quickly.
