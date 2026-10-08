@@ -47,6 +47,7 @@ Nothing yet; this is the shopping step.
 |---|---|---|---|
 | Power wire | Stranded, 16 AWG (1.5 mm²), red and black | about 6 m of each to start | For the supply feed and vertical rails. **Measure before buying in step 2.** Use thicker (smaller AWG number) wire for runs over 1 m. |
 | Row tap wire | Stranded, 18 AWG (1 mm²), red and black | about 5 m of each | From the rail to each row. |
+| Pad pigtail wire | Flexible stranded, 20 AWG (0.5 mm²), red and black | about 2 m of each | The short flexible wires soldered to the strip's pads for power; thick wire is too stiff for the pads. |
 | Data / jumper wire | Flexible stranded, 22 AWG, 3 colours, e.g. red / black / green | about 3 m | Row-to-row jumpers and the data wire. |
 | Lever-nut splice connectors | 3-way and 5-way, rated for the current | 8 | Join many wires with no solder. Check the connector's current rating. |
 | Solderless strip connectors (optional) | 3-pin for **10 mm wide** WS2812 strip, **VERIFY** your strip's width | 8 | Only if you will not solder. See [step 5](05-cut-and-join.md). |

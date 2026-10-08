@@ -140,10 +140,10 @@ Every piece must be stuck down **in the data direction of the chain**: the arrow
 
 ### Power injection: feeding each row separately
 
-A long strip is a long, thin copper track. As current flows, the voltage falls along it, so the far end gets less than 5 V and white turns yellow-red. To avoid that, **feed power into the start of every row** (a *tap*). Each row is 50 LEDs, and a row's own supply path is short.
+A long strip is a long, thin copper track. As current flows, the voltage falls along it, so the far end gets less than 5 V and white turns yellow-red. To avoid that, **feed power into every row separately** (a *tap*). Each row is 50 LEDs, so its own run is short.
 
-- **Required:** a tap (+5 V and ground) at the **start** of every row.
-- **Optional:** a second tap at the **end** of the row. Measure in [step 4](04-floor-test.md) to see if you need it.
+- **Required:** a tap (+5 V and ground) at the **left end of every row**. That is the start of rows 1, 3 and 5 and the *finish* of rows 2 and 4. Power doesn't care which end it enters, and putting every tap on the left means **one power run up the left side** of the shelf instead of two.
+- **Optional:** a second tap at the right end of each row. Measure in [step 4](04-floor-test.md) to see if you need it.
 - The data wire between rows carries **data and ground only**. Each row gets its own +5 V from the rail, so don't connect +5 V from one row's end to the next row's start.
 - **Never connect the +5 V of two different supplies together.** Zone 1 and zone 2 each have their own supply; **only their grounds are joined**. See the wiring in [step 3](03-bench-build.md).
 
@@ -151,7 +151,7 @@ A long strip is a long, thin copper track. As current flows, the voltage falls a
 
 Guideline (**VERIFY** against your wire's and fuse's own ratings):
 - Supply to rail (up to 9 A): **16 AWG** (1.5 mm²), as short as you can, under 1.5 m per run.
-- Rail to each row tap (about 3 A): **18 AWG** (1 mm²).
+- Power run to each row tap (about 3 A): **18 AWG** (1 mm²), with a **20 AWG** (0.5 mm²) flexible pigtail of about 10 cm for the last bit that is soldered to the strip's pad.
 - Data and jumpers (a few mA): **22 AWG**.
 - One inline fuse right after each supply, rated a little above the zone's worst case (e.g. 10 A for the 9 A zone) and **never above the rating of the thinnest wire it protects**.
 
@@ -168,8 +168,8 @@ Fill these in with the tape measure; they decide how much wire you buy.
 | Controller to the start of row 1 (data + ground) | As short as possible. Up to about 0.5 m is fine (**VERIFY** by testing: a short data wire is the safest). | |
 | Row-to-row jumper (one per row change, 4 in total) | About one box pitch (35 cm) up, plus about 10 cm slack | |
 | Supply 1 to the rail (+ and −) | | |
-| Rail up the side of the shelf | The shelf height (about 1.8 m), once on each side if you tap both ends | |
-| Rail to each row tap | About 0.3 m each | |
+| Power run up the **left** side of the shelf (one pair per zone) | Up to the top row: the shelf height (about 1.8 m). Add a second run up the right side only if the floor test says you need taps at both ends. | |
+| Run from the power run to each row's tap | About 0.3 m each | |
 | Mains cable to the wall | Whatever the supply comes with, plus a power strip | |
 
 Add 15 % to every length and round up.
