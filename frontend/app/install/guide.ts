@@ -123,5 +123,3 @@ export const guideSteps: GuideStep[] = [
     checklist: [{ id: 'all-boxes-light', label: 'Every box lights up correctly' }],
   },
 ]
-
-export const findStep = (slug: string | undefined): GuideStep | undefined => guideSteps.find(step => step.slug === slug)
