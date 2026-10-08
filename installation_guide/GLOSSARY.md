@@ -12,7 +12,7 @@ Every term the guide uses, in plain words. Alphabetical. If a word in a step is 
 
 **Back panel** — The thin board that closes the back of a normal Kallax. Yours has been removed, so the wall is the back of every box.
 
-**BCM number** — The software's numbering of Raspberry Pi pins ("GPIO 18"). It is *not* the same as the *physical pin number* (the position on the header). GPIO 18 is physical pin 12. See [03 Bench build](03-bench-build.md#the-pi-header).
+**BCM number** — The software's numbering of Raspberry Pi pins ("GPIO 18"). It is *not* the same as the *physical pin number* (the position on the header). GPIO 18 is physical pin 12. See [03 Bench build](03-bench-build.md#32-the-pi-header).
 
 **Breadboard** — A plastic board full of little holes that are wired together in rows inside. You push component legs and jumper wires into the holes to build a circuit without soldering. Good for testing, not for permanent use.
 

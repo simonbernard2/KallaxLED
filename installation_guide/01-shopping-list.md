@@ -64,7 +64,7 @@ Nothing yet; this is the shopping step.
 | Cable ties and tidy sleeve | | |
 | Self-adhesive hook-and-loop strips | | To hang the control box on the side of the shelf. |
 | Small ventilated plastic box | Room for the Pi, breadboard or board, and wiring | For the controller. Don't seal it: the Pi needs air. |
-| Spacers (optional) | Small wooden blocks or rubber feet, 3 to 5 cm | To pull the shelf slightly forward from the wall. See [step 2](02-plan-your-layout.md#will-the-glow-look-good). |
+| Spacers (optional) | Small wooden blocks or rubber feet, 3 to 5 cm | To pull the shelf slightly forward from the wall. See [step 2](02-plan-your-layout.md#24-will-the-glow-look-good). |
 | Aluminium channel with opal cover (optional) | Wide enough for a 10 mm strip | Only for the alternative positions B or C in step 2. |
 
 ## Tools

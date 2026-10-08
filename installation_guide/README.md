@@ -82,5 +82,5 @@ Things the app does today that affect the hardware. These are noted here only so
 |---|---|---|
 | Number of LEDs | Fixed at 150 (`backend/app/strips/strip.py`, `backend/bin/gpio_test.py`, and the highest LED number in `frontend/app/routes/manage.grid-leds.tsx` is 149) | Stage 1 fits exactly. Stage 2 needs a software change. |
 | Data pin | GPIO 18 (`board.D18`), fixed | Wire the data line to physical pin 12 and nowhere else. |
-| Brightness | No brightness setting. The brightness is whatever colour you pick, and a white `solid` scene is full power. | The power supply must be sized for full white, or you must avoid full white. See [02 Plan your layout](02-plan-your-layout.md#power-budget). |
+| Brightness | No brightness setting. The brightness is whatever colour you pick, and a white `solid` scene is full power. | The power supply must be sized for full white, or you must avoid full white. See [02 Plan your layout](02-plan-your-layout.md#26-power-budget). |
 | Box to LED mapping | Each box has a free list of LED numbers (any length, any order). You set it in **Manage → Grid → LED setup**. | Boxes may have different numbers of LEDs. See [07 Map LEDs to boxes](07-map-leds-to-boxes.md). |

@@ -1,6 +1,6 @@
 # Photo placeholders
 
-The guide links here wherever a photo of your own build would make a step clearer. Nothing in the guide depends on them: every step also has a diagram or a table. When you have taken a picture, save it in this folder (JPEG or PNG, under about 1 MB each) and replace the `[Photo: ...](images/photos/PLACEHOLDER.md)` link in the step with `![description](images/photos/your-file.jpg)`.
+The guide links here wherever a photo of your own build would make a step clearer. Nothing in the guide depends on them: every step also has a diagram or a table. When you have taken a picture, save it in this folder (JPEG or PNG, under about 1 MB each) and replace the "Photo:" line in the step with a normal Markdown image that points at your file.
 
 ## Shot list
 
