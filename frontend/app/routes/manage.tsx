@@ -4,6 +4,7 @@ const sections = [
   { path: '/manage/books', label: 'Books' },
   { path: '/manage/grid', label: 'Grid' },
   { path: '/manage/grid/leds', label: 'LED Setup' },
+  { path: '/manage/install', label: 'Install' },
   { path: '/manage/settings', label: 'Settings' },
 ]
 
