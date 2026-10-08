@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 840 360" width="840" height="360" role="img" aria-labelledby="t d">
+  <title id="t">Raspberry Pi 40-pin header: the pins this project uses</title>
+  <desc id="d">Two rows of 20 pins. Physical pin 12 is GPIO 18 and carries the data. Physical pin 6 is ground. Pins 2 and 4 are 5 V and are not used for the strip. Pin 18 is GPIO 24 and is a common mix-up.</desc>
+  <rect width="840" height="360" fill="#ffffff"/>
+  <style>
+    text { font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif; fill: #1f2328; font-size: 12px; }
+    .title { font-size: 18px; font-weight: 700; }
+    .num { font-size: 12px; font-weight: 700; text-anchor: middle; }
+    .name { font-size: 11px; }
+    .small { font-size: 12px; }
+  </style>
+  <text x="420" y="26" text-anchor="middle" class="title">The Pi's 40 pins (header along the top edge, SD card slot at the left)</text>
+  <line x1="30" y1="132" x2="810" y2="132" stroke="#8c959f" stroke-width="3" stroke-dasharray="2 6"/>
+  <text x="30" y="124" class="small">edge of the board</text>
+  <rect x="42" y="144" width="756" height="84" rx="6" fill="#f6f8fa" stroke="#8c959f" stroke-width="2"/>
+
+  <!-- even pins (top row), x = 60 + 38*i -->
+  <g id="top">
+    <g transform="translate(60,170)"><circle r="13" fill="#cf222e"/><text class="num" y="4" style="fill:#fff">2</text></g>
+    <g transform="translate(98,170)"><circle r="13" fill="#cf222e"/><text class="num" y="4" style="fill:#fff">4</text></g>
+    <g transform="translate(136,170)"><circle r="13" fill="#1f2328"/><text class="num" y="4" style="fill:#fff">6</text></g>
+    <g transform="translate(174,170)"><circle r="13" fill="#d0d7de"/><text class="num" y="4">8</text></g>
+    <g transform="translate(212,170)"><circle r="13" fill="#d0d7de"/><text class="num" y="4">10</text></g>
+    <g transform="translate(250,170)"><circle r="13" fill="#1a7f37"/><text class="num" y="4" style="fill:#fff">12</text></g>
+    <g transform="translate(288,170)"><circle r="13" fill="#1f2328"/><text class="num" y="4" style="fill:#fff">14</text></g>
+    <g transform="translate(326,170)"><circle r="13" fill="#d0d7de"/><text class="num" y="4">16</text></g>
+    <g transform="translate(364,170)"><circle r="13" fill="#fff8c5" stroke="#bf8700" stroke-width="2"/><text class="num" y="4">18</text></g>
+    <g transform="translate(402,170)"><circle r="13" fill="#1f2328"/><text class="num" y="4" style="fill:#fff">20</text></g>
+    <g transform="translate(440,170)"><circle r="13" fill="#d0d7de"/><text class="num" y="4">22</text></g>
+    <g transform="translate(478,170)"><circle r="13" fill="#d0d7de"/><text class="num" y="4">24</text></g>
+    <g transform="translate(516,170)"><circle r="13" fill="#d0d7de"/><text class="num" y="4">26</text></g>
+    <g transform="translate(554,170)"><circle r="13" fill="#d0d7de"/><text class="num" y="4">28</text></g>
+    <g transform="translate(592,170)"><circle r="13" fill="#1f2328"/><text class="num" y="4" style="fill:#fff">30</text></g>
+    <g transform="translate(630,170)"><circle r="13" fill="#d0d7de"/><text class="num" y="4">32</text></g>
+    <g transform="translate(668,170)"><circle r="13" fill="#1f2328"/><text class="num" y="4" style="fill:#fff">34</text></g>
+    <g transform="translate(706,170)"><circle r="13" fill="#d0d7de"/><text class="num" y="4">36</text></g>
+    <g transform="translate(744,170)"><circle r="13" fill="#d0d7de"/><text class="num" y="4">38</text></g>
+    <g transform="translate(782,170)"><circle r="13" fill="#d0d7de"/><text class="num" y="4">40</text></g>
+  </g>
+  <!-- names above the top row, rotated -->
+  <g class="name">
+    <text transform="translate(64,152) rotate(-90)" >5V</text>
+    <text transform="translate(102,152) rotate(-90)">5V</text>
+    <text transform="translate(140,152) rotate(-90)">GND</text>
+    <text transform="translate(178,152) rotate(-90)">GPIO14</text>
+    <text transform="translate(216,152) rotate(-90)">GPIO15</text>
+    <text transform="translate(254,152) rotate(-90)" style="font-weight:700">GPIO18</text>
+    <text transform="translate(292,152) rotate(-90)">GND</text>
+    <text transform="translate(330,152) rotate(-90)">GPIO23</text>
+    <text transform="translate(368,152) rotate(-90)">GPIO24</text>
+    <text transform="translate(406,152) rotate(-90)">GND</text>
+    <text transform="translate(444,152) rotate(-90)">GPIO25</text>
+    <text transform="translate(482,152) rotate(-90)">GPIO8</text>
+    <text transform="translate(520,152) rotate(-90)">GPIO7</text>
+    <text transform="translate(558,152) rotate(-90)">ID_SC</text>
+    <text transform="translate(596,152) rotate(-90)">GND</text>
+    <text transform="translate(634,152) rotate(-90)">GPIO12</text>
+    <text transform="translate(672,152) rotate(-90)">GND</text>
+    <text transform="translate(710,152) rotate(-90)">GPIO16</text>
+    <text transform="translate(748,152) rotate(-90)">GPIO20</text>
+    <text transform="translate(786,152) rotate(-90)">GPIO21</text>
+  </g>
+
+  <!-- odd pins (bottom row) -->
+  <g>
+    <g transform="translate(60,202)"><circle r="13" fill="#f0883e"/><text class="num" y="4">1</text></g>
+    <g transform="translate(98,202)"><circle r="13" fill="#d0d7de"/><text class="num" y="4">3</text></g>
+    <g transform="translate(136,202)"><circle r="13" fill="#d0d7de"/><text class="num" y="4">5</text></g>
+    <g transform="translate(174,202)"><circle r="13" fill="#d0d7de"/><text class="num" y="4">7</text></g>
+    <g transform="translate(212,202)"><circle r="13" fill="#1f2328"/><text class="num" y="4" style="fill:#fff">9</text></g>
+    <g transform="translate(250,202)"><circle r="13" fill="#d0d7de"/><text class="num" y="4">11</text></g>
+    <g transform="translate(288,202)"><circle r="13" fill="#d0d7de"/><text class="num" y="4">13</text></g>
+    <g transform="translate(326,202)"><circle r="13" fill="#d0d7de"/><text class="num" y="4">15</text></g>
+    <g transform="translate(364,202)"><circle r="13" fill="#f0883e"/><text class="num" y="4">17</text></g>
+    <g transform="translate(402,202)"><circle r="13" fill="#d0d7de"/><text class="num" y="4">19</text></g>
+    <g transform="translate(440,202)"><circle r="13" fill="#d0d7de"/><text class="num" y="4">21</text></g>
+    <g transform="translate(478,202)"><circle r="13" fill="#d0d7de"/><text class="num" y="4">23</text></g>
+    <g transform="translate(516,202)"><circle r="13" fill="#1f2328"/><text class="num" y="4" style="fill:#fff">25</text></g>
+    <g transform="translate(554,202)"><circle r="13" fill="#d0d7de"/><text class="num" y="4">27</text></g>
+    <g transform="translate(592,202)"><circle r="13" fill="#d0d7de"/><text class="num" y="4">29</text></g>
+    <g transform="translate(630,202)"><circle r="13" fill="#d0d7de"/><text class="num" y="4">31</text></g>
+    <g transform="translate(668,202)"><circle r="13" fill="#d0d7de"/><text class="num" y="4">33</text></g>
+    <g transform="translate(706,202)"><circle r="13" fill="#d0d7de"/><text class="num" y="4">35</text></g>
+    <g transform="translate(744,202)"><circle r="13" fill="#d0d7de"/><text class="num" y="4">37</text></g>
+    <g transform="translate(782,202)"><circle r="13" fill="#1f2328"/><text class="num" y="4" style="fill:#fff">39</text></g>
+  </g>
+  <g class="name">
+    <text transform="translate(64,220) rotate(90)">3V3</text>
+    <text transform="translate(102,220) rotate(90)">GPIO2</text>
+    <text transform="translate(140,220) rotate(90)">GPIO3</text>
+    <text transform="translate(178,220) rotate(90)">GPIO4</text>
+    <text transform="translate(216,220) rotate(90)">GND</text>
+    <text transform="translate(254,220) rotate(90)">GPIO17</text>
+    <text transform="translate(292,220) rotate(90)">GPIO27</text>
+    <text transform="translate(330,220) rotate(90)">GPIO22</text>
+    <text transform="translate(368,220) rotate(90)">3V3</text>
+    <text transform="translate(406,220) rotate(90)">GPIO10</text>
+    <text transform="translate(444,220) rotate(90)">GPIO9</text>
+    <text transform="translate(482,220) rotate(90)">GPIO11</text>
+    <text transform="translate(520,220) rotate(90)">GND</text>
+    <text transform="translate(558,220) rotate(90)">ID_SD</text>
+    <text transform="translate(596,220) rotate(90)">GPIO5</text>
+    <text transform="translate(634,220) rotate(90)">GPIO6</text>
+    <text transform="translate(672,220) rotate(90)">GPIO13</text>
+    <text transform="translate(710,220) rotate(90)">GPIO19</text>
+    <text transform="translate(748,220) rotate(90)">GPIO26</text>
+    <text transform="translate(786,220) rotate(90)">GND</text>
+  </g>
+
+  <!-- callouts -->
+  <g class="small">
+    <text x="60" y="64" style="font-weight:700;fill:#cf222e">pins 2 and 4 = 5 V</text>
+    <text x="60" y="80" style="fill:#cf222e">never feed the strip from here</text>
+    <text x="136" y="96" text-anchor="middle" style="font-weight:700">pin 6 = GND</text>
+    <line x1="146" y1="102" x2="146" y2="134" stroke="#1f2328" stroke-width="2"/>
+    <text x="262" y="64" style="font-weight:700;fill:#1a7f37">pin 12 = GPIO 18</text>
+    <text x="262" y="80" style="fill:#1a7f37">DATA to the level shifter</text>
+    <line x1="262" y1="86" x2="262" y2="134" stroke="#1a7f37" stroke-width="2"/>
+    <text x="440" y="64" style="font-weight:700;fill:#9a6700">pin 18 = GPIO 24</text>
+    <text x="440" y="80" style="fill:#9a6700">NOT the data pin (common mix-up)</text>
+    <line x1="376" y1="102" x2="376" y2="134" stroke="#bf8700" stroke-width="2"/>
+    <line x1="376" y1="102" x2="436" y2="102" stroke="#bf8700" stroke-width="2"/>
+    <line x1="436" y1="102" x2="436" y2="84" stroke="#bf8700" stroke-width="2"/>
+  </g>
+
+  <!-- legend -->
+  <g class="small">
+    <circle cx="60" cy="330" r="8" fill="#1a7f37"/><text x="74" y="334">data (used)</text>
+    <circle cx="170" cy="330" r="8" fill="#1f2328"/><text x="184" y="334">ground</text>
+    <circle cx="260" cy="330" r="8" fill="#cf222e"/><text x="274" y="334">5 V (do not use for the strip)</text>
+    <circle cx="450" cy="330" r="8" fill="#f0883e"/><text x="464" y="334">3.3 V</text>
+    <circle cx="540" cy="330" r="8" fill="#d0d7de"/><text x="554" y="334">other GPIO</text>
+    <text x="42" y="352">Pin 1 is at the left end of the lower row, next to the corner nearest the SD card slot.</text>
+  </g>
+</svg>
